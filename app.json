@@ -1,25 +1,47 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Step Challenge",
+    "slug": "step-challenge",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "scheme": "step-challenge",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stepchallenge.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0D0D2B",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.stepchallenge.app",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Step Challenge to use the camera to scan QR codes for check-in."
+        }
+      ],
+      "expo-dev-client",
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

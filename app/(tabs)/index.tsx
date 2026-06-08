@@ -1,0 +1,69 @@
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/contexts/ThemeContext';
+import { Skeleton } from '../../src/components';
+import { useDashboard } from '../../src/features/dashboard/hooks/useDashboard';
+import { 
+  DashboardHeader, 
+  DashboardStats, 
+  DashboardGroups, 
+  DashboardLeaderboard, 
+  DashboardEvents 
+} from '../../src/features/dashboard/components/DashboardComponents';
+
+export default function DashboardScreen() {
+  const { colors } = useTheme();
+  
+  const {
+    timeframe, setTimeframe,
+    selectedDate, setSelectedDate,
+    selectedWeek, setSelectedWeek,
+    selectedMonth, setSelectedMonth,
+    selectedGroup, setSelectedGroup,
+    stats,
+    currentLeaderboard,
+    MOCK_EVENTS,
+    svgProps,
+    loading
+  } = useDashboard(colors);
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+        <DashboardHeader 
+          timeframe={timeframe} setTimeframe={setTimeframe}
+          selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+          selectedWeek={selectedWeek} setSelectedWeek={setSelectedWeek}
+          selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth}
+          colors={colors}
+        />
+      </SafeAreaView>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        {loading ? (
+          <View style={{ padding: 20, gap: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Skeleton width="48%" height={120} borderRadius={16} />
+              <Skeleton width="48%" height={120} borderRadius={16} />
+            </View>
+            <Skeleton width="100%" height={200} borderRadius={16} />
+            <Skeleton width="100%" height={150} borderRadius={16} />
+          </View>
+        ) : (
+          <>
+            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} />
+            <DashboardGroups selectedGroup={selectedGroup} setSelectedGroup={setSelectedGroup} colors={colors} />
+            <DashboardLeaderboard leaderboard={currentLeaderboard} colors={colors} />
+            <DashboardEvents events={MOCK_EVENTS} colors={colors} />
+          </>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { paddingBottom: 30 },
+});
