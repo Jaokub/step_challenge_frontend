@@ -93,6 +93,7 @@ export const DashboardHeader = ({
             );
           })}
         </ScrollView>
+      </View>
     </View>
   );
 };
