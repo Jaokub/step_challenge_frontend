@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Alert, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +32,7 @@ export default function AddFriendScreen() {
       try {
         const res = await userService.getProfile(userId);
         if (res.success) {
-          setFriendProfile(res.data.user);
+          setFriendProfile(res.data);
         } else {
           setError('User not found.');
         }
@@ -66,7 +66,11 @@ export default function AddFriendScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
           title="Add Friend" 
-          onBack={() => router.replace('/(tabs)/profile')} 
+          rightActions={
+            <TouchableOpacity onPress={() => router.replace('/(tabs)/profile')} style={{ padding: 4 }}>
+              <Ionicons name="close" size={24} color={colors.textPrimary} />
+            </TouchableOpacity>
+          } 
         />
       </SafeAreaView>
 

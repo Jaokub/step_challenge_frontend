@@ -139,7 +139,7 @@ export default function AttendeesScreen() {
       <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.cardBorder }]}>
         <PrimaryButton
           title="Scan QR to Check-in"
-          icon="qr-code-scanner"
+          icon="qr-code-outline"
           onPress={() => {
             if (!permission?.granted) {
               requestPermission();
@@ -154,7 +154,7 @@ export default function AttendeesScreen() {
       <Modal visible={isScanning} animationType="slide" transparent={false}>
         <View style={styles.container}>
           <CameraView
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             facing="back"
             enableTorch={torch}
             barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 16 },
   bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 16 },
   resultOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
