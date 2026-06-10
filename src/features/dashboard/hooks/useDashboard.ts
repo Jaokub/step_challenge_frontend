@@ -51,11 +51,40 @@ export function useDashboard(colors: any) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
+      let startDate: string | undefined;
+      let endDate: string | undefined;
+
+      const current = new Date();
+      if (timeframe === 'Daily') {
+         const day = parseInt(selectedDate);
+         const date = new Date(current.getFullYear(), current.getMonth(), day);
+         startDate = date.toISOString();
+         endDate = new Date(current.getFullYear(), current.getMonth(), day + 1).toISOString();
+      } else if (timeframe === 'Weekly') {
+         const currentDay = current.getDay();
+         const startOfThisWeek = new Date(current.getFullYear(), current.getMonth(), current.getDate() - currentDay);
+         if (selectedWeek === 'This week') {
+            startDate = startOfThisWeek.toISOString();
+            endDate = new Date(startOfThisWeek.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+         } else {
+            const startOfLastWeek = new Date(startOfThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
+            startDate = startOfLastWeek.toISOString();
+            endDate = startOfThisWeek.toISOString();
+         }
+      } else if (timeframe === 'Monthly') {
+         const monthIndex = MOCK_MONTHS.indexOf(selectedMonth);
+         const targetYear = monthIndex > current.getMonth() ? current.getFullYear() - 1 : current.getFullYear();
+         startDate = new Date(targetYear, monthIndex, 1).toISOString();
+         endDate = new Date(targetYear, monthIndex + 1, 1).toISOString();
+      }
+
+      const params = { startDate, endDate };
+
       let res;
       if (selectedGroupId === 'friends') {
-        res = await leaderboardService.getFriendsLeaderboard();
+        res = await leaderboardService.getFriendsLeaderboard(params);
       } else if (selectedGroupId) {
-        res = await leaderboardService.getGroupLeaderboard(selectedGroupId);
+        res = await leaderboardService.getGroupLeaderboard(selectedGroupId, params);
       }
       if (res && res.success) {
         setLeaderboardData(res.data.slice(0, 5)); // Keep top 5 for dashboard
@@ -63,7 +92,7 @@ export function useDashboard(colors: any) {
     } catch (error) {
       console.error('Error fetching leaderboard', error);
     }
-  }, [selectedGroupId, dashboardData]);
+  }, [selectedGroupId, dashboardData, timeframe, selectedDate, selectedWeek, selectedMonth]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -164,7 +193,7 @@ export function useDashboard(colors: any) {
     id: u.id,
     rank: u.rank,
     name: u.fullName,
-    points: u.totalPoints,
+    points: u.points ?? u.totalPoints,
     rankColor: idx === 0 ? colors.warning : idx === 1 ? colors.textCardSecondary : colors.card
   }));
 

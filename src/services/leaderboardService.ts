@@ -20,9 +20,10 @@ const leaderboardService = {
     }
   },
 
-  getFriendsLeaderboard: async () => {
+  getFriendsLeaderboard: async (params?: { startDate?: string, endDate?: string }) => {
     try {
-      const response = await api.get('/leaderboard/friends');
+      const query = new URLSearchParams(params as any).toString();
+      const response = await api.get(`/leaderboard/friends${query ? `?${query}` : ''}`);
       return response.data;
     } catch (error) {
       console.error('getFriendsLeaderboard error', error);
@@ -30,9 +31,10 @@ const leaderboardService = {
     }
   },
 
-  getGroupLeaderboard: async (groupId: string) => {
+  getGroupLeaderboard: async (groupId: string, params?: { startDate?: string, endDate?: string }) => {
     try {
-      const response = await api.get(`/leaderboard/group/${groupId}`);
+      const query = new URLSearchParams(params as any).toString();
+      const response = await api.get(`/leaderboard/group/${groupId}${query ? `?${query}` : ''}`);
       return response.data;
     } catch (error) {
       console.error('getGroupLeaderboard error', error);
