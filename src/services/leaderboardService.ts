@@ -22,7 +22,8 @@ const leaderboardService = {
 
   getFriendsLeaderboard: async (params?: { startDate?: string, endDate?: string }) => {
     try {
-      const query = new URLSearchParams(params as any).toString();
+      const activeParams = Object.fromEntries(Object.entries(params || {}).filter(([_, v]) => v !== undefined));
+      const query = new URLSearchParams(activeParams as any).toString();
       const response = await api.get(`/leaderboard/friends${query ? `?${query}` : ''}`);
       return response.data;
     } catch (error) {
@@ -33,7 +34,8 @@ const leaderboardService = {
 
   getGroupLeaderboard: async (groupId: string, params?: { startDate?: string, endDate?: string }) => {
     try {
-      const query = new URLSearchParams(params as any).toString();
+      const activeParams = Object.fromEntries(Object.entries(params || {}).filter(([_, v]) => v !== undefined));
+      const query = new URLSearchParams(activeParams as any).toString();
       const response = await api.get(`/leaderboard/group/${groupId}${query ? `?${query}` : ''}`);
       return response.data;
     } catch (error) {

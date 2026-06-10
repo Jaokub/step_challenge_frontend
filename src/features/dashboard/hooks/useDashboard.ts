@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import dashboardService from '../services/dashboardService';
 import healthService from '../../health/services/healthService';
 import leaderboardService from '../../../services/leaderboardService';
@@ -27,6 +27,7 @@ export function useDashboard(colors: any) {
   const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
   const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const leaderboardCache = useRef<Record<string, any[]>>({});
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -79,6 +80,12 @@ export function useDashboard(colors: any) {
       }
 
       const params = { startDate, endDate };
+      const cacheKey = `${selectedGroupId}_${startDate || 'none'}_${endDate || 'none'}`;
+
+      if (leaderboardCache.current[cacheKey]) {
+        setLeaderboardData(leaderboardCache.current[cacheKey]);
+        return;
+      }
 
       let res;
       if (selectedGroupId === 'friends') {
@@ -87,7 +94,9 @@ export function useDashboard(colors: any) {
         res = await leaderboardService.getGroupLeaderboard(selectedGroupId, params);
       }
       if (res && res.success) {
-        setLeaderboardData(res.data.slice(0, 5)); // Keep top 5 for dashboard
+        const top5Data = res.data.slice(0, 5); // Keep top 5 for dashboard
+        leaderboardCache.current[cacheKey] = top5Data;
+        setLeaderboardData(top5Data);
       }
     } catch (error) {
       console.error('Error fetching leaderboard', error);
