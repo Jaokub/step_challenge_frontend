@@ -4,7 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { AppText } from '../../../components';
+import { AppText, EmptyState } from '../../../components';
 import { ThemeColors } from '../../../constants/theme';
 import { MOCK_DATES, MOCK_WEEKS, MOCK_MONTHS, MOCK_GROUPS } from '../hooks/useDashboard';
 
@@ -150,42 +150,84 @@ export const DashboardGroups = ({ selectedGroup, setSelectedGroup, colors }: any
 );
 
 // --- DashboardLeaderboard ---
-export const DashboardLeaderboard = ({ leaderboard, colors }: any) => (
-  <View style={{ marginHorizontal: 20, marginTop: 12, backgroundColor: 'transparent' }}>
-    {leaderboard.map((userObj: any, idx: number) => (
-      <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }, idx < leaderboard.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
-        <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.rankColor }}>
-          <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.rank}</AppText>
-        </View>
-        <AppText style={{ flex: 1, fontSize: 15, color: colors.textPrimary }}>{userObj.name}</AppText>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="flame" size={16} color={colors.warning} style={{ marginRight: 4 }} />
-          <AppText style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.streak}</AppText>
-          <Ionicons name="location-outline" size={16} color={colors.textPrimary} style={{ marginLeft: 12, marginRight: 4 }} />
-          <AppText style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.distance}</AppText>
+export const DashboardLeaderboard = ({ leaderboard, type, setType, colors }: any) => {
+  const { t } = useTranslation();
+  return (
+    <View style={{ marginHorizontal: 20, marginTop: 12, backgroundColor: 'transparent' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>จัดอันดับ</AppText>
+        <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 20, padding: 4 }}>
+          {['Global', 'Friends', 'Group'].map((t) => (
+            <TouchableOpacity 
+              key={t}
+              onPress={() => setType(t)}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 16,
+                backgroundColor: type === t ? colors.primary : 'transparent'
+              }}
+            >
+              <AppText style={{ fontSize: 12, color: type === t ? '#fff' : colors.textSecondary }}>{t}</AppText>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
-    ))}
-  </View>
-);
+      
+      {leaderboard.length === 0 ? (
+        <EmptyState 
+          icon="trophy-outline" 
+          title="ไม่มีข้อมูลอันดับ" 
+          subtitle="ยังไม่มีข้อมูลสำหรับการจัดอันดับในหมวดหมู่นี้" 
+        />
+      ) : (
+        leaderboard.map((userObj: any, idx: number) => (
+          <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }, idx < leaderboard.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+            <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.rankColor || colors.card }}>
+              <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.rank}</AppText>
+            </View>
+            <AppText style={{ flex: 1, fontSize: 15, color: colors.textPrimary }}>{userObj.name}</AppText>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="star" size={16} color={colors.warning} style={{ marginRight: 4 }} />
+              <AppText style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.points}</AppText>
+            </View>
+          </View>
+        ))
+      )}
+    </View>
+  );
+};
 
 // --- DashboardEvents ---
-export const DashboardEvents = ({ events, colors }: any) => (
-  <View style={{ marginTop: 16, paddingBottom: 16 }}>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
-      {events.map((event: any) => (
-        <TouchableOpacity key={event.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, width: width * 0.70, padding: 12, borderRadius: 12 }}>
-          <MaterialCommunityIcons name={event.icon as any} size={24} color={colors.textPrimary} style={{ marginRight: 12 }} />
-          <View style={{ flex: 1 }}>
-            <AppText variant="body-bold" style={{ fontSize: 15, color: '#FFFFFF', marginBottom: 2 }}>{event.title}</AppText>
-            <AppText style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{event.date}</AppText>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textPrimary} />
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  </View>
-);
+export const DashboardEvents = ({ events, colors }: any) => {
+  const { t } = useTranslation();
+  return (
+    <View style={{ marginTop: 16, paddingBottom: 16 }}>
+      {events.length === 0 ? (
+        <View style={{ paddingVertical: 20 }}>
+          <EmptyState 
+            icon="calendar-outline" 
+            title="ไม่มีกิจกรรม" 
+            subtitle="คุณยังไม่มีกิจกรรมที่กำลังจะมาถึงในช่วงนี้" 
+          />
+        </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+          {events.map((event: any) => (
+            <TouchableOpacity key={event.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, width: width * 0.70, padding: 12, borderRadius: 12 }}>
+              <MaterialCommunityIcons name={event.icon as any} size={24} color={colors.textPrimary} style={{ marginRight: 12 }} />
+              <View style={{ flex: 1 }}>
+                <AppText variant="body-bold" style={{ fontSize: 15, color: '#FFFFFF', marginBottom: 2 }}>{event.title}</AppText>
+                <AppText style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{event.date}</AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textPrimary} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

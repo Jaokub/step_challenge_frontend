@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen' ;
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { AuthProvider } from '../src/contexts/AuthContext';
+import { registerForPushNotificationsAsync } from '../src/services/notificationService';
 import '../src/i18n/i18n';
 
 // Prevent splash screen from auto-hiding
@@ -46,6 +47,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync().catch(() => {});
+      registerForPushNotificationsAsync().then(token => {
+        if (token) {
+          console.log('Push notification token retrieved');
+        }
+      });
     }
   }, [fontsLoaded]);
 

@@ -4,27 +4,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { AppText, ScreenHeader, EmptyState } from '../../src/components';
+import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen } from '../../src/components';
+import userService from '../../src/services/userService';
 import { spacing, fontSize } from '../../src/constants/theme';
 
 export default function UsersManagementScreen() {
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock data for users
-  const [users, setUsers] = useState([
-    { id: '1', fullName: 'Annika', department: 'HR', role: 'ADMIN', points: 450, isArchived: false },
-    { id: '2', fullName: 'David', department: 'IT', role: 'STAFF', points: 420, isArchived: false },
-    { id: '3', fullName: 'John Doe', department: 'Accounting', role: 'STAFF', points: 380, isArchived: false },
-    { id: '4', fullName: 'Jane Smith', department: 'Marketing', role: 'STAFF', points: 350, isArchived: false },
-    { id: '5', fullName: 'Alice', department: 'IT', role: 'STAFF', points: 310, isArchived: true },
-    { id: '6', fullName: 'Bob Johnson', department: 'HR', role: 'STAFF', points: 200, isArchived: false },
-    { id: '7', fullName: 'Patrik', department: 'Design', role: 'STAFF', points: 150, isArchived: false },
-  ]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await userService.getUsers();
+      if (res && res.success) {
+        setUsers(res.data.users || res.data);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch users', err);
+      setError(err?.response?.data?.message || 'Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter(user => 
-    user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    user.department.toLowerCase().includes(searchQuery.toLowerCase())
+    user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    user.department?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderUserItem = ({ item }: { item: any }) => {
@@ -58,7 +72,7 @@ export default function UsersManagementScreen() {
         <View style={styles.pointsBadge}>
           <Ionicons name="star" size={12} color={colors.warning} style={{ marginRight: 4 }} />
           <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: fontSize.sm }}>
-            {item.points}
+            {item.totalPoints || item.points || 0}
           </AppText>
         </View>
       </View>
@@ -96,19 +110,29 @@ export default function UsersManagementScreen() {
         </View>
       </View>
 
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item.id}
-        renderItem={renderUserItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <EmptyState
-            icon="people"
-            title="No users found"
-            subtitle="Try adjusting your search query"
-          />
-        }
-      />
+      {loading ? (
+        <LoadingScreen />
+      ) : error ? (
+        <ErrorState 
+          title="Error Loading Users" 
+          message={error} 
+          onRetry={fetchUsers} 
+        />
+      ) : (
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.id}
+          renderItem={renderUserItem}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <EmptyState
+              icon="people"
+              title="No users found"
+              subtitle="Try adjusting your search query"
+            />
+          }
+        />
+      )}
     </View>
   );
 }

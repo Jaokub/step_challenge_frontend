@@ -31,6 +31,7 @@ export { default as HealthStatCard } from './HealthStatCard';
 
 // Feedback & States
 export { default as EmptyState } from './EmptyState';
+export { default as ErrorState } from './ErrorState';
 export { default as AppText } from './AppText';
 export { default as LoadingScreen } from './LoadingScreen';
 export * from './Skeleton';

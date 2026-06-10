@@ -1,3 +1,5 @@
+// import AppleHealthKit, { HealthValue, HealthKitPermissions } from 'react-native-health';
+
 export class AppleHealthService {
   // เปิดโหมดจำลองข้อมูล (Mock) ไว้เป็น true ก่อนระหว่างรอ Apple Dev Account
   private useMockData = true;
@@ -7,26 +9,27 @@ export class AppleHealthService {
    */
   async initHealthKit(): Promise<boolean> {
     console.log('Initializing Apple HealthKit...');
-    
+
     if (this.useMockData) {
       console.log('✅ [MOCK] HealthKit Permission Granted');
       return true;
     }
 
-    /* 
-    // TODO: โค้ดของจริงที่จะใช้เมื่อมี Dev Account และติดตั้ง react-native-health แล้ว
+    /*
     return new Promise((resolve) => {
       const permissions = {
         permissions: {
           read: [AppleHealthKit.Constants.Permissions.StepCount]
         },
-      };
+      } as HealthKitPermissions;
+
       AppleHealthKit.initHealthKit(permissions, (err) => {
         if (err) {
           console.error('Error initializing Healthkit: ', err);
           resolve(false);
+        } else {
+          resolve(true);
         }
-        resolve(true);
       });
     });
     */
@@ -47,17 +50,16 @@ export class AppleHealthService {
     }
 
     /*
-    // TODO: โค้ดของจริงสำหรับดึงข้อมูล
     return new Promise((resolve, reject) => {
       const options = {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
       };
-      AppleHealthKit.getDailyStepCountSamples(options, (err, results) => {
+      AppleHealthKit.getDailyStepCountSamples(options, (err, results: HealthValue[]) => {
         if (err) {
-          return reject(err);
+          console.error('Error fetching HealthKit steps:', err);
+          return resolve(0); // Return 0 instead of reject to prevent crashing
         }
-        // รวมจำนวนก้าวทั้งหมดที่ดึงมาได้
         const totalSteps = results.reduce((sum, item) => sum + item.value, 0);
         resolve(totalSteps);
       });

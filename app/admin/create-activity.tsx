@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { FormInput, FormDatePicker } from '../../src/features/admin/components/ActivityFormComponents';
+import activityService from '../../src/services/activityService';
 import { PrimaryButton, ScreenHeader } from '../../src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
@@ -17,15 +18,37 @@ export default function CreateActivityScreen() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const handleCreate = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCreate = async () => {
     if (!title || !goal || !startDate || !endDate) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
-    // TODO: Call API to create activity
-    Alert.alert('Success', 'Activity created successfully!', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
+    
+    setIsSubmitting(true);
+    try {
+      const res = await activityService.createActivity({
+        title,
+        description,
+        startDate: new Date(startDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
+        goal: parseInt(goal, 10)
+      });
+      
+      if (res && res.success) {
+        Alert.alert('Success', 'Activity created successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      } else {
+        throw new Error(res?.message || 'Failed to create activity');
+      }
+    } catch (error: any) {
+      console.error('Failed to create activity', error);
+      Alert.alert('Error', error?.response?.data?.message || error.message || 'Failed to create activity');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -83,8 +106,9 @@ export default function CreateActivityScreen() {
         />
 
         <PrimaryButton 
-          title="Create Activity" 
+          title={isSubmitting ? "Creating..." : "Create Activity"} 
           onPress={handleCreate} 
+          disabled={isSubmitting}
           style={{ marginTop: 24 }}
         />
       </ScrollView>

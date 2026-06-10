@@ -23,7 +23,8 @@ export default function DashboardScreen() {
     selectedGroup, setSelectedGroup,
     stats,
     currentLeaderboard,
-    MOCK_EVENTS,
+    leaderboardType, setLeaderboardType,
+    upcomingEvents,
     svgProps,
     loading
   } = useDashboard(colors);
@@ -54,8 +55,13 @@ export default function DashboardScreen() {
           <>
             <DashboardStats stats={stats} svgProps={svgProps} colors={colors} />
             <DashboardGroups selectedGroup={selectedGroup} setSelectedGroup={setSelectedGroup} colors={colors} />
-            <DashboardLeaderboard leaderboard={currentLeaderboard} colors={colors} />
-            <DashboardEvents events={MOCK_EVENTS} colors={colors} />
+            <DashboardLeaderboard 
+              leaderboard={currentLeaderboard} 
+              type={leaderboardType}
+              setType={setLeaderboardType}
+              colors={colors} 
+            />
+            <DashboardEvents events={upcomingEvents} colors={colors} />
           </>
         )}
       </ScrollView>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import dashboardService from '../services/dashboardService';
 import healthService from '../../health/services/healthService';
+import leaderboardService from '../../../services/leaderboardService';
 import type { PersonalDashboard, HealthSummary, HealthRecord } from '../../../types';
 
 type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
@@ -18,11 +19,13 @@ export function useDashboard(colors: any) {
   const [selectedWeek, setSelectedWeek] = useState('This week');
   const [selectedMonth, setSelectedMonth] = useState('Jun');
   const [selectedGroup, setSelectedGroup] = useState('Friends');
+  const [leaderboardType, setLeaderboardType] = useState<'Global' | 'Friends' | 'Group'>('Global');
 
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<PersonalDashboard | null>(null);
   const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
   const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -43,9 +46,31 @@ export function useDashboard(colors: any) {
     }
   }, []);
 
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      let res;
+      if (leaderboardType === 'Global') {
+        res = await leaderboardService.getGlobalLeaderboard(5);
+      } else if (leaderboardType === 'Friends') {
+        res = await leaderboardService.getFriendsLeaderboard();
+      } else if (leaderboardType === 'Group' && dashboardData?.groups?.[0]?.id) {
+        res = await leaderboardService.getGroupLeaderboard(dashboardData.groups[0].id);
+      }
+      if (res && res.success) {
+        setLeaderboardData(res.data.slice(0, 5)); // Keep top 5 for dashboard
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard', error);
+    }
+  }, [leaderboardType, dashboardData]);
+
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
 
   // Derived stats based on timeframe
   const currentStreak = dashboardData?.currentStreak || 0;
@@ -120,20 +145,20 @@ export function useDashboard(colors: any) {
   };
   
   // Transform upcoming activities into events format
-  const MOCK_EVENTS = (dashboardData?.upcomingActivities || []).map(act => ({
+  const upcomingEvents = (dashboardData?.upcomingActivities || []).map(act => ({
     id: act.id,
     icon: 'walk',
     title: act.title,
     date: new Date(act.startDate).toLocaleDateString()
   }));
 
-  // We still need a leaderboard formatting. If backend doesn't provide it yet,
-  // we could mock it or use an empty array.
-  const currentLeaderboard = [
-    { id: '1', rank: 1, name: 'Annika', streak: 70, distance: 7.4, rankColor: colors.warning },
-    { id: '2', rank: 2, name: 'David', streak: 21, distance: 6.8, rankColor: colors.textCardSecondary },
-    { id: '3', rank: 5, name: dashboardData?.user?.fullName || 'You', streak: currentStreak, distance: distance, rankColor: colors.card },
-  ];
+  const currentLeaderboard = leaderboardData.map((u: any, idx: number) => ({
+    id: u.id,
+    rank: u.rank,
+    name: u.fullName,
+    points: u.totalPoints,
+    rankColor: idx === 0 ? colors.warning : idx === 1 ? colors.textCardSecondary : colors.card
+  }));
 
   const SV_SIZE = 200;
   const SV_STROKE = 22;
@@ -154,7 +179,9 @@ export function useDashboard(colors: any) {
     selectedGroup, setSelectedGroup,
     stats,
     currentLeaderboard,
-    MOCK_EVENTS,
+    leaderboardType,
+    setLeaderboardType,
+    upcomingEvents,
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
     loading,
     refreshDashboard: fetchDashboardData

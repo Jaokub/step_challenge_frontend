@@ -24,12 +24,7 @@ const checkinService = {
       });
       return data;
     } catch (error: any) {
-      console.warn('Mocking admin checkin:', error.message);
-      return {
-        success: true,
-        message: 'Checked in successfully (mocked)',
-        data: { id: 'mock', userId, activityId, timestamp: new Date().toISOString() } as any
-      };
+      throw error.response?.data ?? error;
     }
   },
 
