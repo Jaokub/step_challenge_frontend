@@ -76,7 +76,7 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
-            <AppText style={styles.name}>{profile?.fullName || 'User'}</AppText>
+            <AppText style={styles.name}>{profile?.nickname || profile?.fullName || 'User'}</AppText>
             <AppText style={styles.email}>{profile?.email || ''}</AppText>
           </View>
         </SafeAreaView>

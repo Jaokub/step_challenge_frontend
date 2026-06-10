@@ -15,6 +15,7 @@ const EditProfileScreen = () => {
   const { colors } = useTheme();
 
   const [fullName, setFullName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [department, setDepartment] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -29,6 +30,7 @@ const EditProfileScreen = () => {
         const res = await authService.getMe();
         if (res.success) {
           setFullName(res.data.user.fullName || '');
+          setNickname(res.data.user.nickname || '');
           setDepartment(res.data.user.department || '');
         }
       } catch (e) {
@@ -45,7 +47,7 @@ const EditProfileScreen = () => {
     }
     setLoading(true);
     try {
-      await userService.updateProfile({ fullName, department });
+      await userService.updateProfile({ fullName, nickname, department });
       Alert.alert('Success', 'Profile updated successfully.');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to update profile.');
@@ -104,6 +106,17 @@ const EditProfileScreen = () => {
             value={fullName}
             onChangeText={setFullName}
             placeholder="John Doe"
+            placeholderTextColor={colors.textSecondary}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>Nickname</AppText>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+            value={nickname}
+            onChangeText={setNickname}
+            placeholder="Nickname"
             placeholderTextColor={colors.textSecondary}
           />
         </View>

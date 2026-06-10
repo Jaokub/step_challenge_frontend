@@ -12,7 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, department: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, nickname: string, department: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -73,9 +73,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
     fullName: string,
+    nickname: string,
     department: string,
   ) => {
-    const response = await authService.register(email, password, fullName, department);
+    const response = await authService.register(email, password, fullName, nickname, department);
     if (response.success) {
       setUser(response.data.user);
     }

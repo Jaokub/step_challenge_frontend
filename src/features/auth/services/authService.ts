@@ -43,6 +43,7 @@ const authService = {
     email: string,
     password: string,
     fullName: string,
+    nickname: string,
     department: string,
   ): Promise<ApiResponse<AuthPayload>> {
     try {
@@ -50,6 +51,7 @@ const authService = {
         email,
         password,
         fullName,
+        nickname,
         department,
       });
 

@@ -28,6 +28,7 @@ export default function RegisterScreen() {
   const { signUp } = useAuth();
 
   const [fullName, setFullName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +46,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await signUp(email.trim().toLowerCase(), password, fullName.trim(), department);
+      await signUp(email.trim().toLowerCase(), password, fullName.trim(), nickname.trim(), department);
     } catch (err: any) {
       setError(err?.message || err?.data?.message || t('common.error'));
     } finally {
@@ -87,10 +88,22 @@ export default function RegisterScreen() {
                 <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder={t('auth.fullName')}
+                  placeholder={t('auth.fullName') || 'Full Name'}
                   placeholderTextColor="#9CA3AF"
                   value={fullName}
                   onChangeText={setFullName}
+                />
+              </View>
+
+              {/* Nickname */}
+              <View style={styles.inputContainer}>
+                <Ionicons name="happy-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nickname (Optional)"
+                  placeholderTextColor="#9CA3AF"
+                  value={nickname}
+                  onChangeText={setNickname}
                 />
               </View>
 

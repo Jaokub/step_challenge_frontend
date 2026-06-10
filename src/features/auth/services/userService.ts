@@ -17,6 +17,7 @@ interface GetAllUsersParams {
 
 interface UpdateProfileInput {
   fullName?: string;
+  nickname?: string;
   department?: string;
   avatarUrl?: string;
 }
