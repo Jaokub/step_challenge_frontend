@@ -7,7 +7,6 @@ import { useDashboard } from '../../src/features/dashboard/hooks/useDashboard';
 import { 
   DashboardHeader, 
   DashboardStats, 
-  DashboardGroups, 
   DashboardLeaderboard, 
   DashboardEvents 
 } from '../../src/features/dashboard/components/DashboardComponents';
@@ -20,10 +19,10 @@ export default function DashboardScreen() {
     selectedDate, setSelectedDate,
     selectedWeek, setSelectedWeek,
     selectedMonth, setSelectedMonth,
-    selectedGroup, setSelectedGroup,
+    selectedGroupId, setSelectedGroupId,
+    userGroups,
     stats,
     currentLeaderboard,
-    leaderboardType, setLeaderboardType,
     upcomingEvents,
     svgProps,
     loading
@@ -31,7 +30,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, paddingBottom: 4, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, zIndex: 10 }}>
         <DashboardHeader 
           timeframe={timeframe} setTimeframe={setTimeframe}
           selectedDate={selectedDate} setSelectedDate={setSelectedDate}
@@ -54,11 +53,11 @@ export default function DashboardScreen() {
         ) : (
           <>
             <DashboardStats stats={stats} svgProps={svgProps} colors={colors} />
-            <DashboardGroups selectedGroup={selectedGroup} setSelectedGroup={setSelectedGroup} colors={colors} />
             <DashboardLeaderboard 
               leaderboard={currentLeaderboard} 
-              type={leaderboardType}
-              setType={setLeaderboardType}
+              selectedGroupId={selectedGroupId}
+              setSelectedGroupId={setSelectedGroupId}
+              userGroups={userGroups}
               colors={colors} 
             />
             <DashboardEvents events={upcomingEvents} colors={colors} />

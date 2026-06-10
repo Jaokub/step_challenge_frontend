@@ -10,7 +10,7 @@ export default function Index() {
   }
 
   if (isAuthenticated) {
-    if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+    if (user?.role === 'ADMIN') {
       return <Redirect href="/admin/dashboard" />;
     }
     return <Redirect href="/(tabs)" />;

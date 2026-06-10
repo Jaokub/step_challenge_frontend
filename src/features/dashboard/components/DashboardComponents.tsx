@@ -6,7 +6,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { AppText, EmptyState } from '../../../components';
 import { ThemeColors } from '../../../constants/theme';
-import { MOCK_DATES, MOCK_WEEKS, MOCK_MONTHS, MOCK_GROUPS } from '../hooks/useDashboard';
+import { MOCK_DATES, MOCK_WEEKS, MOCK_MONTHS } from '../hooks/useDashboard';
 
 const { width } = Dimensions.get('window');
 
@@ -93,7 +93,6 @@ export const DashboardHeader = ({
             );
           })}
         </ScrollView>
-      </View>
     </View>
   );
 };
@@ -117,7 +116,7 @@ export const DashboardStats = ({ stats, svgProps, colors }: any) => {
       <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
         <View style={[styles.badgePill, { backgroundColor: colors.background, borderColor: colors.primary }]}>
           <Ionicons name="flame" size={16} color={colors.warning} />
-          <AppText style={{ fontSize: 13, color: colors.textPrimary, marginLeft: 6 }}>{stats.streak} {t('dashboard.days')}</AppText>
+          <AppText style={{ fontSize: 13, color: colors.textPrimary, marginLeft: 6 }}>{stats.activeCalories} kcal</AppText>
         </View>
         <View style={[styles.badgePill, { backgroundColor: colors.background, borderColor: colors.primary }]}>
           <Ionicons name="location-outline" size={16} color={colors.textPrimary} />
@@ -128,72 +127,60 @@ export const DashboardStats = ({ stats, svgProps, colors }: any) => {
   );
 };
 
-// --- DashboardGroups ---
-export const DashboardGroups = ({ selectedGroup, setSelectedGroup, colors }: any) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingRight: 20 }}>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingLeft: 20, paddingRight: 10 }}>
-      {MOCK_GROUPS.map(group => {
-        const isActive = group === selectedGroup;
-        return (
-          <TouchableOpacity key={group} style={[styles.groupPill, { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : colors.cardBorder }]} onPress={() => setSelectedGroup(group)}>
-            <AppText style={{ fontSize: 13, color: colors.textPrimary }}>{group}</AppText>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
-    <View style={{ paddingLeft: 8, justifyContent: 'center' }}>
-      <TouchableOpacity style={[styles.addGroupBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Ionicons name="add" size={20} color={colors.textPrimary} />
-      </TouchableOpacity>
-    </View>
-  </View>
-);
-
 // --- DashboardLeaderboard ---
-export const DashboardLeaderboard = ({ leaderboard, type, setType, colors }: any) => {
+export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelectedGroupId, userGroups, colors }: any) => {
   const { t } = useTranslation();
   return (
-    <View style={{ marginHorizontal: 20, marginTop: 12, backgroundColor: 'transparent' }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>จัดอันดับ</AppText>
-        <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 20, padding: 4 }}>
-          {['Global', 'Friends', 'Group'].map((t) => (
-            <TouchableOpacity 
-              key={t}
-              onPress={() => setType(t)}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 16,
-                backgroundColor: type === t ? colors.primary : 'transparent'
-              }}
-            >
-              <AppText style={{ fontSize: 12, color: type === t ? '#fff' : colors.textSecondary }}>{t}</AppText>
-            </TouchableOpacity>
-          ))}
+    <View style={{ marginTop: 24, backgroundColor: 'transparent' }}>
+      
+      {/* Group Tabs (Replacing old Leaderboard header) */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ paddingLeft: 20, paddingRight: 10 }}>
+          <TouchableOpacity 
+            style={[styles.groupPill, { backgroundColor: selectedGroupId === 'friends' ? colors.primary : colors.card, borderColor: selectedGroupId === 'friends' ? colors.primary : colors.cardBorder }]} 
+            onPress={() => setSelectedGroupId('friends')}
+          >
+            <AppText style={{ fontSize: 13, color: selectedGroupId === 'friends' ? '#fff' : colors.textPrimary }}>Friends</AppText>
+          </TouchableOpacity>
+          {userGroups.map((group: any) => {
+            const isActive = group.id === selectedGroupId;
+            return (
+              <TouchableOpacity key={group.id} style={[styles.groupPill, { backgroundColor: isActive ? colors.primary : colors.card, borderColor: isActive ? colors.primary : colors.cardBorder }]} onPress={() => setSelectedGroupId(group.id)}>
+                <AppText style={{ fontSize: 13, color: isActive ? '#fff' : colors.textPrimary }}>{group.name}</AppText>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+        <View style={{ paddingRight: 20, justifyContent: 'center' }}>
+          <TouchableOpacity style={[styles.addGroupBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <Ionicons name="add" size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
         </View>
       </View>
-      
-      {leaderboard.length === 0 ? (
-        <EmptyState 
-          icon="trophy-outline" 
-          title="ไม่มีข้อมูลอันดับ" 
-          subtitle="ยังไม่มีข้อมูลสำหรับการจัดอันดับในหมวดหมู่นี้" 
-        />
-      ) : (
-        leaderboard.map((userObj: any, idx: number) => (
-          <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }, idx < leaderboard.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
-            <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.rankColor || colors.card }}>
-              <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.rank}</AppText>
+
+      {/* Leaderboard List */}
+      <View style={{ marginHorizontal: 20 }}>
+        {leaderboard.length === 0 ? (
+          <EmptyState 
+            icon="trophy-outline" 
+            title="ไม่มีข้อมูลอันดับ" 
+            subtitle="ยังไม่มีข้อมูลสำหรับการจัดอันดับในหมวดหมู่นี้" 
+          />
+        ) : (
+          leaderboard.map((userObj: any, idx: number) => (
+            <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }, idx < leaderboard.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.rankColor || colors.card }}>
+                <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.rank}</AppText>
+              </View>
+              <AppText style={{ flex: 1, fontSize: 15, color: colors.textPrimary }}>{userObj.name}</AppText>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="star" size={16} color={colors.warning} style={{ marginRight: 4 }} />
+                <AppText style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.points}</AppText>
+              </View>
             </View>
-            <AppText style={{ flex: 1, fontSize: 15, color: colors.textPrimary }}>{userObj.name}</AppText>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="star" size={16} color={colors.warning} style={{ marginRight: 4 }} />
-              <AppText style={{ fontSize: 14, color: colors.textPrimary }}>{userObj.points}</AppText>
-            </View>
-          </View>
-        ))
-      )}
+          ))
+        )}
+      </View>
     </View>
   );
 };

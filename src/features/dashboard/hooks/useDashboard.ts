@@ -3,6 +3,8 @@ import dashboardService from '../services/dashboardService';
 import healthService from '../../health/services/healthService';
 import leaderboardService from '../../../services/leaderboardService';
 import type { PersonalDashboard, HealthSummary, HealthRecord } from '../../../types';
+import groupService from '../../group/services/groupService';
+import type { AppGroup } from '../../../types';
 
 type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
@@ -11,18 +13,17 @@ const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0
 export const MOCK_DATES = Array.from({length: daysInCurrentMonth}, (_, i) => (i + 1).toString());
 export const MOCK_WEEKS = ['Last week', 'This week'];
 export const MOCK_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export const MOCK_GROUPS = ['Friends', 'Running Club', 'CP Faculty', 'IT Dept', 'Design Team'];
 
 export function useDashboard(colors: any) {
   const [timeframe, setTimeframe] = useState<Timeframe>('Daily');
   const [selectedDate, setSelectedDate] = useState(today.getDate().toString());
   const [selectedWeek, setSelectedWeek] = useState('This week');
   const [selectedMonth, setSelectedMonth] = useState('Jun');
-  const [selectedGroup, setSelectedGroup] = useState('Friends');
-  const [leaderboardType, setLeaderboardType] = useState<'Global' | 'Friends' | 'Group'>('Global');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<PersonalDashboard | null>(null);
+  const [userGroups, setUserGroups] = useState<AppGroup[]>([]);
   const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
   const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
@@ -30,15 +31,17 @@ export function useDashboard(colors: any) {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const [dashRes, sumRes, histRes] = await Promise.all([
+      const [dashRes, sumRes, histRes, groupsRes] = await Promise.all([
         dashboardService.getPersonalDashboard(),
         healthService.getHealthSummary(),
-        healthService.getHealthHistory({ limit: 100 })
+        healthService.getHealthHistory({ limit: 100 }),
+        groupService.getGroups()
       ]);
       
       if (dashRes.success) setDashboardData(dashRes.data);
       if (sumRes.success) setHealthSummary(sumRes.data);
       if (histRes.success) setHealthHistory(histRes.data);
+      if (groupsRes?.success) setUserGroups(groupsRes.data);
     } catch (error) {
       console.error('Error fetching dashboard data', error);
     } finally {
@@ -49,12 +52,10 @@ export function useDashboard(colors: any) {
   const fetchLeaderboard = useCallback(async () => {
     try {
       let res;
-      if (leaderboardType === 'Global') {
-        res = await leaderboardService.getGlobalLeaderboard(5);
-      } else if (leaderboardType === 'Friends') {
+      if (selectedGroupId === 'friends') {
         res = await leaderboardService.getFriendsLeaderboard();
-      } else if (leaderboardType === 'Group' && dashboardData?.groups?.[0]?.id) {
-        res = await leaderboardService.getGroupLeaderboard(dashboardData.groups[0].id);
+      } else if (selectedGroupId) {
+        res = await leaderboardService.getGroupLeaderboard(selectedGroupId);
       }
       if (res && res.success) {
         setLeaderboardData(res.data.slice(0, 5)); // Keep top 5 for dashboard
@@ -62,7 +63,7 @@ export function useDashboard(colors: any) {
     } catch (error) {
       console.error('Error fetching leaderboard', error);
     }
-  }, [leaderboardType, dashboardData]);
+  }, [selectedGroupId, dashboardData]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -75,19 +76,22 @@ export function useDashboard(colors: any) {
   // Derived stats based on timeframe
   const currentStreak = dashboardData?.currentStreak || 0;
   
-  const { steps, distance } = useMemo(() => {
+  const { steps, distance, calories } = useMemo(() => {
     let s = 0;
     let d = 0;
+    let c = 0;
 
     if (timeframe === 'Daily') {
       if (selectedDate === today.getDate().toString() && healthSummary?.today) {
         s = healthSummary.today.steps;
         d = healthSummary.today.distanceKm;
+        c = healthSummary.today.calories;
       } else {
         const record = healthHistory.find(r => new Date(r.recordDate).getDate().toString() === selectedDate);
         if (record) {
           s = record.steps;
           d = record.distanceKm;
+          c = record.calories;
         }
       }
     } else if (timeframe === 'Weekly') {
@@ -103,6 +107,7 @@ export function useDashboard(colors: any) {
         
         s = thisWeekRecords.reduce((sum, r) => sum + r.steps, 0);
         d = thisWeekRecords.reduce((sum, r) => sum + r.distanceKm, 0);
+        c = thisWeekRecords.reduce((sum, r) => sum + r.calories, 0);
       } else if (selectedWeek === 'Last week') {
         // Calculate last week bounds
         const current = new Date();
@@ -117,12 +122,14 @@ export function useDashboard(colors: any) {
         
         s = lastWeekRecords.reduce((sum, r) => sum + r.steps, 0);
         d = lastWeekRecords.reduce((sum, r) => sum + r.distanceKm, 0);
+        c = lastWeekRecords.reduce((sum, r) => sum + r.calories, 0);
       }
     } else if (timeframe === 'Monthly') {
       const monthIndex = MOCK_MONTHS.indexOf(selectedMonth);
       if (monthIndex === today.getMonth()) {
         s = healthSummary?.monthlyTotal?.steps || 0;
         d = healthSummary?.monthlyTotal?.distanceKm || 0;
+        c = healthSummary?.monthlyTotal?.calories || 0;
       } else {
         // Aggregate for the specific selected month
         const targetYear = monthIndex > today.getMonth() ? today.getFullYear() - 1 : today.getFullYear();
@@ -132,15 +139,16 @@ export function useDashboard(colors: any) {
         });
         s = monthRecords.reduce((sum, r) => sum + r.steps, 0);
         d = monthRecords.reduce((sum, r) => sum + r.distanceKm, 0);
+        c = monthRecords.reduce((sum, r) => sum + r.calories, 0);
       }
     }
 
-    return { steps: s, distance: parseFloat(d.toFixed(2)) };
+    return { steps: s, distance: parseFloat(d.toFixed(2)), calories: Math.round(c) };
   }, [timeframe, selectedDate, selectedWeek, selectedMonth, healthSummary, healthHistory]);
 
   const stats = {
     steps: steps.toString(),
-    streak: currentStreak,
+    activeCalories: calories,
     distance
   };
   
@@ -176,11 +184,10 @@ export function useDashboard(colors: any) {
     selectedDate, setSelectedDate,
     selectedWeek, setSelectedWeek,
     selectedMonth, setSelectedMonth,
-    selectedGroup, setSelectedGroup,
+    selectedGroupId, setSelectedGroupId,
+    userGroups,
     stats,
     currentLeaderboard,
-    leaderboardType,
-    setLeaderboardType,
     upcomingEvents,
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
     loading,
