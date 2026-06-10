@@ -78,8 +78,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="groups"
         options={{
-          title: t('groups.title'),
-          tabBarLabel: 'กลุ่ม',
+          title: "เพื่อนและกลุ่ม",
+          tabBarLabel: 'เพื่อน & กลุ่ม',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),

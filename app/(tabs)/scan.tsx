@@ -51,14 +51,24 @@ export default function ScanScreen() {
     try {
       let isFriendQR = false;
       let scannedUserId = null;
+
       try {
+        // Try parsing as JSON (standard App QR)
         const parsed = JSON.parse(data);
         if (parsed.type === 'friend' || parsed.userId) {
           isFriendQR = true;
-          scannedUserId = parsed.userId;
+          scannedUserId = parsed.userId || parsed.id;
         }
       } catch {
-        // Not JSON, continue to normal checkin
+        // If not JSON, check if it's a deep link or contains userId
+        if (data.includes('add-friend') || data.includes('userId')) {
+          isFriendQR = true;
+          // Try to extract userId=xxxx
+          const match = data.match(/userId[=:'"\s]+([^&"'\s}]+)/i);
+          if (match && match[1]) {
+            scannedUserId = match[1];
+          }
+        }
       }
 
       if (isFriendQR && scannedUserId) {
