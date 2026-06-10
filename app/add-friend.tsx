@@ -1,0 +1,178 @@
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
+import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
+import { useTheme } from '../src/contexts/ThemeContext';
+import userService from '../src/features/auth/services/userService';
+import friendService from '../src/features/friend/services/friendService';
+import type { User } from '../src/types';
+import { spacing, fontSize, borderRadius } from '../src/constants/theme';
+
+export default function AddFriendScreen() {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const { userId } = useLocalSearchParams<{ userId: string }>();
+
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [friendProfile, setFriendProfile] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      setError('Invalid link. No user ID provided.');
+      setLoading(false);
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await userService.getProfile(userId);
+        if (res.success) {
+          setFriendProfile(res.data.user);
+        } else {
+          setError('User not found.');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Failed to find user.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
+  const handleSendRequest = async () => {
+    if (!userId) return;
+    setAdding(true);
+    try {
+      await friendService.sendFriendRequest(userId);
+      Alert.alert('Success', 'Friend request sent successfully!', [
+        { text: 'OK', onPress: () => router.replace('/(tabs)/profile') }
+      ]);
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to send friend request.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+        <ScreenHeader 
+          title="Add Friend" 
+          onBack={() => router.replace('/(tabs)/profile')} 
+        />
+      </SafeAreaView>
+
+      <View style={styles.content}>
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+            <AppText style={[styles.errorText, { color: colors.error }]}>{error}</AppText>
+            <OutlineButton title="Go Back" onPress={() => router.replace('/(tabs)/profile')} style={{ marginTop: spacing.xl }} />
+          </View>
+        ) : friendProfile ? (
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              {friendProfile.avatarUrl ? (
+                <Image source={{ uri: friendProfile.avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '20' }]}>
+                  <Ionicons name="person" size={48} color={colors.primary} />
+                </View>
+              )}
+            </View>
+            <AppText variant="heading-bold" style={[styles.name, { color: colors.textPrimary }]}>
+              {friendProfile.nickname || friendProfile.fullName}
+            </AppText>
+            <AppText style={[styles.department, { color: colors.textSecondary }]}>
+              {friendProfile.department}
+            </AppText>
+
+            <View style={styles.actionContainer}>
+              <PrimaryButton 
+                title="Send Friend Request" 
+                onPress={handleSendRequest} 
+                loading={adding} 
+              />
+              <OutlineButton 
+                title="Cancel" 
+                onPress={() => router.replace('/(tabs)/profile')} 
+                style={{ marginTop: spacing.md }}
+                disabled={adding}
+              />
+            </View>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: {
+    flex: 1,
+    padding: spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  errorText: {
+    fontSize: fontSize.md,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  profileCard: {
+    width: '100%',
+    alignItems: 'center',
+    padding: spacing['2xl'],
+    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: spacing.xl,
+    overflow: 'hidden',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  name: {
+    fontSize: fontSize.xl,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  department: {
+    fontSize: fontSize.md,
+    textAlign: 'center',
+    marginBottom: spacing['2xl'],
+  },
+  actionContainer: {
+    width: '100%',
+  }
+});
