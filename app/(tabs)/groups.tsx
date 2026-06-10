@@ -230,7 +230,20 @@ export default function GroupsScreen() {
                 <HeaderIconButton icon="add" onPress={() => setModalType('CREATE')} backgroundColor={colors.primary} iconColor={'#FFFFFF'} />
               </>
             ) : (
-              <HeaderIconButton icon="qr-code-outline" onPress={() => router.push('/(tabs)/scan')} iconColor={colors.primary} />
+              <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
+                <TouchableOpacity 
+                  onPress={() => setModalType('REQUESTS')} 
+                  style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(150, 150, 150, 0.1)', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Ionicons name="person-add-outline" size={20} color={colors.primary} />
+                  {requests.length > 0 && (
+                    <View style={styles.headerBadge}>
+                      <AppText style={styles.headerBadgeText}>{requests.length}</AppText>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <HeaderIconButton icon="qr-code-outline" onPress={() => router.push('/(tabs)/scan')} iconColor={colors.primary} />
+              </View>
             )
           }
         />
@@ -270,26 +283,7 @@ export default function GroupsScreen() {
           renderItem={renderFriendCard}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
-          ListHeaderComponent={
-            requests.length > 0 ? (
-              <TouchableOpacity 
-                style={styles.requestBanner}
-                onPress={() => setModalType('REQUESTS')}
-              >
-                <View style={styles.badgeContainer}>
-                  <Ionicons name="people-circle" size={40} color={colors.primary} />
-                  <View style={[styles.badge, { backgroundColor: colors.error }]}>
-                    <AppText style={styles.badgeText}>{requests.length}</AppText>
-                  </View>
-                </View>
-                <View style={{ flex: 1, marginLeft: spacing.md }}>
-                  <AppText variant="heading-sm" style={{ color: colors.textPrimary }}>Friend Requests</AppText>
-                  <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>Tap to view pending requests</AppText>
-                </View>
-                <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
-              </TouchableOpacity>
-            ) : null
-          }
+          ListHeaderComponent={null}
           ListEmptyComponent={<EmptyState icon="person-add-outline" title="No Friends Yet" subtitle="Scan a QR code or share your link to add friends" />}
         />
       )}
@@ -417,36 +411,21 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
-  requestBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    marginBottom: spacing.xl,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  badgeContainer: {
-    position: 'relative',
-  },
-  badge: {
+  headerBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
+    top: 0,
+    right: 0,
+    backgroundColor: '#EF4444',
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
   },
-  badgeText: {
+  headerBadgeText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
   }
 });
