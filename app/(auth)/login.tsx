@@ -36,6 +36,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(email.trim().toLowerCase(), password);
+      // Let the _layout or index handle redirection, or manually route:
+      router.replace('/');
     } catch (err: any) {
       const msg = err?.message || err?.data?.message || t('auth.invalidCredentials');
       setError(msg);

@@ -4,7 +4,7 @@ import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Image, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import authService from '../../src/features/auth/services/authService';
@@ -13,7 +13,7 @@ import { SettingsRow, ScreenHeader, HeaderIconButton } from '../../src/component
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
   const { colors, isDark, toggleTheme } = useTheme();
   
   const [profile, setProfile] = useState<User | null>(null);
@@ -106,6 +106,14 @@ export default function ProfileScreen() {
             
             <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
               <SettingsRow icon="person-outline" label={t('settings.account')} onPress={() => {}} />
+
+              {isAdmin && (
+                <SettingsRow 
+                  icon="shield-half-outline" 
+                  label="แผงควบคุม (Admin Panel)" 
+                  onPress={() => router.push('/admin/dashboard')} 
+                />
+              )}
               
               {Platform.OS === 'ios' && profile?.syncToken && (
                 <SettingsRow 
