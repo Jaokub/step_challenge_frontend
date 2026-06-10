@@ -22,7 +22,7 @@ export default function GroupsScreen() {
 
   // Groups State
   const [groups, setGroups] = useState<AppGroup[]>([]);
-  const [modalType, setModalType] = useState<'NONE' | 'CREATE' | 'JOIN'>('NONE');
+  const [modalType, setModalType] = useState<'NONE' | 'CREATE' | 'JOIN' | 'REQUESTS'>('NONE');
   const [groupName, setGroupName] = useState('');
   const [groupDesc, setGroupDesc] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -106,6 +106,7 @@ export default function GroupsScreen() {
   const handleAcceptRequest = async (requestId: string) => {
     try {
       await friendService.acceptFriendRequest(requestId);
+      Alert.alert('Success', 'Friend request accepted!');
       handleRefresh();
     } catch (error: any) {
       Alert.alert('Error', error.message);
@@ -215,9 +216,7 @@ export default function GroupsScreen() {
     </View>
   );
 
-  if (isLoading && !isRefreshing) {
-    return <LoadingScreen message={t('common.loading')} />;
-  }
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -273,13 +272,22 @@ export default function GroupsScreen() {
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
           ListHeaderComponent={
             requests.length > 0 ? (
-              <View style={{ marginBottom: spacing.xl }}>
-                <AppText style={[styles.sectionTitle, { color: colors.textSecondary }]}>Friend Requests</AppText>
-                {requests.map(req => (
-                  <View key={req.id}>{renderRequestCard({ item: req })}</View>
-                ))}
-                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-              </View>
+              <TouchableOpacity 
+                style={styles.requestBanner}
+                onPress={() => setModalType('REQUESTS')}
+              >
+                <View style={styles.badgeContainer}>
+                  <Ionicons name="people-circle" size={40} color={colors.primary} />
+                  <View style={[styles.badge, { backgroundColor: colors.error }]}>
+                    <AppText style={styles.badgeText}>{requests.length}</AppText>
+                  </View>
+                </View>
+                <View style={{ flex: 1, marginLeft: spacing.md }}>
+                  <AppText variant="heading-sm" style={{ color: colors.textPrimary }}>Friend Requests</AppText>
+                  <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>Tap to view pending requests</AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
             ) : null
           }
           ListEmptyComponent={<EmptyState icon="person-add-outline" title="No Friends Yet" subtitle="Scan a QR code or share your link to add friends" />}
@@ -318,6 +326,12 @@ export default function GroupsScreen() {
           autoCorrect={false}
         />
         <PrimaryButton title={isSubmitting ? t('common.loading') : t('groups.joinGroup')} onPress={handleJoinGroup} disabled={isSubmitting || !inviteCode.trim()} />
+      </CustomModal>
+
+      <CustomModal visible={modalType === 'REQUESTS'} onClose={() => setModalType('NONE')} title="Friend Requests">
+        {requests.map(req => (
+          <View key={req.id}>{renderRequestCard({ item: req })}</View>
+        ))}
       </CustomModal>
     </View>
   );
@@ -403,4 +417,36 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+  requestBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  badgeContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  }
 });
