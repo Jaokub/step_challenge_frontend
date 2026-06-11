@@ -7,7 +7,14 @@ import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { AppText, EmptyState, Skeleton } from '../../../components';
 import { ThemeColors } from '../../../constants/theme';
-import { MOCK_DATES, MOCK_WEEKS, MOCK_MONTHS } from '../hooks/useDashboard';
+
+const MOCK_WEEKS = ['Last week', 'This week'];
+const MOCK_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const _today = new Date();
+const MOCK_DATES = Array.from(
+  { length: new Date(_today.getFullYear(), _today.getMonth() + 1, 0).getDate() },
+  (_, i) => (i + 1).toString()
+);
 
 const { width } = Dimensions.get('window');
 
@@ -22,14 +29,14 @@ export const DashboardHeader = ({
     const timer = setTimeout(() => {
       if (!scrollRef.current) return;
       if (timeframe === 'Daily') {
-        const index = MOCK_DATES.indexOf(selectedDate);
+        const index = MOCK_DATES?.indexOf(selectedDate) ?? -1;
         if (index > -1) {
           const itemWidth = 54; // 44 width + 10 gap
           const offset = (index * itemWidth) - (width / 2) + (itemWidth / 2) + 20;
           scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
         }
       } else if (timeframe === 'Monthly') {
-        const index = MOCK_MONTHS.indexOf(selectedMonth);
+        const index = MOCK_MONTHS?.indexOf(selectedMonth) ?? -1;
         if (index > -1) {
           const itemWidth = 64; // approximate width
           const offset = (index * itemWidth) - (width / 2) + (itemWidth / 2) + 20;
