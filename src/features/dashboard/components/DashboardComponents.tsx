@@ -59,7 +59,7 @@ export const DashboardHeader = ({
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+      <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
         <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, padding: 4 }}>
           {['Daily', 'Weekly', 'Monthly'].map((tf) => {
             const isActive = timeframe === tf;
@@ -124,23 +124,9 @@ export const DashboardHeader = ({
   );
 };
 
-// --- DashboardStats ---
 export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
   const { t } = useTranslation();
   const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps } = svgProps;
-  
-  if (isLoading) {
-    return (
-      <View style={{ paddingHorizontal: 20 }}>
-        <Skeleton width="100%" height={138} borderRadius={24} style={{ marginBottom: 20 }} />
-        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
-        </View>
-      </View>
-    );
-  }
   
   const stepGoal = 10000;
   const progressPercent = Math.min(100, Math.floor((currentSteps / stepGoal) * 100));
@@ -153,8 +139,14 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
           <View style={{ flex: 1 }}>
             <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>เป้าหมายวันนี้</AppText>
             <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
-              <AppText variant="heading-bold" style={{ color: colors.primary, fontSize: 40 }}>{progressPercent}%</AppText>
-              <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 8 }}>สำเร็จ</AppText>
+              {isLoading ? (
+                <Skeleton width={80} height={40} borderRadius={8} style={{ marginBottom: 8 }} />
+              ) : (
+                <>
+                  <AppText variant="heading-bold" style={{ color: colors.primary, fontSize: 40 }}>{progressPercent}%</AppText>
+                  <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 8 }}>สำเร็จ</AppText>
+                </>
+              )}
             </View>
             <View style={{ marginTop: 12, height: 8, backgroundColor: colors.background, borderRadius: 4, overflow: 'hidden' }}>
               <View style={{ height: '100%', backgroundColor: colors.primary, borderRadius: 4, width: `${progressPercent}%` }} />
@@ -162,10 +154,14 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
           </View>
           
           <View style={{ width: 96, height: 96, marginLeft: 16 }}>
-            <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
-              <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.background} strokeWidth={SV_STROKE} fill="none" />
-              <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.primary} strokeWidth={SV_STROKE} fill="none" strokeLinecap="round" strokeDasharray={SV_CIRCUMFERENCE} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${SV_SIZE / 2} ${SV_SIZE / 2})`} />
-            </Svg>
+            {isLoading ? (
+              <Skeleton width={96} height={96} borderRadius={48} />
+            ) : (
+              <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
+                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.background} strokeWidth={SV_STROKE} fill="none" />
+                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.primary} strokeWidth={SV_STROKE} fill="none" strokeLinecap="round" strokeDasharray={SV_CIRCUMFERENCE} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${SV_SIZE / 2} ${SV_SIZE / 2})`} />
+              </Svg>
+            )}
           </View>
         </View>
       </View>
@@ -176,21 +172,33 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
           <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: `${colors.primary}20`, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <Ionicons name="footsteps" size={18} color={colors.primary} />
           </View>
-          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{currentSteps.toLocaleString()}</AppText>
+          {isLoading ? (
+            <Skeleton width="80%" height={24} borderRadius={6} style={{ marginBottom: 2 }} />
+          ) : (
+            <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{currentSteps.toLocaleString()}</AppText>
+          )}
           <AppText style={{ fontSize: 12, color: colors.textSecondary }}>ก้าว</AppText>
         </View>
         <View style={{ flex: 1, backgroundColor: colors.card, borderRadius: 20, padding: 12, borderWidth: 1, borderColor: colors.cardBorder }}>
           <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: `${colors.warning}20`, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <Ionicons name="flame" size={18} color={colors.warning} />
           </View>
-          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{stats.activeCalories}</AppText>
+          {isLoading ? (
+            <Skeleton width="80%" height={24} borderRadius={6} style={{ marginBottom: 2 }} />
+          ) : (
+            <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{stats.activeCalories}</AppText>
+          )}
           <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal</AppText>
         </View>
         <View style={{ flex: 1, backgroundColor: colors.card, borderRadius: 20, padding: 12, borderWidth: 1, borderColor: colors.cardBorder }}>
           <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: `#00e5ff20`, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
             <Ionicons name="location" size={18} color="#00e5ff" />
           </View>
-          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{stats.distance}</AppText>
+          {isLoading ? (
+            <Skeleton width="80%" height={24} borderRadius={6} style={{ marginBottom: 2 }} />
+          ) : (
+            <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{stats.distance}</AppText>
+          )}
           <AppText style={{ fontSize: 12, color: colors.textSecondary }}>กม.</AppText>
         </View>
       </View>
@@ -267,11 +275,13 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
       </View>
 
       {/* Leaderboard List */}
-      {isLoading ? (
-        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-          {[1, 2, 3, 4].map((item, idx) => (
+      <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
+        {isLoading ? (
+          [1, 2, 3, 4].map((item, idx) => (
             <View key={`skel-${item}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
-              <Skeleton width={16} height={20} borderRadius={4} style={{ marginRight: 16, marginLeft: 4 }} />
+              <View style={{ width: 24, marginRight: 12, alignItems: 'center' }}>
+                <Skeleton width={16} height={20} borderRadius={4} />
+              </View>
               <Skeleton width={40} height={40} borderRadius={20} style={{ marginRight: 12 }} />
               <View style={{ flex: 1, gap: 6 }}>
                 <Skeleton width={100} height={16} borderRadius={4} />
@@ -282,11 +292,9 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 <Skeleton width={40} height={12} borderRadius={4} />
               </View>
             </View>
-          ))}
-        </View>
-      ) : (
-        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-          {displayList?.map((userObj: any, idx: number) => {
+          ))
+        ) : (
+          displayList?.map((userObj: any, idx: number) => {
             if (!userObj) {
               return (
                 <View key={`empty-${idx}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
@@ -323,8 +331,8 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
               </View>
             );
           })}
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };
