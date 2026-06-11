@@ -54,35 +54,43 @@ export function useDashboard(colors: any) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      let startDate: string | undefined;
-      let endDate: string | undefined;
+      let startDateStr: string | undefined;
+      let endDateStr: string | undefined;
+
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const formatDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
       const current = new Date();
       if (timeframe === 'Daily') {
          const day = parseInt(selectedDate);
          const date = new Date(current.getFullYear(), current.getMonth(), day);
-         startDate = date.toISOString();
-         endDate = new Date(current.getFullYear(), current.getMonth(), day + 1).toISOString();
+         startDateStr = formatDate(date);
+         
+         const nextDate = new Date(current.getFullYear(), current.getMonth(), day + 1);
+         endDateStr = formatDate(nextDate);
       } else if (timeframe === 'Weekly') {
          const currentDay = current.getDay();
          const startOfThisWeek = new Date(current.getFullYear(), current.getMonth(), current.getDate() - currentDay);
          if (selectedWeek === 'This week') {
-            startDate = startOfThisWeek.toISOString();
-            endDate = new Date(startOfThisWeek.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+            startDateStr = formatDate(startOfThisWeek);
+            const endOfThisWeek = new Date(startOfThisWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
+            endDateStr = formatDate(endOfThisWeek);
          } else {
             const startOfLastWeek = new Date(startOfThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
-            startDate = startOfLastWeek.toISOString();
-            endDate = startOfThisWeek.toISOString();
+            startDateStr = formatDate(startOfLastWeek);
+            endDateStr = formatDate(startOfThisWeek);
          }
       } else if (timeframe === 'Monthly') {
          const monthIndex = MOCK_MONTHS.indexOf(selectedMonth);
          const targetYear = monthIndex > current.getMonth() ? current.getFullYear() - 1 : current.getFullYear();
-         startDate = new Date(targetYear, monthIndex, 1).toISOString();
-         endDate = new Date(targetYear, monthIndex + 1, 1).toISOString();
+         const startOfMonth = new Date(targetYear, monthIndex, 1);
+         startDateStr = formatDate(startOfMonth);
+         const endOfMonth = new Date(targetYear, monthIndex + 1, 1);
+         endDateStr = formatDate(endOfMonth);
       }
 
-      const params = { startDate, endDate };
-      const cacheKey = `${selectedGroupId}_${startDate || 'none'}_${endDate || 'none'}`;
+      const params = { startDate: startDateStr, endDate: endDateStr };
+      const cacheKey = `${selectedGroupId}_${startDateStr || 'none'}_${endDateStr || 'none'}`;
 
       if (leaderboardCache.current[cacheKey]) {
         setLeaderboardData(leaderboardCache.current[cacheKey]);
@@ -96,7 +104,14 @@ export function useDashboard(colors: any) {
         res = await leaderboardService.getGroupLeaderboard(selectedGroupId, params);
       }
       if (res && res.success) {
-        const top5Data = res.data.slice(0, 5); // Keep top 5 for dashboard
+        let top5Data = res.data.slice(0, 5); // Keep top 5 for dashboard
+        
+        // Ensure myUser is included so their stats can be rendered and synced
+        const myUserData = res.data.find((u: any) => u.id === user?.id);
+        if (myUserData && !top5Data.some((u: any) => u.id === myUserData.id)) {
+          top5Data.push(myUserData);
+        }
+        
         leaderboardCache.current[cacheKey] = top5Data;
         setLeaderboardData(top5Data);
       }
@@ -117,17 +132,29 @@ export function useDashboard(colors: any) {
   const currentStreak = dashboardData?.currentStreak || 0;
   
   const { steps, distance, calories } = useMemo(() => {
+    // Sync with leaderboard data for perfect consistency when possible
+    const myLeaderboardUser = leaderboardData.find((u: any) => u.id === user?.id);
+    if (myLeaderboardUser && myLeaderboardUser.steps !== undefined) {
+      return { 
+        steps: myLeaderboardUser.steps || 0, 
+        distance: parseFloat(Number(myLeaderboardUser.distance || 0).toFixed(2)), 
+        calories: Math.round(myLeaderboardUser.calories || 0) 
+      };
+    }
+
     let s = 0;
     let d = 0;
     let c = 0;
 
     if (timeframe === 'Daily') {
-      if (selectedDate === today.getDate().toString() && healthSummary?.today) {
+      if (selectedDate === today.getDate().toString() && healthSummary?.today && timeframe === 'Daily') {
         s = healthSummary.today.steps;
         d = healthSummary.today.distanceKm;
         c = healthSummary.today.calories;
       } else {
-        const record = healthHistory.find(r => new Date(r.recordDate).getDate().toString() === selectedDate);
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const targetDateStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${selectedDate.padStart(2, '0')}`;
+        const record = healthHistory.find(r => r.recordDate && r.recordDate.split('T')[0] === targetDateStr);
         if (record) {
           s = record.steps;
           d = record.distanceKm;
