@@ -13,6 +13,14 @@ export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 export const MOCK_WEEKS = ['Last week', 'This week'];
 export { MOCK_MONTHS };
 
+// Module-level export so DashboardComponents can import it statically.
+// Reflects days in the current month at app load time.
+const _today = new Date();
+export const MOCK_DATES = Array.from(
+  { length: new Date(_today.getFullYear(), _today.getMonth() + 1, 0).getDate() },
+  (_, i) => (i + 1).toString()
+);
+
 export function useDashboard(colors: any) {
   const { user } = useAuth();
 
