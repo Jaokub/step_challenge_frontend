@@ -1,11 +1,10 @@
 import { Redirect, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { LoadingScreen } from '../../src/components';
-import { borderRadius } from '../../src/constants/theme';
 
 export default function TabsLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,24 +23,21 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.tabActive,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabInactive,
         tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopWidth: isDark ? 0 : 0.5,
-          borderTopColor: colors.divider,
+          backgroundColor: isDark ? 'rgba(39, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          borderTopWidth: 1,
+          borderTopColor: colors.cardBorder,
           height: Platform.OS === 'ios' ? 85 : 65,
           paddingBottom: Platform.OS === 'ios' ? 25 : 8,
           paddingTop: 8,
-          elevation: isDark ? 0 : 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: isDark ? 0 : 0.05,
-          shadowRadius: 8,
+          elevation: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          marginTop: 2,
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: 4,
         },
       }}
     >
@@ -49,9 +45,12 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: t('dashboard.greeting'),
-          tabBarLabel: 'หน้าหลัก',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarLabel: 'หน้าแรก',
+          tabBarIcon: ({ color, focused, size }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+            </View>
           ),
         }}
       />
@@ -60,8 +59,11 @@ export default function TabsLayout() {
         options={{
           title: t('activities.title'),
           tabBarLabel: 'กิจกรรม',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? "barbell" : "barbell-outline"} size={size} color={color} />
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+            </View>
           ),
         }}
       />
@@ -70,8 +72,11 @@ export default function TabsLayout() {
         options={{
           title: t('scan.title'),
           tabBarLabel: 'สแกน',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="qr-code" size={size} color={color} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? "qr-code" : "qr-code-outline"} size={size} color={color} />
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+            </View>
           ),
         }}
       />
@@ -79,9 +84,12 @@ export default function TabsLayout() {
         name="groups"
         options={{
           title: "เพื่อนและกลุ่ม",
-          tabBarLabel: 'เพื่อน & กลุ่ม',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
+          tabBarLabel: 'เพื่อน',
+          tabBarIcon: ({ color, focused, size }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+            </View>
           ),
         }}
       />
@@ -90,8 +98,11 @@ export default function TabsLayout() {
         options={{
           title: t('profile.title'),
           tabBarLabel: 'โปรไฟล์',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+            </View>
           ),
         }}
       />

@@ -30,7 +30,7 @@ export default function DashboardScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, paddingBottom: 4, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, zIndex: 10 }}>
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <DashboardHeader 
           timeframe={timeframe} setTimeframe={setTimeframe}
           selectedDate={selectedDate} setSelectedDate={setSelectedDate}
