@@ -241,7 +241,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
           >
             <AppText style={{ fontSize: 13, color: selectedGroupId === 'friends' ? '#fff' : colors.textPrimary }}>เพื่อน</AppText>
           </TouchableOpacity>
-          {userGroups.map((group: any) => {
+          {userGroups?.map((group: any) => {
             const isActive = group.id === selectedGroupId;
             return (
               <TouchableOpacity 
@@ -323,7 +323,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
 };
 
 // --- DashboardEvents ---
-export const DashboardEvents = ({ events, colors }: any) => {
+export const DashboardEvents = ({ events = [], colors }: any) => {
   const { t } = useTranslation();
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 30 }}>
@@ -338,7 +338,7 @@ export const DashboardEvents = ({ events, colors }: any) => {
         </View>
       ) : (
         <View style={{ gap: 12 }}>
-          {events.map((event: any) => (
+          {events?.map((event: any) => (
             <TouchableOpacity 
               key={event.id} 
               activeOpacity={0.7}

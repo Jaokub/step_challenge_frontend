@@ -63,10 +63,10 @@ export function useDashboard(colors: any) {
         groupService.getGroups(),
       ]);
 
-      if (dashRes.success) setDashboardData(dashRes.data);
-      if (sumRes.success) setHealthSummary(sumRes.data);
-      if (histRes.success) setHealthHistory(histRes.data);
-      if (groupsRes?.success) setUserGroups(groupsRes.data);
+      if (dashRes.success) setDashboardData(dashRes.data || null);
+      if (sumRes.success) setHealthSummary(sumRes.data || null);
+      if (histRes.success) setHealthHistory(histRes.data || []);
+      if (groupsRes?.success) setUserGroups(groupsRes.data || []);
     } catch (error) {
       console.error('fetchDashboardData error:', error);
     } finally {
