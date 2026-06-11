@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../../../services/api';
 
 export interface LeaderboardUser {
   id: string;
