@@ -44,10 +44,7 @@ export function useDashboard(colors: any) {
   const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
-
-  // FIX #5: ลบ isStatsLoading ที่ใช้ fake 400ms timer ออก
-  // stats คำนวณผ่าน useMemo ซึ่งเป็น synchronous อยู่แล้ว ไม่มี async state จริง
-  // ถ้าต้องการ transition effect ให้ใช้ CSS transition บน component แทน
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
 
   const leaderboardCache = useRef<Record<string, any[]>>({});
 
@@ -76,9 +73,9 @@ export function useDashboard(colors: any) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
-      setIsLeaderboardLoading(true);
+      // FIX: Only show leaderboard skeleton when timeframe changes
+      // Small tabs and groups will update silently without skeleton on the leaderboard
 
-      // FIX #2 + #4: ใช้ selectedDate/selectedWeek/selectedMonth จริง
       // แทนที่จะ hardcode ด้วย current date เสมอ
       // ทำให้ leaderboard แสดงข้อมูลตรงกับ stats ที่ user เลือก
       const { startDate, endDate } = calculateDateRange(
@@ -121,6 +118,21 @@ export function useDashboard(colors: any) {
   // FIX #4: เพิ่ม selectedDate, selectedWeek, selectedMonth เข้า dependency array
   // ให้ครบตามที่ใช้จริงข้างในฟังก์ชัน
   }, [selectedGroupId, timeframe, selectedDate, selectedWeek, selectedMonth, user?.id]);
+
+  useEffect(() => {
+    // Big tab changes -> animate BOTH top and bottom
+    setIsLeaderboardLoading(true);
+    setIsStatsLoading(true);
+    const timer = setTimeout(() => setIsStatsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, [timeframe]);
+
+  useEffect(() => {
+    // Small tabs and group changes -> animate TOP ONLY
+    setIsStatsLoading(true);
+    const timer = setTimeout(() => setIsStatsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, [selectedDate, selectedWeek, selectedMonth, selectedGroupId]);
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
   useEffect(() => { fetchLeaderboard(); }, [fetchLeaderboard]);
@@ -190,6 +202,7 @@ export function useDashboard(colors: any) {
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
     loading,
     isLeaderboardLoading,
+    isStatsLoading,
     refreshDashboard: fetchDashboardData,
     currentStreak: dashboardData?.currentStreak || 0,
   };
