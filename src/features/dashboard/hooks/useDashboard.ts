@@ -201,8 +201,8 @@ export function useDashboard(colors: any) {
   }));
 
   const sortedLeaderboard = [...leaderboardData].sort((a: any, b: any) => {
-    const pointsA = a.totalPoints ?? a.points ?? 0;
-    const pointsB = b.totalPoints ?? b.points ?? 0;
+    const pointsA = a.points ?? a.totalPoints ?? 0;
+    const pointsB = b.points ?? b.totalPoints ?? 0;
     return pointsB - pointsA;
   });
 
@@ -210,7 +210,7 @@ export function useDashboard(colors: any) {
     id: u.id,
     rank: idx + 1,
     name: u.fullName || u.name,
-    points: u.totalPoints ?? u.points ?? 0,
+    points: u.points ?? u.totalPoints ?? 0,
     isMe: user?.id === u.id,
     steps: u.steps || 0,
     distance: u.distance || 0,
