@@ -43,6 +43,7 @@ export function useDashboard(colors: any) {
   const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
   const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
   const leaderboardCache = useRef<Record<string, any[]>>({});
 
   // ─── Data fetching ────────────────────────────────────────
@@ -70,6 +71,7 @@ export function useDashboard(colors: any) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
+      setIsLeaderboardLoading(true);
       // Delegate date range calculation to the shared utility — no duplication
       const { startDate, endDate } = calculateDateRange(
         timeframe, selectedDate, selectedWeek, selectedMonth
@@ -78,6 +80,7 @@ export function useDashboard(colors: any) {
       const cacheKey = `${selectedGroupId}_${startDate || 'none'}_${endDate || 'none'}`;
       if (leaderboardCache.current[cacheKey]) {
         setLeaderboardData(leaderboardCache.current[cacheKey]);
+        setIsLeaderboardLoading(false);
         return;
       }
 
@@ -99,6 +102,8 @@ export function useDashboard(colors: any) {
       setLeaderboardData(top5);
     } catch (error) {
       console.error('fetchLeaderboard error:', error);
+    } finally {
+      setIsLeaderboardLoading(false);
     }
   // All selection state that drives the date range must be declared as deps
   }, [selectedGroupId, timeframe, selectedDate, selectedWeek, selectedMonth, user?.id]);
@@ -180,6 +185,7 @@ export function useDashboard(colors: any) {
     upcomingEvents,
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
     loading,
+    isLeaderboardLoading,
     refreshDashboard: fetchDashboardData,
     currentStreak: dashboardData?.currentStreak || 0,
   };

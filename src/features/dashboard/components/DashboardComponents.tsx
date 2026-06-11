@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
-import { AppText, EmptyState } from '../../../components';
+import { AppText, EmptyState, Skeleton } from '../../../components';
 import { ThemeColors } from '../../../constants/theme';
 import { MOCK_DATES, MOCK_WEEKS, MOCK_MONTHS } from '../hooks/useDashboard';
 
@@ -118,9 +118,22 @@ export const DashboardHeader = ({
 };
 
 // --- DashboardStats ---
-export const DashboardStats = ({ stats, svgProps, colors }: any) => {
+export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
   const { t } = useTranslation();
   const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps } = svgProps;
+  
+  if (isLoading) {
+    return (
+      <View style={{ paddingHorizontal: 20 }}>
+        <Skeleton width="100%" height={140} borderRadius={24} style={{ marginBottom: 20 }} />
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
+        </View>
+      </View>
+    );
+  }
   
   const stepGoal = 10000;
   const progressPercent = Math.min(100, Math.floor((currentSteps / stepGoal) * 100));
@@ -179,7 +192,7 @@ export const DashboardStats = ({ stats, svgProps, colors }: any) => {
 };
 
 // --- DashboardLeaderboard ---
-export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelectedGroupId, userGroups, colors }: any) => {
+export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelectedGroupId, userGroups, colors, isLoading }: any) => {
   const { t } = useTranslation();
   
   const rankColor = (rank: number) => rank === 1 ? "#FBBF24" : rank === 2 ? "#94A3B8" : rank === 3 ? "#D97706" : colors.textSecondary;
@@ -247,45 +260,64 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
       </View>
 
       {/* Leaderboard List */}
-      <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-        {displayList.map((userObj: any, idx: number) => {
-          if (!userObj) {
+      {isLoading ? (
+        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden', paddingVertical: 8 }}>
+          {[1, 2, 3, 4].map((item, idx) => (
+            <View key={`skel-${item}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+              <Skeleton width={16} height={20} borderRadius={4} style={{ marginRight: 16, marginLeft: 4 }} />
+              <Skeleton width={40} height={40} borderRadius={20} style={{ marginRight: 12 }} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <Skeleton width={100} height={16} borderRadius={4} />
+                <Skeleton width={80} height={12} borderRadius={4} />
+              </View>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <Skeleton width={24} height={16} borderRadius={4} />
+                <Skeleton width={40} height={12} borderRadius={4} />
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
+          {displayList.map((userObj: any, idx: number) => {
+            if (!userObj) {
+              return (
+                <View key={`empty-${idx}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+                  <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginRight: 12 }}>-</AppText>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: colors.background }}>
+                    <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppText style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 2 }}>---</AppText>
+                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- ก้าว · - กม.</AppText>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textSecondary }}>-</AppText>
+                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal -</AppText>
+                  </View>
+                </View>
+              );
+            }
+
             return (
-              <View key={`empty-${idx}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
-                <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginRight: 12 }}>-</AppText>
-                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: colors.background }}>
-                  <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+              <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+                <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: rankColor(userObj.rank), textAlign: 'center', marginRight: 12 }}>{userObj.rank}</AppText>
+                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.isMe ? colors.primary : colors.background }}>
+                  <AppText variant="body-bold" style={{ fontSize: 14, color: userObj.isMe ? '#fff' : colors.textPrimary }}>{userObj.name.substring(0, 2).toUpperCase()}</AppText>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <AppText style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 2 }}>---</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- ก้าว · - กม.</AppText>
+                  <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, marginBottom: 2 }}>{userObj.name}</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{userObj.steps || 0} ก้าว · {userObj.distance || 0} กม.</AppText>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textSecondary }}>-</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal -</AppText>
+                  <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary }}>{userObj.points}</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal {userObj.calories || 0}</AppText>
                 </View>
               </View>
             );
-          }
-
-          return (
-            <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
-              <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: rankColor(userObj.rank), textAlign: 'center', marginRight: 12 }}>{userObj.rank}</AppText>
-              <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.isMe ? colors.primary : colors.background }}>
-                <AppText variant="body-bold" style={{ fontSize: 14, color: userObj.isMe ? '#fff' : colors.textPrimary }}>{userObj.name.substring(0, 2).toUpperCase()}</AppText>
-              </View>
-              <View style={{ flex: 1 }}>
-                <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, marginBottom: 2 }}>{userObj.name}</AppText>
-                <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{userObj.steps || 0} ก้าว · {userObj.distance || 0} กม.</AppText>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary }}>{userObj.points}</AppText>
-                <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal {userObj.calories || 0}</AppText>
-              </View>
-            </View>
-          );
-        })}
-      </View>
+          })}
+        </View>
+      )}
     </View>
   );
 };
