@@ -132,11 +132,11 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
   if (isLoading) {
     return (
       <View style={{ paddingHorizontal: 20 }}>
-        <Skeleton width="100%" height={140} borderRadius={24} style={{ marginBottom: 20 }} />
+        <Skeleton width="100%" height={138} borderRadius={24} style={{ marginBottom: 20 }} />
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
-          <View style={{ flex: 1 }}><Skeleton width="100%" height={110} borderRadius={20} /></View>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
+          <View style={{ flex: 1 }}><Skeleton width="100%" height={108} borderRadius={20} /></View>
         </View>
       </View>
     );
@@ -268,7 +268,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
 
       {/* Leaderboard List */}
       {isLoading ? (
-        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden', paddingVertical: 8 }}>
+        <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
           {[1, 2, 3, 4].map((item, idx) => (
             <View key={`skel-${item}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
               <Skeleton width={16} height={20} borderRadius={4} style={{ marginRight: 16, marginLeft: 4 }} />

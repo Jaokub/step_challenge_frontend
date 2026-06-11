@@ -3,7 +3,7 @@ import dashboardService from '../services/dashboardService';
 import healthService from '../../health/services/healthService';
 import leaderboardService from '../../leaderboard/services/leaderboardService';
 import groupService from '../../group/services/groupService';
-import { calculateDateRange, MOCK_MONTHS } from '../utils/dateRangeCalculator';
+import { calculateDateRange, getCurrentDateRange, MOCK_MONTHS } from '../utils/dateRangeCalculator';
 import { aggregateStats } from '../utils/statsAggregator';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -78,9 +78,7 @@ export function useDashboard(colors: any) {
 
       // แทนที่จะ hardcode ด้วย current date เสมอ
       // ทำให้ leaderboard แสดงข้อมูลตรงกับ stats ที่ user เลือก
-      const { startDate, endDate } = calculateDateRange(
-        timeframe, selectedDate, selectedWeek, selectedMonth
-      );
+      const { startDate, endDate } = getCurrentDateRange(timeframe);
 
       // FIX #3: normalize date string เพื่อป้องกัน cache miss จาก format ต่างกัน
       const normalizeDate = (d: string | undefined) =>

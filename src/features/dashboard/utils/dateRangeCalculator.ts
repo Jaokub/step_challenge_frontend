@@ -64,3 +64,13 @@ export const calculateDateRange = (
 
   return { startDate: undefined, endDate: undefined };
 };
+
+/**
+ * Convenience function to get the date range for the current timeframe (always current).
+ */
+export const getCurrentDateRange = (timeframe: Timeframe): DateRange => {
+  const now = new Date();
+  const todayStr = now.getDate().toString();
+  const thisMonthStr = MOCK_MONTHS[now.getMonth()];
+  return calculateDateRange(timeframe, todayStr, 'This week', thisMonthStr);
+};
