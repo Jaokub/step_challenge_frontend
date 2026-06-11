@@ -126,11 +126,19 @@ export function useDashboard(colors: any) {
   }, [timeframe]);
 
   useEffect(() => {
-    // Small tabs and group changes -> animate TOP ONLY
+    // Small tab changes -> animate TOP ONLY
     setIsStatsLoading(true);
     const timer = setTimeout(() => setIsStatsLoading(false), 400);
     return () => clearTimeout(timer);
-  }, [selectedDate, selectedWeek, selectedMonth, selectedGroupId]);
+  }, [selectedDate, selectedWeek, selectedMonth]);
+
+  useEffect(() => {
+    // Group changes -> animate BOTTOM ONLY
+    // Since fetchLeaderboard sets isLeaderboardLoading(false) when done,
+    // we only need to set it to true here. But wait, fetchLeaderboard doesn't set it to false if it's already fetching?
+    // fetchLeaderboard DOES set it to false in `finally`.
+    setIsLeaderboardLoading(true);
+  }, [selectedGroupId]);
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
   useEffect(() => { fetchLeaderboard(); }, [fetchLeaderboard]);
