@@ -54,7 +54,7 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <>
-            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isStatsLoading || isLeaderboardLoading} />
+            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isStatsLoading} />
             <DashboardLeaderboard 
               leaderboard={currentLeaderboard} 
               selectedGroupId={selectedGroupId}
