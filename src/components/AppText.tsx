@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { thaiFonts, englishFonts } from '../constants/theme';
 
-export type TextVariant = 'heading-bold' | 'heading-medium' | 'body-bold' | 'body-semiBold' | 'body-medium' | 'body-regular';
+export type TextVariant = 'heading-bold' | 'heading-medium' | 'heading-sm' | 'body-bold' | 'body-semiBold' | 'body-medium' | 'body-regular';
 
 export interface AppTextProps extends TextProps {
   variant?: TextVariant;
@@ -25,6 +25,9 @@ const AppText: React.FC<AppTextProps> = ({ variant = 'body-regular', style, ...p
       break;
     case 'heading-medium':
       fontFamily = fonts.heading.medium;
+      break;
+    case 'heading-sm':
+      fontFamily = fonts.heading.medium; // Or another appropriate font
       break;
     case 'body-bold':
       fontFamily = fonts.body.bold;
