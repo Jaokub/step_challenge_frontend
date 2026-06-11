@@ -38,7 +38,7 @@ export const DashboardHeader = ({
       }
     }, 50);
     return () => clearTimeout(timer);
-  }, [timeframe, selectedDate, selectedMonth]);
+  }, [timeframe]); // Only auto-scroll when timeframe changes
 
   return (
     <View>
@@ -184,6 +184,25 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
   
   const rankColor = (rank: number) => rank === 1 ? "#FBBF24" : rank === 2 ? "#94A3B8" : rank === 3 ? "#D97706" : colors.textSecondary;
 
+  // Process leaderboard to show exactly 4 rows
+  let displayList: any[] = [];
+  if (leaderboard && leaderboard.length > 0) {
+    const myUser = leaderboard.find((u: any) => u.isMe);
+    const top3 = leaderboard.slice(0, 3);
+    const isMeInTop3 = top3.some((u: any) => u.isMe);
+    
+    if (isMeInTop3 || !myUser) {
+      displayList = leaderboard.slice(0, 4);
+    } else {
+      displayList = [...top3, myUser];
+    }
+  }
+  
+  // Fill empty slots up to 4
+  while (displayList.length < 4) {
+    displayList.push(null);
+  }
+
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
       {/* Header */}
@@ -229,11 +248,28 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
 
       {/* Leaderboard List */}
       <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-        {leaderboard.length === 0 ? (
-          <EmptyState icon="trophy-outline" title="ไม่มีข้อมูลอันดับ" subtitle="ยังไม่มีข้อมูลสำหรับการจัดอันดับในหมวดหมู่นี้" />
-        ) : (
-          leaderboard.map((userObj: any, idx: number) => (
-            <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < leaderboard.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+        {displayList.map((userObj: any, idx: number) => {
+          if (!userObj) {
+            return (
+              <View key={`empty-${idx}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
+                <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginRight: 12 }}>-</AppText>
+                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: colors.background }}>
+                  <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <AppText style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 2 }}>---</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- ก้าว · - กม.</AppText>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textSecondary }}>-</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal -</AppText>
+                </View>
+              </View>
+            );
+          }
+
+          return (
+            <View key={userObj.id} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
               <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: rankColor(userObj.rank), textAlign: 'center', marginRight: 12 }}>{userObj.rank}</AppText>
               <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.isMe ? colors.primary : colors.background }}>
                 <AppText variant="body-bold" style={{ fontSize: 14, color: userObj.isMe ? '#fff' : colors.textPrimary }}>{userObj.name.substring(0, 2).toUpperCase()}</AppText>
@@ -247,8 +283,8 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal {userObj.calories || 0}</AppText>
               </View>
             </View>
-          ))
-        )}
+          );
+        })}
       </View>
     </View>
   );
