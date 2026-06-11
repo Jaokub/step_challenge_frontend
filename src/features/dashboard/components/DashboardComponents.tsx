@@ -330,7 +330,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 </View>
               </View>
             );
-          })}
+          })
         )}
       </View>
     </View>
