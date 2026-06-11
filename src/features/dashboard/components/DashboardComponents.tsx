@@ -75,7 +75,7 @@ export const DashboardHeader = ({
 
       <View style={{ marginBottom: 4, height: 60, justifyContent: 'center' }}>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[{ paddingHorizontal: 20, gap: 10, alignItems: 'center' }, timeframe === 'Weekly' && { flexGrow: 1, justifyContent: 'center' }]}>
-          {timeframe === 'Daily' && MOCK_DATES.map((dateStr) => {
+          {timeframe === 'Daily' && MOCK_DATES?.map((dateStr) => {
             const isActive = dateStr === selectedDate;
             const isToday = dateStr === '24 May'; // Mock
             const displayDate = dateStr.split(' ')[0];
@@ -95,7 +95,7 @@ export const DashboardHeader = ({
               </TouchableOpacity>
             );
           })}
-          {timeframe === 'Weekly' && MOCK_WEEKS.map((weekStr) => {
+          {timeframe === 'Weekly' && MOCK_WEEKS?.map((weekStr) => {
             const isActive = weekStr === selectedWeek;
             return (
               <TouchableOpacity key={weekStr} style={[{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: isActive ? colors.primary : colors.card }]} onPress={() => setSelectedWeek(weekStr)}>
@@ -103,7 +103,7 @@ export const DashboardHeader = ({
               </TouchableOpacity>
             );
           })}
-          {timeframe === 'Monthly' && MOCK_MONTHS.map((monthStr) => {
+          {timeframe === 'Monthly' && MOCK_MONTHS?.map((monthStr) => {
             const isActive = monthStr === selectedMonth;
             return (
               <TouchableOpacity key={monthStr} style={[{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: isActive ? colors.primary : colors.card }]} onPress={() => setSelectedMonth(monthStr)}>
@@ -279,7 +279,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
         </View>
       ) : (
         <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-          {displayList.map((userObj: any, idx: number) => {
+          {displayList?.map((userObj: any, idx: number) => {
             if (!userObj) {
               return (
                 <View key={`empty-${idx}`} style={[{ flexDirection: 'row', alignItems: 'center', padding: 16 }, idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}>
