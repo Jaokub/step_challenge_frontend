@@ -61,12 +61,13 @@ const aggregateDailyStats = (
     };
   }
 
+  // Bug fix: use filter+sum — a day can have multiple records from different sources
   const pad = (n: number) => n.toString().padStart(2, '0');
   const targetDateStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${selectedDate.padStart(2, '0')}`;
-  const record = healthHistory.find((r) => r.recordDate?.split('T')[0] === targetDateStr);
+  const records = healthHistory.filter((r) => r.recordDate?.split('T')[0] === targetDateStr);
 
-  return record
-    ? { steps: record.steps, distance: record.distanceKm, calories: record.calories }
+  return records.length > 0
+    ? sumRecords(records)
     : { steps: 0, distance: 0, calories: 0 };
 };
 
@@ -75,8 +76,10 @@ const aggregateWeeklyStats = (
   today: Date,
   healthHistory: HealthRecord[]
 ): AggregatedStats => {
-  const currentDay = today.getDay();
-  const startOfThisWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - currentDay);
+  const currentDay = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Bug fix: use Monday as week start to match backend getHealthSummary logic
+  const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
+  const startOfThisWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset);
 
   const startBoundary =
     selectedWeek === 'Last week'

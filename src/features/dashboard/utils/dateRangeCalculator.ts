@@ -40,8 +40,10 @@ export const calculateDateRange = (
   }
 
   if (timeframe === 'Weekly') {
-    const currentDay = now.getDay();
-    const startOfThisWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentDay);
+    const currentDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    // Use Monday as week start to match backend getHealthSummary logic
+    const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
+    const startOfThisWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset);
 
     if (selectedWeek === 'This week') {
       const endOfThisWeek = new Date(startOfThisWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
