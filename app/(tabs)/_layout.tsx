@@ -23,6 +23,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabInactive,
         tabBarStyle: {
@@ -49,7 +50,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
             </View>
           ),
         }}
@@ -62,7 +63,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "barbell" : "barbell-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
             </View>
           ),
         }}
@@ -75,7 +76,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "qr-code" : "qr-code-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
             </View>
           ),
         }}
@@ -88,7 +89,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
             </View>
           ),
         }}
@@ -101,7 +102,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -12 }} />}
+              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
             </View>
           ),
         }}

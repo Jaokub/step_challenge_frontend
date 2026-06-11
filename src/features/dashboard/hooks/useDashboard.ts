@@ -5,6 +5,7 @@ import leaderboardService from '../../../services/leaderboardService';
 import type { PersonalDashboard, HealthSummary, HealthRecord } from '../../../types';
 import groupService from '../../group/services/groupService';
 import type { AppGroup } from '../../../types';
+import { useAuth } from '../../../contexts/AuthContext';
 
 type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
@@ -15,6 +16,7 @@ export const MOCK_WEEKS = ['Last week', 'This week'];
 export const MOCK_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function useDashboard(colors: any) {
+  const { user } = useAuth();
   const [timeframe, setTimeframe] = useState<Timeframe>('Daily');
   const [selectedDate, setSelectedDate] = useState(today.getDate().toString());
   const [selectedWeek, setSelectedWeek] = useState('This week');
@@ -198,11 +200,21 @@ export function useDashboard(colors: any) {
     date: new Date(act.startDate).toLocaleDateString()
   }));
 
-  const currentLeaderboard = leaderboardData.map((u: any, idx: number) => ({
+  const sortedLeaderboard = [...leaderboardData].sort((a: any, b: any) => {
+    const pointsA = a.totalPoints ?? a.points ?? 0;
+    const pointsB = b.totalPoints ?? b.points ?? 0;
+    return pointsB - pointsA;
+  });
+
+  const currentLeaderboard = sortedLeaderboard.map((u: any, idx: number) => ({
     id: u.id,
-    rank: u.rank,
-    name: u.fullName,
-    points: u.points ?? u.totalPoints,
+    rank: idx + 1,
+    name: u.fullName || u.name,
+    points: u.totalPoints ?? u.points ?? 0,
+    isMe: user?.id === u.id,
+    steps: u.steps || 0,
+    distance: u.distance || 0,
+    calories: u.calories || 0,
     rankColor: idx === 0 ? colors.warning : idx === 1 ? colors.textCardSecondary : colors.card
   }));
 
