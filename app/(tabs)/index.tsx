@@ -26,7 +26,8 @@ export default function DashboardScreen() {
     upcomingEvents,
     svgProps,
     loading,
-    isLeaderboardLoading
+    isLeaderboardLoading,
+    isStatsLoading
   } = useDashboard(colors);
 
   return (
@@ -53,7 +54,7 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <>
-            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isLeaderboardLoading} />
+            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isStatsLoading || isLeaderboardLoading} />
             <DashboardLeaderboard 
               leaderboard={currentLeaderboard} 
               selectedGroupId={selectedGroupId}
