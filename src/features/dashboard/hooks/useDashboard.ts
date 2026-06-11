@@ -10,20 +10,21 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
-const today = new Date();
-const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-export const MOCK_DATES = Array.from({ length: daysInCurrentMonth }, (_, i) => (i + 1).toString());
 export const MOCK_WEEKS = ['Last week', 'This week'];
 export { MOCK_MONTHS };
 
 export function useDashboard(colors: any) {
   const { user } = useAuth();
 
+  // Computed fresh inside the hook so they never go stale across midnight
+  const today = new Date();
+  const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const MOCK_DATES = Array.from({ length: daysInCurrentMonth }, (_, i) => (i + 1).toString());
+
   // ─── Timeframe state ──────────────────────────────────────
   const [timeframe, setTimeframe] = useState<Timeframe>('Daily');
   const [selectedDate, setSelectedDate] = useState(today.getDate().toString());
   const [selectedWeek, setSelectedWeek] = useState('This week');
-  // Bug fix: default to current month name, not hard-coded 'Jun'
   const [selectedMonth, setSelectedMonth] = useState(MOCK_MONTHS[today.getMonth()]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
@@ -61,6 +62,7 @@ export function useDashboard(colors: any) {
 
   const fetchLeaderboard = useCallback(async () => {
     try {
+      // Delegate date range calculation to the shared utility — no duplication
       const { startDate, endDate } = calculateDateRange(
         timeframe, selectedDate, selectedWeek, selectedMonth
       );
@@ -90,6 +92,7 @@ export function useDashboard(colors: any) {
     } catch (error) {
       console.error('fetchLeaderboard error:', error);
     }
+  // All selection state that drives the date range must be declared as deps
   }, [selectedGroupId, timeframe, selectedDate, selectedWeek, selectedMonth, user?.id]);
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
@@ -98,7 +101,7 @@ export function useDashboard(colors: any) {
   // ─── Derived stats ────────────────────────────────────────
 
   const { steps, distance, calories } = useMemo(() => {
-    // Prefer leaderboard data for the current user (ensures consistency)
+    // Prefer leaderboard data for the current user (ensures consistency with the displayed rank)
     const myLeaderboardUser = leaderboardData.find((u: any) => u.id === user?.id);
     if (myLeaderboardUser?.steps !== undefined) {
       return {
@@ -162,6 +165,7 @@ export function useDashboard(colors: any) {
     selectedWeek, setSelectedWeek,
     selectedMonth, setSelectedMonth,
     selectedGroupId, setSelectedGroupId,
+    mockDates: MOCK_DATES,
     userGroups,
     stats,
     currentLeaderboard,
