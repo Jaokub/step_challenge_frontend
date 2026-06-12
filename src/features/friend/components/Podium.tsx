@@ -45,14 +45,34 @@ const PodiumItem = ({ member, height, accentColor, isFirst }: { member: Leaderbo
 };
 
 export function Podium({ topThree, accentColor = '#b0f237' }: PodiumProps) {
-  if (topThree.length < 3) return null;
+  if (topThree.length === 0) return null;
+
+  const firstPlacePoints = topThree[0]?.points || 1; // Avoid division by 0
+  const baseHeight = 100;
+
+  const getHeight = (member?: LeaderboardMember) => {
+    if (!member) return 0;
+    return Math.max((member.points / firstPlacePoints) * baseHeight, 40);
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.podiumRow}>
-        <PodiumItem member={topThree[1]} height={80} accentColor={accentColor} />
-        <PodiumItem member={topThree[0]} height={100} accentColor={accentColor} isFirst />
-        <PodiumItem member={topThree[2]} height={64} accentColor={accentColor} />
+        {topThree[1] ? (
+          <PodiumItem member={topThree[1]} height={getHeight(topThree[1])} accentColor={accentColor} />
+        ) : (
+          <View style={styles.podiumItemContainer} />
+        )}
+        
+        {topThree[0] ? (
+          <PodiumItem member={topThree[0]} height={baseHeight} accentColor={accentColor} isFirst />
+        ) : null}
+
+        {topThree[2] ? (
+          <PodiumItem member={topThree[2]} height={getHeight(topThree[2])} accentColor={accentColor} />
+        ) : (
+          <View style={styles.podiumItemContainer} />
+        )}
       </View>
     </View>
   );

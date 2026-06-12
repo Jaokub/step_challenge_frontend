@@ -47,7 +47,7 @@ export default function GroupsScreen() {
     handleRefresh: handleRefreshFriends,
     handleAcceptRequest,
     handleRejectRequest,
-  } = useFriends(activeTab === 'friends');
+  } = useFriends(true);
 
   const {
     groups,
@@ -56,7 +56,7 @@ export default function GroupsScreen() {
     handleRefresh: handleRefreshGroups,
     handleCreateGroup,
     handleJoinGroup
-  } = useGroups(activeTab !== 'friends');
+  } = useGroups(true);
 
   const isGroupTab = activeTab !== 'friends';
   const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
@@ -66,19 +66,9 @@ export default function GroupsScreen() {
   const rawList = isGroupTab ? [] : friends; // For simplicity, only friends have mock members right now, but let's mock groups if needed
   // In real app, `currentGroup.members` would be used.
   
-  let leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id))
+  const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id))
     .sort((a, b) => b.points - a.points)
     .map((m, i) => ({ ...m, rank: i + 1 }));
-
-  // If leaderboard is empty, insert some mock data to show the design
-  if (leaderboard.length === 0) {
-    leaderboard = [
-      { id: '1', rank: 1, name: 'สมชาย ใจดี', avatar: 'SC', steps: 12540, calories: 980, distance: 9.2, points: 2840, isMe: false, lastActive: '2 ชม. ที่แล้ว' },
-      { id: '2', rank: 2, name: 'อรอนงค์', avatar: 'AN', steps: 8432, calories: 623, distance: 6.2, points: 1920, isMe: true, lastActive: 'ออนไลน์' },
-      { id: '3', rank: 3, name: 'วิภา รักกีฬา', avatar: 'WP', steps: 7890, calories: 590, distance: 5.8, points: 1780, isMe: false, lastActive: '3 ชม. ที่แล้ว' },
-      { id: '4', rank: 4, name: 'ธนา วิ่งเร็ว', avatar: 'TW', steps: 6210, calories: 480, distance: 4.6, points: 1450, isMe: false, lastActive: 'เมื่อวาน' },
-    ];
-  }
 
   const myEntry = leaderboard.find(m => m.isMe);
   const topThree = leaderboard.slice(0, 3);
@@ -155,6 +145,14 @@ export default function GroupsScreen() {
               onRefresh={isGroupTab ? handleRefreshGroups : handleRefreshFriends} 
               tintColor={colors.primary} 
             />
+          }
+          ListEmptyComponent={
+            (!isRefreshingGroups && !isRefreshingFriends) ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
+                <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
+                <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>ไม่มีข้อมูลในขณะนี้</AppText>
+              </View>
+            ) : null
           }
           renderItem={({ item, index }) => (
             <View style={styles.cardContainer}>
