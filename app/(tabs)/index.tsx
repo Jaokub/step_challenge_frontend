@@ -3,13 +3,13 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { Skeleton } from '../../src/components';
-import { useDashboard } from '../../src/features/dashboard/hooks/useDashboard';
+import { useDashboard } from '../../src/features/dashboard/useDashboard';
 import { 
   DashboardHeader, 
   DashboardStats, 
   DashboardLeaderboard, 
   DashboardEvents 
-} from '../../src/features/dashboard/components/DashboardComponents';
+} from '../../src/features/dashboard/DashboardComponents';
 
 export default function DashboardScreen() {
   const { colors } = useTheme();

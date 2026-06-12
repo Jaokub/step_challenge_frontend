@@ -14,7 +14,7 @@ import {
   EmptyState,
 } from '../src/components';
 import { spacing, borderRadius, fontSize } from '../src/constants/theme';
-import healthService from '../src/features/health/services/healthService';
+import healthService from '../src/features/health/healthService';
 import { useAuth } from '../src/contexts/AuthContext';
 import type { HealthSummary, HealthRecord } from '../src/types';
 

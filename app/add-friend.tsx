@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
 import { useTheme } from '../src/contexts/ThemeContext';
-import userService from '../src/features/auth/services/userService';
-import friendService from '../src/features/friend/services/friendService';
+import userService from '../src/features/auth/userService';
+import friendService from '../src/features/friend/friendService';
 import type { User } from '../src/types';
 import { spacing, fontSize, borderRadius } from '../src/constants/theme';
 

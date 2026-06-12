@@ -10,12 +10,12 @@ import { EmptyState, AppText, Skeleton } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 import { User } from '../../src/types';
 
-import { useFriends } from '../../src/features/friend/hooks/useFriends';
-import { useGroups } from '../../src/features/group/hooks/useGroups';
-import { FriendCard } from '../../src/features/friend/components/FriendCard';
-import { Podium, LeaderboardMember } from '../../src/features/friend/components/Podium';
-import { RankSummaryCard } from '../../src/features/friend/components/RankSummaryCard';
-import { GroupActionModals, ModalType } from '../../src/features/group/components/GroupActionModals';
+import { useFriends } from '../../src/features/friend/useFriends';
+import { useGroups } from '../../src/features/group/useGroups';
+import { FriendCard } from '../../src/features/friend/FriendCard';
+import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
+import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
+import { GroupActionModals, ModalType } from '../../src/features/group/GroupActionModals';
 
 // helper: deterministic number from string id
 const hashId = (id: string, mod: number) =>

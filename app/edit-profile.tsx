@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
-import authService from '../src/features/auth/services/authService';
-import userService from '../src/features/auth/services/userService';
+import authService from '../src/features/auth/authService';
+import userService from '../src/features/auth/userService';
 import { spacing, fontSize } from '../src/constants/theme';
 
 const EditProfileScreen = () => {

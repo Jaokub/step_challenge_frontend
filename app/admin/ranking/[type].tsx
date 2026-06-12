@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { AppText, AppCard, ScreenHeader } from '../../../src/components';
 import { spacing, borderRadius, fontSize } from '../../../src/constants/theme';
-import { useAdminDashboard } from '../../../src/features/admin/hooks/useAdminDashboard';
+import { useAdminDashboard } from '../../../src/features/admin/useAdminDashboard';
 
 export default function AdminRankingScreen() {
   const { type } = useLocalSearchParams();

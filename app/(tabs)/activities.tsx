@@ -7,8 +7,8 @@ import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { ScreenHeader, HeaderIconButton, AppText } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
-import { useActivities } from '../../src/features/activity/hooks/useActivities';
-import { ActivityCard } from '../../src/features/activity/components/ActivityCard';
+import { useActivities } from '../../src/features/activity/useActivities';
+import { ActivityCard } from '../../src/features/activity/ActivityCard';
 
 export default function ActivitiesScreen() {
   const { t } = useTranslation();

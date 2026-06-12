@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, PrimaryButton, EmptyState } from '../../../../src/components';
 import { spacing, fontSize } from '../../../../src/constants/theme';
-import checkinService from '../../../../src/features/activity/services/checkinService';
+import checkinService from '../../../../src/features/activity/checkinService';
 
 export default function AttendeesScreen() {
   const { id } = useLocalSearchParams();

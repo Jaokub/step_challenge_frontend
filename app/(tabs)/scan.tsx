@@ -9,8 +9,8 @@ import QRCode from 'react-native-qrcode-svg';
 import { AppText } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import checkinService from '../../src/features/activity/services/checkinService';
-import friendService from '../../src/features/friend/services/friendService';
+import checkinService from '../../src/features/activity/checkinService';
+import friendService from '../../src/features/friend/friendService';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
 
 type Mode = "scan" | "myqr";

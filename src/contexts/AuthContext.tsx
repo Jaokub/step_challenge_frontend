@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY, setAuthToken, clearAuthToken } from '../services/api';
-import authService from '../features/auth/services/authService';
+import authService from '../features/auth/authService';
 import type { User } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

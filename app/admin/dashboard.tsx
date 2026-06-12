@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { useAdminDashboard } from '../../src/features/admin/hooks/useAdminDashboard';
+import { useAdminDashboard } from '../../src/features/admin/useAdminDashboard';
 import { 
   AdminOverviewStats,
   AdminExportBtn,
   AdminTopList
-} from '../../src/features/admin/components/AdminDashboardComponents';
+} from '../../src/features/admin/AdminDashboardComponents';
 import { ScreenHeader, Skeleton } from '../../src/components';
 
 export default function AdminDashboardScreen() {

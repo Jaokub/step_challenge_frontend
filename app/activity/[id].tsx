@@ -16,7 +16,7 @@ import {
   LoadingScreen,
 } from '../../src/components';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import activityService from '../../src/features/activity/services/activityService';
+import activityService from '../../src/features/activity/activityService';
 import type { Activity } from '../../src/types';
 
 const { width } = Dimensions.get('window');

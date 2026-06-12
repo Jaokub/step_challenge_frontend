@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import authService from '../../src/features/auth/services/authService';
+import authService from '../../src/features/auth/authService';
 import userService from '../../src/services/userService';
 import healthApiService from '../../src/services/healthApiService';
 import type { User } from '../../src/types';
@@ -96,16 +96,16 @@ export default function ProfileScreen() {
           {/* Header */}
           <ScreenHeader 
             title={t('profile.title')} 
-            titleColor={colors.text}
+            titleColor={colors.textPrimary}
             containerPadding={false}
             style={{ paddingHorizontal: 20, paddingTop: 12 }}
             rightActions={
               <HeaderIconButton 
                 icon={isDark ? "sunny" : "moon"} 
                 onPress={toggleTheme} 
-                iconColor={colors.text}
+                iconColor={colors.textPrimary}
                 backgroundColor={colors.card}
-                borderColor={colors.border}
+                borderColor={colors.cardBorder}
               />
             }
           />
@@ -120,7 +120,7 @@ export default function ProfileScreen() {
               <View style={styles.profileCardTop}>
                 <AvatarCircle uri={profile?.avatarUrl} name={profile?.nickname || profile?.fullName || 'User'} size={72} ringColor={colors.primary} />
                 <View style={styles.profileInfo}>
-                  <AppText style={[styles.name, { color: colors.text }]}>{profile?.nickname || profile?.fullName || 'User'}</AppText>
+                  <AppText style={[styles.name, { color: colors.textPrimary }]}>{profile?.nickname || profile?.fullName || 'User'}</AppText>
                   <AppText style={[styles.email, { color: colors.textSecondary }]}>{profile?.email || ''}</AppText>
                   <View style={{ marginTop: 10 }}>
                     <PointsBadge points={profile?.totalPoints || 0} size="sm" />
@@ -130,15 +130,15 @@ export default function ProfileScreen() {
               
               <View style={[styles.miniStatsContainer, { borderTopColor: colors.divider }]}>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalGroups}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalGroups}</AppText>
                   <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กลุ่ม</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalActivities}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalActivities}</AppText>
                   <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กิจกรรม</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalCheckIns}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalCheckIns}</AppText>
                   <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>เช็คอิน</AppText>
                 </View>
               </View>
@@ -146,7 +146,7 @@ export default function ProfileScreen() {
           )}
 
           {/* Achievements Grid */}
-          <AppText style={[styles.sectionTitle, { color: colors.text }]}>สถิติเดือนนี้</AppText>
+          <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>สถิติเดือนนี้</AppText>
           {loading && healthSummary.totalSteps === 0 ? (
             <View style={styles.gridContainer}>
               {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={100} borderRadius={16} style={{ marginBottom: 16 }} />)}
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
           )}
 
           {/* Weekly Steps Chart */}
-          <AppText style={[styles.sectionTitle, { color: colors.text, marginTop: 8 }]}>ก้าวรายสัปดาห์</AppText>
+          <AppText style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 8 }]}>ก้าวรายสัปดาห์</AppText>
           {loading && weeklyChart.length === 0 ? (
             <Skeleton width="100%" height={160} borderRadius={24} style={{ marginBottom: 24 }} />
           ) : (

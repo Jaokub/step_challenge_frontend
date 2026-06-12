@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { FormInput, FormDatePicker } from '../../../src/features/admin/components/ActivityFormComponents';
+import { FormInput, FormDatePicker } from '../../../src/features/admin/ActivityFormComponents';
 import { PrimaryButton, ScreenHeader } from '../../../src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';

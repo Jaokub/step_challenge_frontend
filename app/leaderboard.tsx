@@ -15,7 +15,7 @@ import {
   LoadingScreen,
 } from '../src/components';
 import { spacing, borderRadius, fontSize } from '../src/constants/theme';
-import userService from '../src/features/auth/services/userService';
+import userService from '../src/features/auth/userService';
 import type { LeaderboardUser } from '../src/types';
 
 const { width } = Dimensions.get('window');

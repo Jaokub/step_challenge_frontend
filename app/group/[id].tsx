@@ -8,8 +8,8 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { AppText, LoadingScreen, EmptyState, RoleBadge, PrimaryButton, OutlineButton } from '../../src/components';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { useGroupDetail } from '../../src/features/group/hooks/useGroupDetail';
-import { GroupQrModal } from '../../src/features/group/components/GroupQrModal';
+import { useGroupDetail } from '../../src/features/group/useGroupDetail';
+import { GroupQrModal } from '../../src/features/group/GroupQrModal';
 import { GroupMember } from '../../src/types';
 
 export default function GroupDetailScreen() {
