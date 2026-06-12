@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { EmptyState, AppText } from '../../src/components';
+import { EmptyState, AppText, Skeleton } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 import { User } from '../../src/types';
 
@@ -47,6 +47,7 @@ export default function GroupsScreen() {
   const {
     friends,
     requests,
+    isLoading: isLoadingFriends,
     isRefreshing: isRefreshingFriends,
     handleRefresh: handleRefreshFriends,
     handleAcceptRequest,
@@ -56,6 +57,7 @@ export default function GroupsScreen() {
   const {
     groups,
     groupMembers,
+    isLoading: isLoadingGroups,
     isRefreshing: isRefreshingGroups,
     isSubmitting,
     handleRefresh: handleRefreshGroups,
@@ -65,6 +67,7 @@ export default function GroupsScreen() {
   } = useGroups(true);
 
   const isGroupTab = activeTab !== 'friends';
+  const isLoadingData = isGroupTab ? (isLoadingGroups || !groupMembers[activeTab]) : isLoadingFriends;
 
   React.useEffect(() => {
     if (isGroupTab) {
@@ -141,8 +144,21 @@ export default function GroupsScreen() {
         </ScrollView>
       </View>
 
-      {myEntry && <RankSummaryCard member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />}
-      <Podium topThree={topThree} accentColor={accentColor} />
+      {isLoadingData ? (
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
+          <Skeleton height={80} borderRadius={16} style={{ marginBottom: spacing.xl }} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 180, marginBottom: spacing.xl }}>
+            <Skeleton width="30%" height={120} borderRadius={16} />
+            <Skeleton width="34%" height={160} borderRadius={16} />
+            <Skeleton width="30%" height={100} borderRadius={16} />
+          </View>
+        </View>
+      ) : (
+        <>
+          {myEntry && <RankSummaryCard member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />}
+          <Podium topThree={topThree} accentColor={accentColor} />
+        </>
+      )}
     </>
   );
 
@@ -150,8 +166,8 @@ export default function GroupsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <FlatList
-          data={rest}
-          keyExtractor={(item) => item.id}
+          data={isLoadingData ? ([1, 2, 3, 4] as any) : rest}
+          keyExtractor={(item, index) => isLoadingData ? index.toString() : item.id}
           ListHeaderComponent={renderHeader}
           contentContainerStyle={styles.listContent}
           refreshControl={
@@ -169,7 +185,7 @@ export default function GroupsScreen() {
             />
           }
           ListEmptyComponent={
-            (!isRefreshingGroups && !isRefreshingFriends && leaderboard.length === 0) ? (
+            (!isLoadingData && !isRefreshingGroups && !isRefreshingFriends && leaderboard.length === 0) ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
                 <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
                 <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>ไม่มีข้อมูลในขณะนี้</AppText>
@@ -178,11 +194,15 @@ export default function GroupsScreen() {
           }
           renderItem={({ item, index }) => (
             <View style={styles.cardContainer}>
-              <FriendCard 
-                member={item} 
-                accentColor={accentColor} 
-                isLast={index === rest.length - 1} 
-              />
+              {isLoadingData ? (
+                <Skeleton height={70} borderRadius={16} style={{ marginBottom: spacing.md }} />
+              ) : (
+                <FriendCard 
+                  member={item} 
+                  accentColor={accentColor} 
+                  isLast={index === rest.length - 1} 
+                />
+              )}
             </View>
           )}
         />
