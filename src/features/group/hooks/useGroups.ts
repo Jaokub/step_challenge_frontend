@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 import groupService from '../services/groupService';
-import type { AppGroup } from '../../../types';
+import type { AppGroup, GroupMember } from '../../../types';
 
 export function useGroups(active: boolean) {
   const [groups, setGroups] = useState<AppGroup[]>([]);
+  const [groupMembers, setGroupMembers] = useState<Record<string, GroupMember[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,8 +29,21 @@ export function useGroups(active: boolean) {
     }
   }, [active, fetchGroups]);
 
+  const fetchGroupMembers = useCallback(async (groupId: string, force?: boolean) => {
+    if (!force && groupMembers[groupId]) return;
+    try {
+      const res = await groupService.getGroupMembers(groupId);
+      if (res.success) {
+        setGroupMembers(prev => ({ ...prev, [groupId]: res.data }));
+      }
+    } catch (error: any) {
+      console.warn('Error fetching group members:', error);
+    }
+  }, [groupMembers]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    setGroupMembers({}); // Clear cache to refetch members
     fetchGroups();
   };
 
@@ -67,11 +81,13 @@ export function useGroups(active: boolean) {
 
   return {
     groups,
+    groupMembers,
     isLoading,
     isRefreshing,
     isSubmitting,
     handleRefresh,
     handleCreateGroup,
-    handleJoinGroup
+    handleJoinGroup,
+    fetchGroupMembers
   };
 }

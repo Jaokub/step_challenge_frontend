@@ -51,20 +51,30 @@ export default function GroupsScreen() {
 
   const {
     groups,
+    groupMembers,
     isRefreshing: isRefreshingGroups,
     isSubmitting,
     handleRefresh: handleRefreshGroups,
     handleCreateGroup,
-    handleJoinGroup
+    handleJoinGroup,
+    fetchGroupMembers
   } = useGroups(true);
 
   const isGroupTab = activeTab !== 'friends';
+
+  React.useEffect(() => {
+    if (isGroupTab) {
+      fetchGroupMembers(activeTab);
+    }
+  }, [activeTab, isGroupTab, fetchGroupMembers]);
+
   const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
   const accentColor = isGroupTab ? '#00e5ff' : '#b0f237'; // Mock color
 
   // Prepare leaderboard data
-  const rawList = isGroupTab ? [] : friends; // For simplicity, only friends have mock members right now, but let's mock groups if needed
-  // In real app, `currentGroup.members` would be used.
+  const rawList = isGroupTab 
+    ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
+    : friends;
   
   const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id))
     .sort((a, b) => b.points - a.points)
@@ -142,12 +152,19 @@ export default function GroupsScreen() {
           refreshControl={
             <RefreshControl 
               refreshing={isGroupTab ? isRefreshingGroups : isRefreshingFriends} 
-              onRefresh={isGroupTab ? handleRefreshGroups : handleRefreshFriends} 
+              onRefresh={async () => {
+                if (isGroupTab) {
+                  handleRefreshGroups();
+                  await fetchGroupMembers(activeTab, true);
+                } else {
+                  handleRefreshFriends();
+                }
+              }}
               tintColor={colors.primary} 
             />
           }
           ListEmptyComponent={
-            (!isRefreshingGroups && !isRefreshingFriends) ? (
+            (!isRefreshingGroups && !isRefreshingFriends && leaderboard.length === 0) ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
                 <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
                 <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>ไม่มีข้อมูลในขณะนี้</AppText>
