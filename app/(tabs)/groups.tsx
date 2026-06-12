@@ -78,7 +78,7 @@ export default function GroupsScreen() {
   // Prepare leaderboard data
   const rawList = isGroupTab 
     ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
-    : friends;
+    : [...friends, user].filter(Boolean) as User[];
   
   const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id))
     .sort((a, b) => b.points - a.points)
