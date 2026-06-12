@@ -70,11 +70,11 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         <Animated.View 
           style={[
             styles.iconContainer, 
-            { backgroundColor: colors.danger + '15' },
+            { backgroundColor: colors.error + '15' },
             animatedIconStyle
           ]}
         >
-          <Ionicons name="warning-outline" size={56} color={colors.danger} />
+          <Ionicons name="warning-outline" size={56} color={colors.error} />
         </Animated.View>
         
         <AppText style={[styles.title, { color: colors.textPrimary }]}>
@@ -90,7 +90,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
             <PrimaryButton 
               title={retryLabel} 
               onPress={onRetry} 
-              style={{ backgroundColor: colors.danger }}
+              style={{ backgroundColor: colors.error }}
             />
           </View>
         )}

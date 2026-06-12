@@ -1,77 +1,42 @@
-import { AppText } from '../../src/components';
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect, router } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { ScreenHeader, HeaderIconButton } from '../../src/components';
+import { ScreenHeader, HeaderIconButton, AppText } from '../../src/components';
 import { spacing } from '../../src/constants/theme';
-import activityService from '../../src/features/activity/services/activityService';
-import type { Activity } from '../../src/types';
+import { useActivities } from '../../src/features/activity/hooks/useActivities';
+import { ActivityCard } from '../../src/features/activity/components/ActivityCard';
 
 export default function ActivitiesScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
 
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'past'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
-  const loadActivities = async (pageNumber: number, isRefresh = false) => {
-    try {
-      // Map filter to valid ActivityStatus or undefined
-      const statusMap: Record<string, string> = {
-        upcoming: 'UPCOMING',
-        ongoing: 'ONGOING',
-        past: 'COMPLETED'
-      };
-      const response = await activityService.getActivities({ page: pageNumber, limit: 10, status: filter !== 'all' ? statusMap[filter] : undefined });
-      if (response.success) {
-        if (isRefresh) {
-          setActivities(response.data.activities);
-        } else {
-          setActivities(prev => [...prev, ...response.data.activities]);
-        }
-        setHasMore(response.data.pagination?.page < response.data.pagination?.totalPages);
-      }
-    } catch (err) {
-      console.warn('Activities fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setLoadingMore(false);
-    }
-  };
+  const {
+    activities,
+    loading,
+    refreshing,
+    loadingMore,
+    refresh,
+    fetchInitial,
+    loadMore
+  } = useActivities();
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setPage(1);
-      loadActivities(1, true);
-    }, [filter])
+      fetchInitial(filter);
+    }, [filter, fetchInitial])
   );
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setPage(1);
-    loadActivities(1, true);
-  };
-
-  const onEndReached = () => {
-    if (hasMore && !loadingMore && !loading) {
-      setLoadingMore(true);
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadActivities(nextPage);
-    }
-  };
+  const filteredActivities = activities.filter(a => 
+    a.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderFilter = (type: typeof filter, label: string) => (
     <TouchableOpacity
@@ -92,16 +57,29 @@ export default function ActivitiesScreen() {
     </TouchableOpacity>
   );
 
+  const renderListEmpty = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.center}>
+        <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
+        <AppText style={[styles.emptyText, { color: colors.textSecondary }]}>{t('activities.noActivities', 'ไม่พบกิจกรรม')}</AppText>
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
-          title={t('activities.title')}
+          title={t('activities.title', 'กิจกรรม')}
           rightActions={
             <>
               <HeaderIconButton 
-                icon="search-outline" 
-                onPress={() => {}} 
+                icon={isSearching ? "close-outline" : "search-outline"} 
+                onPress={() => {
+                  setIsSearching(!isSearching);
+                  if (isSearching) setSearchQuery('');
+                }} 
               />
               <HeaderIconButton 
                 icon="add" 
@@ -114,12 +92,26 @@ export default function ActivitiesScreen() {
           }
         />
 
+        {isSearching && (
+          <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.divider }]}>
+            <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.textPrimary }]}
+              placeholder="ค้นหากิจกรรม..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+          </View>
+        )}
+
         <View style={styles.filtersContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-            {renderFilter('all', 'All')}
-            {renderFilter('upcoming', 'Upcoming')}
-            {renderFilter('ongoing', 'Ongoing')}
-            {renderFilter('past', 'Past')}
+            {renderFilter('all', 'ทั้งหมด')}
+            {renderFilter('upcoming', 'กำลังจะมาถึง')}
+            {renderFilter('ongoing', 'กำลังดำเนินการ')}
+            {renderFilter('past', 'ผ่านมาแล้ว')}
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -130,35 +122,15 @@ export default function ActivitiesScreen() {
         </View>
       ) : (
         <FlatList
-          data={activities}
+          data={filteredActivities}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-          onEndReached={onEndReached}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh(filter)} tintColor={colors.primary} />}
+          onEndReached={() => loadMore(filter)}
           onEndReachedThreshold={0.3}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.center}>
-              <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
-              <AppText style={[styles.emptyText, { color: colors.textSecondary }]}>{t('activities.noActivities')}</AppText>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.activityCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} 
-              onPress={() => router.push(`/(tabs)/activities`)} // Replace with actual detail route when ready
-            >
-              <View style={[styles.dateBox, { backgroundColor: colors.primary + '15' }]}>
-                <AppText style={[styles.dateMonth, { color: colors.primary }]}>JUN</AppText>
-                <AppText style={[styles.dateDay, { color: colors.primary }]}>{new Date(item.startDate).getDate()}</AppText>
-              </View>
-              <View style={styles.activityInfo}>
-                <AppText style={[styles.activityName, { color: colors.textPrimary }]} numberOfLines={1}>{item.title}</AppText>
-                <AppText style={[styles.activityType, { color: colors.textSecondary }]}>{item.status}</AppText>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
+          ListEmptyComponent={renderListEmpty}
+          renderItem={({ item }) => <ActivityCard activity={item} />}
           ListFooterComponent={
             loadingMore ? (
               <View style={styles.footerLoader}>
@@ -168,13 +140,29 @@ export default function ActivitiesScreen() {
           }
         />
       )}
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
   filtersContainer: {
     paddingBottom: spacing.md,
   },
@@ -195,43 +183,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
     paddingBottom: 100,
-  },
-  activityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  dateBox: {
-    width: 50,
-    height: 56,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  dateMonth: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-  },
-  dateDay: {
-    fontSize: 20,
-    marginTop: -2,
-  },
-  activityInfo: {
-    flex: 1,
-  },
-  activityName: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  activityType: {
-    fontSize: 13,
   },
   center: {
     flex: 1,

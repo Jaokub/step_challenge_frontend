@@ -176,10 +176,10 @@ export default function ScanScreen() {
           {/* Scan frame */}
           <View style={styles.frameContainer}>
             <View style={styles.frame}>
-              <View style={[styles.corner, styles.topLeft, { borderColor: colors.primary }]} />
-              <View style={[styles.corner, styles.topRight, { borderColor: colors.primary }]} />
-              <View style={[styles.corner, styles.bottomLeft, { borderColor: colors.primary }]} />
-              <View style={[styles.corner, styles.bottomRight, { borderColor: colors.primary }]} />
+              <View style={[styles.corner, styles.topLeft, { borderColor: colors.primary, shadowColor: colors.primary }]} />
+              <View style={[styles.corner, styles.topRight, { borderColor: colors.primary, shadowColor: colors.primary }]} />
+              <View style={[styles.corner, styles.bottomLeft, { borderColor: colors.primary, shadowColor: colors.primary }]} />
+              <View style={[styles.corner, styles.bottomRight, { borderColor: colors.primary, shadowColor: colors.primary }]} />
             </View>
           </View>
 
@@ -283,6 +283,9 @@ const styles = StyleSheet.create({
     width: 40, 
     height: 40,
     borderWidth: 4,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
   },
   topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 16 },
   topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 16 },
