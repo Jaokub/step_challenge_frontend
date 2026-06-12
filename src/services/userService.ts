@@ -9,6 +9,15 @@ const userService = {
       console.error('getUsers error', error);
       throw error;
     }
+  },
+  getProfile: async (id: string) => {
+    try {
+      const response = await api.get(`/users/profile/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('getProfile error', error);
+      throw error;
+    }
   }
 };
 

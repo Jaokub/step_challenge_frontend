@@ -1,6 +1,5 @@
-import { AppText } from '../../src/components';
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Image, Platform, Clipboard, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,21 @@ import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import authService from '../../src/features/auth/services/authService';
+import userService from '../../src/services/userService';
+import healthApiService from '../../src/services/healthApiService';
 import type { User } from '../../src/types';
-import { SettingsRow, ScreenHeader, HeaderIconButton } from '../../src/components';
+import { 
+  AppText, 
+  SettingsRow, 
+  ScreenHeader, 
+  HeaderIconButton,
+  AvatarCircle,
+  HealthStatCard,
+  PointsBadge,
+  WeeklyStepsChart,
+  Skeleton
+} from '../../src/components';
+import { DailyStepData } from '../../src/components/WeeklyStepsChart';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -17,14 +29,48 @@ export default function ProfileScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
   
   const [profile, setProfile] = useState<User | null>(null);
+  const [stats, setStats] = useState({ totalCheckIns: 0, totalActivities: 0, totalGroups: 0 });
+  const [healthSummary, setHealthSummary] = useState({ 
+    totalSteps: 0, 
+    distanceKm: 0, 
+    calories: 0, 
+    activeDays: 0 
+  });
+  const [weeklyChart, setWeeklyChart] = useState<DailyStepData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
       const result = await authService.getMe();
       if (result.success) {
-        setProfile(result.data.user);
+        const user = result.data.user;
+        setProfile(user);
+        
+        // Fetch additional data in parallel
+        const [profileData, summaryData, chartData] = await Promise.all([
+          userService.getProfile(user.id).catch(() => null),
+          healthApiService.getHealthSummary().catch(() => null),
+          healthApiService.getWeeklyChartData().catch(() => null)
+        ]);
+
+        if (profileData && profileData.success) {
+          setStats(profileData.data.stats);
+        }
+
+        if (summaryData && summaryData.success) {
+          const month = summaryData.data.monthlyTotal || { steps: 0, distanceKm: 0, calories: 0, daysWithData: 0 };
+          setHealthSummary({
+            totalSteps: month.steps,
+            distanceKm: month.distanceKm,
+            calories: month.calories,
+            activeDays: month.daysWithData,
+          });
+        }
+
+        if (chartData && chartData.success) {
+          setWeeklyChart(chartData.data);
+        }
       }
     } catch (err) {
       console.warn('Profile fetch error:', err);
@@ -36,100 +82,120 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
-    }, [fetchProfile])
+      fetchData();
+    }, [fetchData])
   );
-
-  const mockStats = { totalSteps: 125000, totalDistance: 85.5, currentStreak: 12 };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchProfile(); }} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={colors.primary} />}
       >
-        {/* Header */}
-        <SafeAreaView edges={['top']} style={[styles.header, { backgroundColor: colors.primary }]}>
+        <SafeAreaView edges={['top']} style={{ paddingBottom: 8 }}>
+          {/* Header */}
           <ScreenHeader 
             title={t('profile.title')} 
-            titleColor="#FFFFFF"
+            titleColor={colors.text}
             containerPadding={false}
             style={{ paddingHorizontal: 20, paddingTop: 12 }}
             rightActions={
               <HeaderIconButton 
                 icon={isDark ? "sunny" : "moon"} 
                 onPress={toggleTheme} 
-                iconColor="#FFFFFF"
-                backgroundColor="transparent"
-                borderColor="transparent"
+                iconColor={colors.text}
+                backgroundColor={colors.card}
+                borderColor={colors.border}
               />
             }
           />
-          
-          <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
-              {profile?.avatarUrl ? (
-                <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person" size={40} color={colors.primary} />
-                </View>
-              )}
-            </View>
-            <AppText style={styles.name}>{profile?.nickname || profile?.fullName || 'User'}</AppText>
-            <AppText style={styles.email}>{profile?.email || ''}</AppText>
-          </View>
         </SafeAreaView>
 
-        {/* Stats Summary */}
         <View style={styles.content}>
-          <View style={[styles.statsCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
-            <View style={styles.statItem}>
-              <AppText style={[styles.statValue, { color: colors.textPrimary }]}>{mockStats.totalSteps.toLocaleString()}</AppText>
-              <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>{t('dashboard.stats.steps')}</AppText>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
-            <View style={styles.statItem}>
-              <AppText style={[styles.statValue, { color: colors.textPrimary }]}>{mockStats.totalDistance} km</AppText>
-              <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>{t('dashboard.stats.distance')}</AppText>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
-            <View style={styles.statItem}>
-              <AppText style={[styles.statValue, { color: colors.textPrimary }]}>{mockStats.currentStreak}</AppText>
-              <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>Streak</AppText>
-            </View>
-          </View>
-
-          {/* Settings Menu */}
-          <View style={styles.menuSection}>
-            <AppText style={[styles.sectionTitle, { color: colors.primary }]}>{t('settings.title')}</AppText>
-            
-            <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
-              <SettingsRow icon="person-outline" label={t('settings.account')} onPress={() => {}} />
-
-              {isAdmin && (
-                <SettingsRow 
-                  icon="shield-half-outline" 
-                  label="แผงควบคุม (Admin Panel)" 
-                  onPress={() => router.push('/admin/dashboard')} 
-                />
-              )}
+          {/* Profile Card */}
+          {loading && !profile ? (
+            <Skeleton width="100%" height={180} borderRadius={24} style={{ marginBottom: 24 }} />
+          ) : (
+            <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, shadowColor: colors.cardShadow }]}>
+              <View style={styles.profileCardTop}>
+                <AvatarCircle uri={profile?.avatarUrl} name={profile?.nickname || profile?.fullName || 'User'} size={72} ringColor={colors.primary} />
+                <View style={styles.profileInfo}>
+                  <AppText style={[styles.name, { color: colors.text }]}>{profile?.nickname || profile?.fullName || 'User'}</AppText>
+                  <AppText style={[styles.email, { color: colors.textSecondary }]}>{profile?.email || ''}</AppText>
+                  <View style={{ marginTop: 10 }}>
+                    <PointsBadge points={profile?.totalPoints || 0} size="sm" />
+                  </View>
+                </View>
+              </View>
               
-              {Platform.OS === 'ios' && profile?.syncToken && (
-                <SettingsRow 
-                  icon="fitness-outline" 
-                  label="Connect Apple Health" 
-                  onPress={() => {
-                    Clipboard.setString(profile.syncToken);
-                    Alert.alert('คัดลอกสำเร็จ', 'นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน');
-                  }} 
-                />
-              )}
-
-              <SettingsRow icon="notifications-outline" label={t('settings.notifications')} onPress={() => {}} />
-              <SettingsRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={() => {}} />
-              <SettingsRow icon="help-circle-outline" label={t('settings.help')} onPress={() => {}} />
+              <View style={[styles.miniStatsContainer, { borderTopColor: colors.divider }]}>
+                <View style={styles.miniStatItem}>
+                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalGroups}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กลุ่ม</AppText>
+                </View>
+                <View style={styles.miniStatItem}>
+                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalActivities}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กิจกรรม</AppText>
+                </View>
+                <View style={styles.miniStatItem}>
+                  <AppText style={[styles.miniStatValue, { color: colors.text }]}>{stats.totalCheckIns}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>เช็คอิน</AppText>
+                </View>
+              </View>
             </View>
+          )}
+
+          {/* Achievements Grid */}
+          <AppText style={[styles.sectionTitle, { color: colors.text }]}>สถิติเดือนนี้</AppText>
+          {loading && healthSummary.totalSteps === 0 ? (
+            <View style={styles.gridContainer}>
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={100} borderRadius={16} style={{ marginBottom: 16 }} />)}
+            </View>
+          ) : (
+            <View style={styles.gridContainer}>
+              <HealthStatCard style={styles.gridItem} icon="walk" label="จำนวนก้าว" value={healthSummary.totalSteps} color="#b0f237" />
+              <HealthStatCard style={styles.gridItem} icon="map" label="ระยะทาง (กม.)" value={healthSummary.distanceKm} color="#06b6d4" />
+              <HealthStatCard style={styles.gridItem} icon="flame" label="แคลอรี่" value={healthSummary.calories} color="#f97316" />
+              <HealthStatCard style={styles.gridItem} icon="calendar" label="วันที่บันทึก" value={`${healthSummary.activeDays} วัน`} color="#8b5cf6" />
+            </View>
+          )}
+
+          {/* Weekly Steps Chart */}
+          <AppText style={[styles.sectionTitle, { color: colors.text, marginTop: 8 }]}>ก้าวรายสัปดาห์</AppText>
+          {loading && weeklyChart.length === 0 ? (
+            <Skeleton width="100%" height={160} borderRadius={24} style={{ marginBottom: 24 }} />
+          ) : (
+            <View style={{ marginBottom: 24 }}>
+              <WeeklyStepsChart data={weeklyChart} />
+            </View>
+          )}
+
+          {/* Menu Items */}
+          <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
+            <SettingsRow icon="person-outline" label={t('settings.account')} onPress={() => {}} />
+
+            {isAdmin && (
+              <SettingsRow 
+                icon="shield-half-outline" 
+                label="แผงควบคุม (Admin Panel)" 
+                onPress={() => router.push('/admin/dashboard')} 
+              />
+            )}
+            
+            {Platform.OS === 'ios' && profile?.syncToken && (
+              <SettingsRow 
+                icon="fitness-outline" 
+                label="Connect Apple Health" 
+                onPress={() => {
+                  Clipboard.setString(profile.syncToken);
+                  Alert.alert('คัดลอกสำเร็จ', 'นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน');
+                }} 
+              />
+            )}
+
+            <SettingsRow icon="notifications-outline" label={t('settings.notifications')} onPress={() => {}} />
+            <SettingsRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={() => {}} />
+            <SettingsRow icon="help-circle-outline" label={t('settings.help')} onPress={() => {}} />
           </View>
 
           <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} onPress={signOut}>
@@ -144,85 +210,74 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  profileInfo: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFFFFF',
-    padding: 3,
-    marginBottom: 12,
-  },
-  avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 40,
-  },
-  avatarPlaceholder: {
-    flex: 1,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  name: {
-    fontSize: 22,
-    color: '#FFFFFF',
-  },
-  email: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
-  },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 8,
     paddingBottom: 40,
   },
-  statsCard: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    paddingVertical: 20,
-    marginTop: -40,
+  profileCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    marginBottom: 24,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
     elevation: 4,
   },
-  statItem: {
+  profileCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  profileInfo: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  email: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  miniStatsContainer: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    paddingTop: 16,
+  },
+  miniStatItem: {
     flex: 1,
     alignItems: 'center',
   },
-  statValue: {
+  miniStatValue: {
     fontSize: 18,
+    fontWeight: 'bold',
   },
-  statLabel: {
+  miniStatLabel: {
     fontSize: 12,
     marginTop: 4,
   },
-  statDivider: {
-    width: 1,
-    height: '80%',
-    alignSelf: 'center',
-  },
-  menuSection: {
-    marginTop: 32,
-  },
   sectionTitle: {
     fontSize: 16,
-    paddingHorizontal: 8,
-    paddingBottom: 12,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  gridItem: {
+    width: '48%',
+    marginBottom: 16,
+    minWidth: 0, // Override default minWidth to allow 2 columns on small screens
   },
   menuCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
@@ -234,7 +289,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
+    marginTop: 24,
     paddingVertical: 16,
     borderRadius: 16,
     shadowOffset: { width: 0, height: 4 },
@@ -245,5 +300,6 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     marginLeft: 8,
+    fontWeight: '600',
   },
 });
