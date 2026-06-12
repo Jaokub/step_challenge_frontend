@@ -4,39 +4,88 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { AppText } from '../../../components';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { spacing, borderRadius } from '../../../constants/theme';
 import type { Activity } from '../../../types';
 
 interface ActivityCardProps {
   activity: Activity;
 }
 
+// Helper to generate consistent mock colors/categories if not provided by backend
+const getMockData = (id: string) => {
+  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colors = ['#b0f237', '#00e5ff', '#a855f7', '#f59e0b', '#ff4d6d'];
+  const categories = ['วิ่ง', 'จักรยาน', 'โยคะ', 'ว่ายน้ำ', 'HIIT'];
+  return {
+    color: colors[hash % colors.length],
+    category: categories[hash % categories.length]
+  };
+};
+
 export function ActivityCard({ activity }: ActivityCardProps) {
   const { colors } = useTheme();
+  const { color, category } = getMockData(activity.id);
+  
+  const participants = activity.participantCount || 0;
+  const maxParticipants = activity.maxParticipants || 100;
+  const pct = Math.min(100, Math.round((participants / maxParticipants) * 100));
+
+  const startDate = new Date(activity.startDate);
+  const dateStr = startDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeStr = startDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <TouchableOpacity 
-      style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} 
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.divider }]} 
       onPress={() => router.push(`/activity/${activity.id}`)}
       activeOpacity={0.7}
     >
-      <View style={[styles.dateBox, { backgroundColor: colors.primary + '15' }]}>
-        <AppText style={[styles.dateMonth, { color: colors.primary }]}>
-          {new Date(activity.startDate).toLocaleString('default', { month: 'short' }).toUpperCase()}
-        </AppText>
-        <AppText style={[styles.dateDay, { color: colors.primary }]}>
-          {new Date(activity.startDate).getDate()}
-        </AppText>
-      </View>
-      <View style={styles.info}>
-        <AppText style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+      <View style={[styles.topAccent, { backgroundColor: color }]} />
+      
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <View style={[styles.badge, { backgroundColor: color + '20' }]}>
+            <AppText style={[styles.badgeText, { color }]}>{category}</AppText>
+          </View>
+          <AppText style={[styles.pointsText, { color: colors.primary }]}>+{activity.points} pt</AppText>
+        </View>
+
+        <AppText style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
           {activity.title}
         </AppText>
-        <AppText style={[styles.status, { color: colors.textSecondary }]}>
-          {activity.status}
+        <AppText style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>
+          {activity.description}
         </AppText>
-      </View>
-      <View style={styles.arrowContainer}>
-        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailRow}>
+            <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} />
+            <AppText style={[styles.detailText, { color: colors.textSecondary }]}>{dateStr}</AppText>
+            <Ionicons name="time-outline" size={12} color={colors.textSecondary} style={{ marginLeft: spacing.sm }} />
+            <AppText style={[styles.detailText, { color: colors.textSecondary }]}>{timeStr}</AppText>
+          </View>
+          <View style={styles.detailRow}>
+            <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
+            <AppText style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>
+              {activity.location}
+            </AppText>
+          </View>
+        </View>
+
+        <View style={styles.progressSection}>
+          <View style={styles.progressHeader}>
+            <View style={styles.detailRow}>
+              <Ionicons name="people-outline" size={12} color={colors.textSecondary} />
+              <AppText style={[styles.detailText, { color: colors.textSecondary }]}>
+                {participants}/{maxParticipants} คน
+              </AppText>
+            </View>
+            <AppText style={[styles.detailText, { color: colors.textSecondary }]}>{pct}%</AppText>
+          </View>
+          <View style={[styles.progressBarBg, { backgroundColor: colors.divider }]}>
+            <View style={[styles.progressBarFill, { width: `${pct}%`, backgroundColor: color }]} />
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -44,45 +93,74 @@ export function ActivityCard({ activity }: ActivityCardProps) {
 
 const styles = StyleSheet.create({
   card: {
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  topAccent: {
+    height: 6,
+    width: '100%',
+  },
+  content: {
+    padding: spacing.md,
+  },
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-    minHeight: 88, // Ensure touch target
+    marginBottom: spacing.sm,
   },
-  dateBox: {
-    width: 50,
-    height: 56,
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
   },
-  dateMonth: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-  },
-  dateDay: {
-    fontSize: 20,
-    marginTop: -2,
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    marginBottom: 4,
+  badgeText: {
+    fontSize: 12,
     fontWeight: '600',
   },
-  status: {
-    fontSize: 13,
+  pointsText: {
+    fontSize: 14,
+    fontWeight: 'bold',
   },
-  arrowContainer: {
-    padding: 8, // Increase touch area if needed
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: spacing.xs,
+  },
+  description: {
+    fontSize: 14,
+    marginBottom: spacing.md,
+  },
+  detailsContainer: {
+    gap: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    fontSize: 12,
+  },
+  progressSection: {
+    marginTop: spacing.xs,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
   }
 });

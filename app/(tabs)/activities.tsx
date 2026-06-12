@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { ScreenHeader, HeaderIconButton, AppText } from '../../src/components';
-import { spacing } from '../../src/constants/theme';
+import { spacing, borderRadius } from '../../src/constants/theme';
 import { useActivities } from '../../src/features/activity/hooks/useActivities';
 import { ActivityCard } from '../../src/features/activity/components/ActivityCard';
 
@@ -14,7 +14,7 @@ export default function ActivitiesScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
 
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'past'>('all');
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'past'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
@@ -38,24 +38,7 @@ export default function ActivitiesScreen() {
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderFilter = (type: typeof filter, label: string) => (
-    <TouchableOpacity
-      style={[
-        styles.filterChip,
-        { backgroundColor: colors.card, borderColor: colors.divider },
-        filter === type && { backgroundColor: colors.primary, borderColor: colors.primary }
-      ]}
-      onPress={() => setFilter(type)}
-    >
-      <AppText style={[
-        styles.filterText,
-        { color: colors.textSecondary },
-        filter === type && { color: '#FFFFFF' }
-      ]}>
-        {label}
-      </AppText>
-    </TouchableOpacity>
-  );
+
 
   const renderListEmpty = () => {
     if (loading) return null;
@@ -107,12 +90,30 @@ export default function ActivitiesScreen() {
         )}
 
         <View style={styles.filtersContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-            {renderFilter('all', 'ทั้งหมด')}
-            {renderFilter('upcoming', 'กำลังจะมาถึง')}
-            {renderFilter('ongoing', 'กำลังดำเนินการ')}
-            {renderFilter('past', 'ผ่านมาแล้ว')}
-          </ScrollView>
+          <View style={[styles.filterPillContainer, { backgroundColor: colors.card }]}>
+            {(['upcoming', 'ongoing', 'past'] as const).map((type) => {
+              const label = type === 'upcoming' ? 'กำลังจะมาถึง' : type === 'ongoing' ? 'กำลังดำเนินการ' : 'ผ่านมาแล้ว';
+              const isActive = filter === type;
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.filterPill,
+                    isActive && { backgroundColor: colors.primary }
+                  ]}
+                  onPress={() => setFilter(type as any)}
+                >
+                  <AppText style={[
+                    styles.filterText,
+                    { color: isActive ? '#000000' : colors.textSecondary },
+                    isActive && { fontWeight: '600' }
+                  ]}>
+                    {label}
+                  </AppText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </SafeAreaView>
 
@@ -164,17 +165,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filtersContainer: {
+    paddingHorizontal: spacing.xl,
     paddingBottom: spacing.md,
   },
-  filtersScroll: {
-    paddingHorizontal: spacing.xl,
+  filterPillContainer: {
+    flexDirection: 'row',
+    borderRadius: borderRadius.lg,
+    padding: 4,
   },
-  filterChip: {
-    paddingHorizontal: 16,
+  filterPill: {
+    flex: 1,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    marginRight: 8,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterText: {
     fontSize: 14,
