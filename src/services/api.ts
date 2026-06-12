@@ -98,11 +98,13 @@ api.interceptors.response.use(
     };
 
     // Only attempt refresh for 401s that haven't been retried yet and
-    // that are NOT the refresh-token endpoint itself (to avoid loops).
+    // that are NOT the auth endpoints themselves (to avoid loops and false errors).
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/refresh-token')
+      !originalRequest.url?.includes('/auth/refresh-token') &&
+      !originalRequest.url?.includes('/auth/login') &&
+      !originalRequest.url?.includes('/auth/register')
     ) {
       if (isRefreshing) {
         // Another refresh is already in flight — queue this request
