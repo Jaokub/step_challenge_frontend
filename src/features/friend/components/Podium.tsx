@@ -58,20 +58,16 @@ export function Podium({ topThree, accentColor = '#b0f237' }: PodiumProps) {
   return (
     <View style={styles.container}>
       <View style={styles.podiumRow}>
-        {topThree[1] ? (
+        {topThree[1] && (
           <PodiumItem member={topThree[1]} height={getHeight(topThree[1])} accentColor={accentColor} />
-        ) : (
-          <View style={styles.podiumItemContainer} />
         )}
         
-        {topThree[0] ? (
+        {topThree[0] && (
           <PodiumItem member={topThree[0]} height={baseHeight} accentColor={accentColor} isFirst />
-        ) : null}
+        )}
 
-        {topThree[2] ? (
+        {topThree[2] && (
           <PodiumItem member={topThree[2]} height={getHeight(topThree[2])} accentColor={accentColor} />
-        ) : (
-          <View style={styles.podiumItemContainer} />
         )}
       </View>
     </View>

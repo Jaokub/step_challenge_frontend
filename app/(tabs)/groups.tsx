@@ -17,15 +17,19 @@ import { Podium, LeaderboardMember } from '../../src/features/friend/components/
 import { RankSummaryCard } from '../../src/features/friend/components/RankSummaryCard';
 import { GroupActionModals, ModalType } from '../../src/features/group/components/GroupActionModals';
 
+// helper: deterministic number from string id
+const hashId = (id: string, mod: number) =>
+  Math.abs(id.split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 0)) % mod;
+
 // Helper to convert User to LeaderboardMember for demo purposes
 const mapUserToLeaderboardMember = (u: User, index: number, isMe: boolean): LeaderboardMember => ({
   id: u.id,
   rank: index + 1,
   name: u.nickname || u.fullName,
   avatar: u.avatarUrl ? 'IMG' : (u.nickname || u.fullName).substring(0, 2).toUpperCase(),
-  steps: u.stats?.totalActivities ? u.stats.totalActivities * 1000 : Math.floor(Math.random() * 10000),
-  calories: Math.floor(Math.random() * 1000),
-  distance: Number((Math.random() * 10).toFixed(1)),
+  steps: u.stats?.totalActivities ? u.stats.totalActivities * 1000 : hashId(u.id, 10000),
+  calories: hashId(u.id + 'cal', 1000),
+  distance: Number((hashId(u.id + 'dist', 100) / 10).toFixed(1)),
   points: u.totalPoints,
   isMe,
   lastActive: 'เมื่อวาน'
@@ -81,8 +85,9 @@ export default function GroupsScreen() {
     .map((m, i) => ({ ...m, rank: i + 1 }));
 
   const myEntry = leaderboard.find(m => m.isMe);
-  const topThree = leaderboard.slice(0, 3);
-  const rest = leaderboard.slice(3);
+  const totalCount = leaderboard.length;
+  const topThree = leaderboard.slice(0, Math.min(3, totalCount));
+  const rest = totalCount > 3 ? leaderboard.slice(3) : [];
 
   const renderHeader = () => (
     <>
