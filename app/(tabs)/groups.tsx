@@ -97,6 +97,9 @@ export default function GroupsScreen() {
               </View>
             )}
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
+            <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
           <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card }]}>
             <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
@@ -112,7 +115,7 @@ export default function GroupsScreen() {
             ]}
             onPress={() => setActiveTab('friends')}
           >
-            <AppText style={[styles.tabText, activeTab === 'friends' ? { color: '#000', fontWeight: 'bold' } : { color: colors.textSecondary }]}>
+            <AppText style={[styles.tabText, activeTab === 'friends' ? { color: '#fff' } : { color: colors.textPrimary }]}>
               เพื่อน
             </AppText>
           </TouchableOpacity>
@@ -125,14 +128,11 @@ export default function GroupsScreen() {
               ]}
               onPress={() => setActiveTab(g.id)}
             >
-              <AppText style={[styles.tabText, activeTab === g.id ? { color: '#000', fontWeight: 'bold' } : { color: colors.textSecondary }]}>
+              <AppText style={[styles.tabText, activeTab === g.id ? { color: '#fff' } : { color: colors.textPrimary }]}>
                 {g.name}
               </AppText>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.card, borderColor: colors.divider }]} onPress={() => setModalType('CREATE')}>
-            <Ionicons name="add" size={16} color={colors.textSecondary} />
-          </TouchableOpacity>
         </ScrollView>
       </View>
 
@@ -165,17 +165,6 @@ export default function GroupsScreen() {
               />
             </View>
           )}
-          ListFooterComponent={
-            !isGroupTab ? (
-              <TouchableOpacity 
-                style={[styles.joinBtn, { borderColor: colors.divider }]}
-                onPress={() => setModalType('JOIN')}
-              >
-                <Ionicons name="log-in-outline" size={16} color={colors.textSecondary} />
-                <AppText style={[styles.joinBtnText, { color: colors.textSecondary }]}>เข้าร่วมหรือสร้างกลุ่มใหม่</AppText>
-              </TouchableOpacity>
-            ) : null
-          }
         />
       </SafeAreaView>
 
@@ -244,42 +233,18 @@ const styles = StyleSheet.create({
   },
   tabPill: {
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
     justifyContent: 'center',
   },
   tabText: {
-    fontSize: 14,
-  },
-  addBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
+    fontSize: 13,
   },
   listContent: {
     paddingBottom: spacing['4xl'],
   },
   cardContainer: {
     paddingHorizontal: spacing.xl,
-  },
-  joinBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginHorizontal: spacing.xl,
-    marginTop: spacing.md,
-    paddingVertical: 14,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-  },
-  joinBtnText: {
-    fontSize: 14,
   }
 });
