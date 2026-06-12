@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   chartArea: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
     justifyContent: 'space-between',
     height: 120, // Total height for bars
   },
