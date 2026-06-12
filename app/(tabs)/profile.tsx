@@ -24,7 +24,7 @@ import {
 import { DailyStepData } from '../../src/components/WeeklyStepsChart';
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { signOut, isAdmin } = useAuth();
   const { colors, isDark, toggleTheme } = useTheme();
   
@@ -194,8 +194,15 @@ export default function ProfileScreen() {
             )}
 
             <SettingsRow icon="notifications-outline" label={t('settings.notifications')} onPress={() => {}} />
-            <SettingsRow icon="lock-closed-outline" label={t('settings.privacy')} onPress={() => {}} />
-            <SettingsRow icon="help-circle-outline" label={t('settings.help')} onPress={() => {}} />
+            <SettingsRow icon="lock-closed-outline" label={t('settings.privacy') || 'ความเป็นส่วนตัว'} onPress={() => {}} />
+            
+            <SettingsRow 
+              icon="language-outline" 
+              label={i18n.language === 'th' ? 'Change to English' : 'เปลี่ยนเป็นภาษาไทย'} 
+              onPress={() => i18n.changeLanguage(i18n.language === 'th' ? 'en' : 'th')} 
+            />
+
+            <SettingsRow icon="help-circle-outline" label={t('settings.help') || 'ช่วยเหลือ'} onPress={() => {}} />
           </View>
 
           <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} onPress={signOut}>
