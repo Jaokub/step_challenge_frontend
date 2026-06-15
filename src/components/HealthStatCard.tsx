@@ -44,18 +44,10 @@ const HealthStatCard: React.FC<HealthStatCardProps> = ({
       >
         <Ionicons name={icon} size={22} color={iconColor} />
       </View>
-      <AppText 
-        style={[styles.label, { color: colors.textCardSecondary }]} 
-        numberOfLines={1} 
-        adjustsFontSizeToFit
-      >
+      <AppText style={[styles.label, { color: colors.textCardSecondary }]}>
         {label}
       </AppText>
-      <AppText 
-        style={[styles.value, { color: colors.textOnCard }]} 
-        numberOfLines={1} 
-        adjustsFontSizeToFit
-      >
+      <AppText style={[styles.value, { color: colors.textOnCard }]}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </AppText>
     </View>

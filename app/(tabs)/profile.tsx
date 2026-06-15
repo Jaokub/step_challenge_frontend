@@ -128,16 +128,16 @@ export default function ProfileScreen() {
               
               <View style={[styles.miniStatsContainer, { borderTopColor: colors.divider }]}>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalGroups}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.groups')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalGroups}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.groups')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalActivities}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.activities')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalActivities}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.activities')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalCheckIns}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.checkins')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalCheckIns}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.checkins')}</AppText>
                 </View>
               </View>
             </View>
