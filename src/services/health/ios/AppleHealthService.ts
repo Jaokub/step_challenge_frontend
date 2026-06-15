@@ -39,8 +39,8 @@ export class AppleHealthService {
   /**
    * Fetch step count data from Apple Health
    */
-  async getSteps(startDate: Date, endDate: Date): Promise<number> {
-    console.log(`Fetching steps from Apple Health between ${startDate.toISOString()} and ${endDate.toISOString()}...`);
+  async getSteps(startTime: string, endTime: string): Promise<number> {
+    console.log(`Fetching steps from Apple Health between ${startTime} and ${endTime}...`);
     
     if (this.useMockData) {
       // คืนค่าข้อมูลก้าวเดินจำลอง เพื่อเอาไปทำ UI ต่อได้เลย

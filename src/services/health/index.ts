@@ -23,11 +23,11 @@ export const HealthService = {
   /**
    * Get step count for a specific date range
    */
-  getSteps: async (startDate: Date, endDate: Date): Promise<number> => {
+  getSteps: async (startTime: string, endTime: string): Promise<number> => {
     if (Platform.OS === 'ios') {
-      return appleHealthService.getSteps(startDate, endDate);
+      return appleHealthService.getSteps(startTime, endTime);
     } else if (Platform.OS === 'android') {
-      return googleHealthService.getSteps(startDate, endDate);
+      return googleHealthService.getSteps(startTime, endTime);
     }
     console.warn('HealthService: Unsupported platform');
     return 0;
