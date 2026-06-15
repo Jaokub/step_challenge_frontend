@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -5,30 +6,31 @@ import { AppText, AppCard, PrimaryButton } from '../../components';
 import { spacing, borderRadius, fontSize } from '../../constants/theme';
 
 export const AdminOverviewStats = ({ stats, colors }: any) => {
+  const { t } = useTranslation();
   return (
     <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md }}>
       <View style={{ flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md }}>
         <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
           <MaterialCommunityIcons name="account-group" size={24} color={colors.primary} />
           <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary, marginTop: spacing.sm }}>{stats.totalUsers}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>Total Users</AppText>
+          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.totalUsers')}</AppText>
         </AppCard>
         <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
           <MaterialCommunityIcons name="check-decagram" size={24} color={colors.primary} />
           <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary, marginTop: spacing.sm }}>{stats.checkInRate}%</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>Check-in Rate</AppText>
+          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.checkInRate')}</AppText>
         </AppCard>
       </View>
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
         <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
           <MaterialCommunityIcons name="calendar-today" size={24} color={colors.warning} />
           <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>{stats.dau} / {stats.wau}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>DAU / WAU</AppText>
+          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.dauWau')}</AppText>
         </AppCard>
         <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
           <MaterialCommunityIcons name="run" size={24} color={colors.warning} />
           <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>{stats.activeActivities} / {stats.completedActivities}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>Active / Ended</AppText>
+          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.activeEnded')}</AppText>
         </AppCard>
       </View>
     </View>
@@ -45,14 +47,16 @@ export const AdminExportBtn = ({ onExport }: any) => (
   </View>
 );
 
-export const AdminTopList = ({ title, data, icon, valueKey, labelKey, colors, onItemPress, actionBtn, onViewAll }: any) => (
+export const AdminTopList = ({ title, data, icon, valueKey, labelKey, colors, onItemPress, actionBtn, onViewAll }: any) => {
+  const { t } = useTranslation();
+  return (
   <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.lg }}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
       <AppText variant="heading-bold" style={{ fontSize: fontSize.lg, color: colors.textPrimary }}>{title}</AppText>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
         {onViewAll && (
           <TouchableOpacity onPress={onViewAll}>
-            <AppText style={{ fontSize: fontSize.sm, color: colors.primary }}>See All</AppText>
+            <AppText style={{ fontSize: fontSize.sm, color: colors.primary }}>{t('common.seeAll')}</AppText>
           </TouchableOpacity>
         )}
         {actionBtn}
@@ -81,7 +85,8 @@ export const AdminTopList = ({ title, data, icon, valueKey, labelKey, colors, on
       })}
     </AppCard>
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   statCardContainer: { padding: spacing.lg },

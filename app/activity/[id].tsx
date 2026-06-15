@@ -84,7 +84,7 @@ export default function ActivityDetailScreen() {
         </SafeAreaView>
         <View style={styles.center}>
           <Ionicons name="alert-circle-outline" size={64} color={colors.textSecondary} />
-          <AppText style={[styles.errorText, { color: colors.textPrimary }]}>ไม่พบกิจกรรม</AppText>
+          <AppText style={[styles.errorText, { color: colors.textPrimary }]}>{t('activity.notFound')}</AppText>
         </View>
       </View>
     );
@@ -150,10 +150,10 @@ export default function ActivityDetailScreen() {
                 {t('activities.date')}
               </AppText>
               <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                เริ่ม: {formatDate(activity.startDate)}
+                {t('activity.start')} {formatDate(activity.startDate)}
               </AppText>
               <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                สิ้นสุด: {formatDate(activity.endDate)}
+                {t('activity.end')} {formatDate(activity.endDate)}
               </AppText>
             </View>
           </View>
@@ -182,7 +182,7 @@ export default function ActivityDetailScreen() {
               </AppText>
               <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
                 {activity.participantCount ?? 0}
-                {activity.maxParticipants ? ` / ${activity.maxParticipants} คน` : ' คน (ไม่จำกัด)'}
+                {activity.maxParticipants ? ` / ${activity.maxParticipants} ${t('activity.people')}` : t('activity.participantsUncapped')}
               </AppText>
             </View>
           </View>
@@ -194,14 +194,14 @@ export default function ActivityDetailScreen() {
         </AppText>
         <AppCard style={styles.descCard}>
           <AppText style={[styles.description, { color: colors.textOnCard }]}>
-            {activity.description || 'ไม่มีคำอธิบายสำหรับกิจกรรมนี้'}
+            {activity.description || t('activity.noDescription')}
           </AppText>
         </AppCard>
 
         {/* Organizer */}
         {activity.createdBy && (
           <>
-            <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>ผู้สร้างกิจกรรม</AppText>
+            <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('activity.creator')}</AppText>
             <AppCard style={styles.organizerCard}>
               <AvatarCircle
                 name={activity.createdBy.fullName}

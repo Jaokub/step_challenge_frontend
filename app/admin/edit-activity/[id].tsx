@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 
 export default function EditActivityScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
   
@@ -31,7 +33,7 @@ export default function EditActivityScreen() {
 
   const handleUpdate = () => {
     if (!title || !goal || !startDate || !endDate) {
-      Alert.alert('Error', 'Please fill all required fields');
+      Alert.alert(t('common.error'), t('admin.fillRequiredFields'));
       return;
     }
     // TODO: Call API to update activity
@@ -41,7 +43,7 @@ export default function EditActivityScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert('Warning', 'Are you sure you want to delete this activity? This action cannot be undone.', [
+    Alert.alert(t('admin.deleteWarningTitle'), t('admin.deleteWarningDesc'), [
       { text: 'Cancel', style: 'cancel' },
       { 
         text: 'Delete', 
@@ -72,7 +74,7 @@ export default function EditActivityScreen() {
           label="Activity Title *" 
           value={title} 
           onChangeText={setTitle} 
-          placeholder="e.g. June Campus Run" 
+          placeholder={t('admin.egCampusRun')} 
           colors={colors} 
         />
         
@@ -80,7 +82,7 @@ export default function EditActivityScreen() {
           label="Description" 
           value={description} 
           onChangeText={setDescription} 
-          placeholder="Describe the activity..." 
+          placeholder={t('admin.describeActivity')} 
           multiline={true}
           colors={colors} 
         />
@@ -89,7 +91,7 @@ export default function EditActivityScreen() {
           label="Step Goal *" 
           value={goal} 
           onChangeText={setGoal} 
-          placeholder="e.g. 50000" 
+          placeholder={t('admin.egSteps')} 
           keyboardType="numeric"
           colors={colors} 
         />

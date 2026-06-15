@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,
+    minHeight: 160,
   },
   chartArea: {
     flexDirection: 'row',

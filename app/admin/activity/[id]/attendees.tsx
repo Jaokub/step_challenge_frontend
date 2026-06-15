@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import { spacing, fontSize } from '../../../../src/constants/theme';
 import checkinService from '../../../../src/features/activity/checkinService';
 
 export default function AttendeesScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
 
@@ -114,7 +116,7 @@ export default function AttendeesScreen() {
       </SafeAreaView>
 
       <View style={styles.statsHeader}>
-        <AppText style={{ color: colors.textSecondary }}>Total Checked-in</AppText>
+        <AppText style={{ color: colors.textSecondary }}>{t('admin.totalCheckedIn')}</AppText>
         <AppText variant="heading-bold" style={{ color: colors.primary, fontSize: fontSize.xl }}>
           {attendees.length}
         </AppText>
@@ -165,7 +167,7 @@ export default function AttendeesScreen() {
                 <TouchableOpacity onPress={() => { setIsScanning(false); setScanned(false); setResult(null); }} style={styles.iconButton}>
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                <AppText style={styles.scanTitle}>Scan User QR</AppText>
+                <AppText style={styles.scanTitle}>{t('admin.scanUserQr')}</AppText>
                 <TouchableOpacity onPress={() => setTorch(!torch)} style={styles.iconButton}>
                   <Ionicons name={torch ? 'flash' : 'flash-off'} size={24} color="#FFFFFF" />
                 </TouchableOpacity>

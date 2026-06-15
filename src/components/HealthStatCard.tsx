@@ -47,7 +47,7 @@ const HealthStatCard: React.FC<HealthStatCardProps> = ({
       <AppText style={[styles.label, { color: colors.textCardSecondary }]}>
         {label}
       </AppText>
-      <AppText style={[styles.value, { color: colors.textOnCard }]}>
+      <AppText variant="numeric" style={[styles.value, { color: colors.textOnCard }]}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </AppText>
     </View>
@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignItems: 'flex-start',
     minWidth: 140,
+    minHeight: 116,
   },
   iconContainer: {
     width: 40,

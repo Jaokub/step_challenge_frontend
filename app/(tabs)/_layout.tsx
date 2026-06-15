@@ -46,7 +46,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: t('dashboard.greeting'),
-          tabBarLabel: 'หน้าแรก',
+          tabBarLabel: t('tabs.home'),
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
@@ -59,7 +59,7 @@ export default function TabsLayout() {
         name="activities"
         options={{
           title: t('activities.title'),
-          tabBarLabel: 'กิจกรรม',
+          tabBarLabel: t('tabs.activities'),
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "barbell" : "barbell-outline"} size={size} color={color} />
@@ -72,7 +72,7 @@ export default function TabsLayout() {
         name="scan"
         options={{
           title: t('scan.title'),
-          tabBarLabel: 'สแกน',
+          tabBarLabel: t('tabs.scan'),
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "qr-code" : "qr-code-outline"} size={size} color={color} />
@@ -84,8 +84,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="groups"
         options={{
-          title: "เพื่อนและกลุ่ม",
-          tabBarLabel: 'เพื่อน',
+          title: t('tabs.friendsAndGroups'),
+          tabBarLabel: t('tabs.friends'),
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
@@ -98,7 +98,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: t('profile.title'),
-          tabBarLabel: 'โปรไฟล์',
+          tabBarLabel: t('tabs.profile'),
           tabBarIcon: ({ color, focused, size }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />

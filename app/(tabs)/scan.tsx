@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import QRCode from 'react-native-qrcode-svg';
-import { AppText } from '../../src/components';
+import { AppText, ScreenHeader } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import checkinService from '../../src/features/activity/checkinService';
@@ -129,7 +129,7 @@ export default function ScanScreen() {
             {t('scan.permissionRequired')}
           </AppText>
           <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={requestPermission}>
-            <AppText style={styles.buttonText}>Grant Permission</AppText>
+            <AppText style={styles.buttonText}>{t('scan.grantPermission')}</AppText>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -138,10 +138,10 @@ export default function ScanScreen() {
 
   const renderHeader = () => (
     <>
-      <View style={styles.header}>
-        <AppText style={[styles.headerTitle, { color: colors.textPrimary }]}>แสกน QR Code</AppText>
-        <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>เพิ่มเพื่อนหรือลงทะเบียน Event</AppText>
-      </View>
+      <ScreenHeader 
+        title={t('scan.scanQrCode')} 
+        subtitle={t('scan.scanSubtitle')}
+      />
 
       <View style={styles.modeContainer}>
         <View style={[styles.modeToggle, { backgroundColor: colors.card }]}>
@@ -214,7 +214,7 @@ export default function ScanScreen() {
                   </View>
                 </View>
                 <View style={styles.instructionOverlay}>
-                  <AppText style={styles.instructionText}>นำ QR Code ไว้ในกรอบ</AppText>
+                  <AppText style={styles.instructionText}>{t('scan.placeQrInFrame')}</AppText>
                 </View>
               </View>
             </View>
@@ -224,15 +224,15 @@ export default function ScanScreen() {
                 <View style={[styles.useCaseIconBg, { backgroundColor: '#b0f23720' }]}>
                   <Ionicons name="person-add" size={20} color="#b0f237" />
                 </View>
-                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>เพิ่มเพื่อน</AppText>
-                <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>แสกน QR เพื่อเพิ่มเพื่อนใหม่</AppText>
+                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.addFriendTitle')}</AppText>
+                <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.addFriendDesc')}</AppText>
               </View>
               <View style={[styles.useCaseCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
                 <View style={[styles.useCaseIconBg, { backgroundColor: '#00e5ff20' }]}>
                   <Ionicons name="ticket" size={20} color="#00e5ff" />
                 </View>
-                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>ลงทะเบียน Event</AppText>
-                <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>แสกนเพื่อเข้าร่วมกิจกรรม</AppText>
+                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.registerEventTitle')}</AppText>
+                <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.registerEventDesc')}</AppText>
               </View>
             </View>
           </View>
@@ -244,7 +244,7 @@ export default function ScanScreen() {
                   {user?.fullName?.substring(0,2).toUpperCase() || 'ME'}
                 </AppText>
               </View>
-              <AppText style={[styles.myName, { color: colors.textPrimary }]}>{user?.fullName || 'ผู้ใช้งาน'}</AppText>
+              <AppText style={[styles.myName, { color: colors.textPrimary }]}>{user?.fullName || t('scan.defaultUser')}</AppText>
               <AppText style={[styles.myHandle, { color: colors.textSecondary }]}>@{(user?.fullName || 'user').toLowerCase().replace(/\s/g, '_')}</AppText>
               
               <View style={styles.qrWhiteBg}>
@@ -255,13 +255,13 @@ export default function ScanScreen() {
                   backgroundColor="#FFFFFF"
                 />
               </View>
-              <AppText style={[styles.qrFooterText, { color: colors.textSecondary }]}>ให้เพื่อนแสกน QR นี้เพื่อเพิ่มเป็นเพื่อน</AppText>
+              <AppText style={[styles.qrFooterText, { color: colors.textSecondary }]}>{t('scan.shareQrFooter')}</AppText>
             </View>
 
             <View style={[styles.shareContainer, { backgroundColor: colors.card, borderColor: colors.divider }]}>
               <View style={styles.shareHeader}>
                 <Ionicons name="link" size={16} color={colors.primary} />
-                <AppText style={[styles.shareTitle, { color: colors.textPrimary }]}>ลิงค์เชิญ</AppText>
+                <AppText style={[styles.shareTitle, { color: colors.textPrimary }]}>{t('scan.inviteLink')}</AppText>
               </View>
               <View style={styles.shareLinkBox}>
                 <AppText style={[styles.shareLinkText, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -275,7 +275,7 @@ export default function ScanScreen() {
 
             <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary, marginTop: 0 }]} onPress={handleShareLink}>
               <Ionicons name="share-social" size={18} color="#000" style={{ marginRight: 8 }} />
-              <AppText style={[styles.buttonText, { color: '#000' }]}>แชร์ลิงค์</AppText>
+              <AppText style={[styles.buttonText, { color: '#000' }]}>{t('scan.shareLinkBtn')}</AppText>
             </TouchableOpacity>
           </View>
         )}
@@ -327,13 +327,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonText: { fontSize: 16, fontWeight: '600' },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  headerTitle: { fontSize: 24, fontWeight: 'bold' },
-  headerSubtitle: { fontSize: 14, marginTop: 4 },
   modeContainer: {
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.xl,

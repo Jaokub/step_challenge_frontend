@@ -10,22 +10,22 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { PrimaryButton } from '../../src/components';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
 
-const DEPARTMENTS = [
-  'วิศวกรรมคอมพิวเตอร์',
-  'วิศวกรรมไฟฟ้า',
-  'วิศวกรรมเครื่องกล',
-  'วิศวกรรมโยธา',
-  'วิศวกรรมอุตสาหกรรม',
-  'วิศวกรรมเคมี',
-  'วิศวกรรมสิ่งแวดล้อม',
-  'วิศวกรรมสำรวจ',
-  'วิศวกรรมโลหการ',
-  'อื่นๆ',
-];
-
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { signUp } = useAuth();
+
+  const DEPARTMENTS = [
+    t('auth.deptComputer'),
+    t('auth.deptElectrical'),
+    t('auth.deptMechanical'),
+    t('auth.deptCivil'),
+    t('auth.deptIndustrial'),
+    t('auth.deptChemical'),
+    t('auth.deptEnvironmental'),
+    t('auth.deptSurvey'),
+    t('auth.deptMetallurgical'),
+    t('auth.deptOther'),
+  ];
 
   const [fullName, setFullName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -100,7 +100,7 @@ export default function RegisterScreen() {
                 <Ionicons name="happy-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Nickname (Optional)"
+                  placeholder={t('auth.nicknameOptional')}
                   placeholderTextColor="#9CA3AF"
                   value={nickname}
                   onChangeText={setNickname}

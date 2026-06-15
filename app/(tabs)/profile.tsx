@@ -97,8 +97,6 @@ export default function ProfileScreen() {
           <ScreenHeader 
             title={t('profile.title')} 
             titleColor={colors.textPrimary}
-            containerPadding={false}
-            style={{ paddingHorizontal: 20, paddingTop: 12 }}
             rightActions={
               <HeaderIconButton 
                 icon={isDark ? "sunny" : "moon"} 
@@ -130,38 +128,38 @@ export default function ProfileScreen() {
               
               <View style={[styles.miniStatsContainer, { borderTopColor: colors.divider }]}>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalGroups}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กลุ่ม</AppText>
+                  <AppText variant="numeric" style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalGroups}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.groups')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalActivities}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>กิจกรรม</AppText>
+                  <AppText variant="numeric" style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalActivities}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.activities')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalCheckIns}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>เช็คอิน</AppText>
+                  <AppText variant="numeric" style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalCheckIns}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.checkins')}</AppText>
                 </View>
               </View>
             </View>
           )}
 
           {/* Achievements Grid */}
-          <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>สถิติเดือนนี้</AppText>
+          <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('profile.thisMonthStats')}</AppText>
           {loading && healthSummary.totalSteps === 0 ? (
             <View style={styles.gridContainer}>
-              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={100} borderRadius={16} style={{ marginBottom: 16 }} />)}
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={116} borderRadius={16} style={{ marginBottom: 16 }} />)}
             </View>
           ) : (
             <View style={styles.gridContainer}>
-              <HealthStatCard style={styles.gridItem} icon="walk" label="จำนวนก้าว" value={healthSummary.totalSteps} color="#b0f237" />
-              <HealthStatCard style={styles.gridItem} icon="map" label="ระยะทาง (กม.)" value={healthSummary.distanceKm} color="#06b6d4" />
-              <HealthStatCard style={styles.gridItem} icon="flame" label="แคลอรี่" value={healthSummary.calories} color="#f97316" />
-              <HealthStatCard style={styles.gridItem} icon="calendar" label="วันที่บันทึก" value={`${healthSummary.activeDays} วัน`} color="#8b5cf6" />
+              <HealthStatCard style={styles.gridItem} icon="walk" label={t('profile.totalSteps')} value={healthSummary.totalSteps} color="#b0f237" />
+              <HealthStatCard style={styles.gridItem} icon="map" label={t('profile.distanceKm')} value={healthSummary.distanceKm} color="#06b6d4" />
+              <HealthStatCard style={styles.gridItem} icon="flame" label={t('profile.calories')} value={healthSummary.calories} color="#f97316" />
+              <HealthStatCard style={styles.gridItem} icon="calendar" label={t('profile.recordedDays')} value={`${healthSummary.activeDays} ${t('profile.days')}`} color="#8b5cf6" />
             </View>
           )}
 
           {/* Weekly Steps Chart */}
-          <AppText style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 8 }]}>ก้าวรายสัปดาห์</AppText>
+          <AppText style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 8 }]}>{t('profile.weeklySteps')}</AppText>
           {loading && weeklyChart.length === 0 ? (
             <Skeleton width="100%" height={160} borderRadius={24} style={{ marginBottom: 24 }} />
           ) : (
@@ -172,12 +170,12 @@ export default function ProfileScreen() {
 
           {/* Menu Items */}
           <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
-            <SettingsRow icon="person-outline" label={t('settings.account')} onPress={() => {}} />
+            <SettingsRow icon="person-outline" label={t('profile.profile_setting')} onPress={() => {}} />
 
             {isAdmin && (
               <SettingsRow 
                 icon="shield-half-outline" 
-                label="แผงควบคุม (Admin Panel)" 
+                label={t('profile.adminPanel')} 
                 onPress={() => router.push('/admin/dashboard')} 
               />
             )}
@@ -188,26 +186,26 @@ export default function ProfileScreen() {
                 label="Connect Apple Health" 
                 onPress={() => {
                   Clipboard.setString(profile.syncToken);
-                  Alert.alert('คัดลอกสำเร็จ', 'นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน');
+                  Alert.alert(t('profile.copySuccess'), t('profile.copyDesc'));
                 }} 
               />
             )}
 
-            <SettingsRow icon="notifications-outline" label={t('settings.notifications')} onPress={() => {}} />
-            <SettingsRow icon="lock-closed-outline" label={t('settings.privacy') || 'ความเป็นส่วนตัว'} onPress={() => {}} />
+            <SettingsRow icon="notifications-outline" label={t('profile.notification')} onPress={() => {}} />
+            <SettingsRow icon="lock-closed-outline" label={t('profile.privacy')} onPress={() => {}} />
             
             <SettingsRow 
               icon="language-outline" 
-              label={i18n.language === 'th' ? 'Change to English' : 'เปลี่ยนเป็นภาษาไทย'} 
+              label={t('profile.languageLabel')} 
               onPress={() => i18n.changeLanguage(i18n.language === 'th' ? 'en' : 'th')} 
             />
 
-            <SettingsRow icon="help-circle-outline" label={t('settings.help') || 'ช่วยเหลือ'} onPress={() => {}} />
+            <SettingsRow icon="help-circle-outline" label={t('profile.help')} onPress={() => {}} />
           </View>
 
           <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} onPress={signOut}>
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <AppText style={[styles.logoutText, { color: colors.error }]}>{t('common.logout')}</AppText>
+            <AppText style={[styles.logoutText, { color: colors.error }]}>{t('Logout')}</AppText>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -227,6 +225,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 20,
     marginBottom: 24,
+    minHeight: 180,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,

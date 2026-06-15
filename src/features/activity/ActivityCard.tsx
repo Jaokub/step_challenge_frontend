@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,10 +13,10 @@ interface ActivityCardProps {
 }
 
 // Helper to generate consistent mock colors/categories if not provided by backend
-const getMockData = (id: string) => {
+const getMockData = (id: string, t: any) => {
   const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const colors = ['#b0f237', '#00e5ff', '#a855f7', '#f59e0b', '#ff4d6d'];
-  const categories = ['วิ่ง', 'จักรยาน', 'โยคะ', 'ว่ายน้ำ', 'HIIT'];
+  const categories = [t('activity.run'), t('activity.bike'), t('activity.yoga'), t('activity.swim'), t('activity.hiit')];
   return {
     color: colors[hash % colors.length],
     category: categories[hash % categories.length]
@@ -23,8 +24,9 @@ const getMockData = (id: string) => {
 };
 
 export function ActivityCard({ activity }: ActivityCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
-  const { color, category } = getMockData(activity.id);
+  const { color, category } = getMockData(activity.id, t);
   
   const participants = activity.participantCount || 0;
   const maxParticipants = activity.maxParticipants || 100;
@@ -77,7 +79,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             <View style={styles.detailRow}>
               <Ionicons name="people-outline" size={12} color={colors.textSecondary} />
               <AppText style={[styles.detailText, { color: colors.textSecondary }]}>
-                {participants}/{maxParticipants} คน
+                {participants}/{maxParticipants} {t('activity.people')}
               </AppText>
             </View>
             <AppText style={[styles.detailText, { color: colors.textSecondary }]}>{pct}%</AppText>

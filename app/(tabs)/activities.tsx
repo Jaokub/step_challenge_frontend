@@ -45,7 +45,7 @@ export default function ActivitiesScreen() {
     return (
       <View style={styles.center}>
         <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
-        <AppText style={[styles.emptyText, { color: colors.textSecondary }]}>{t('activities.noActivities', 'ไม่พบกิจกรรม')}</AppText>
+        <AppText style={[styles.emptyText, { color: colors.textSecondary }]}>{t('dashboard.noActivitiesTitle')}</AppText>
       </View>
     );
   };
@@ -54,7 +54,7 @@ export default function ActivitiesScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
-          title={t('activities.title', 'กิจกรรม')}
+          title={t('tabs.activities')}
           rightActions={
             <>
               <HeaderIconButton 
@@ -80,7 +80,7 @@ export default function ActivitiesScreen() {
             <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
             <TextInput
               style={[styles.searchInput, { color: colors.textPrimary }]}
-              placeholder="ค้นหากิจกรรม..."
+              placeholder={t('activity.search')}
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -92,7 +92,7 @@ export default function ActivitiesScreen() {
         <View style={styles.filtersContainer}>
           <View style={[styles.filterPillContainer, { backgroundColor: colors.card }]}>
             {(['upcoming', 'ongoing', 'past'] as const).map((type) => {
-              const label = type === 'upcoming' ? 'กำลังจะมาถึง' : type === 'ongoing' ? 'กำลังดำเนินการ' : 'ผ่านมาแล้ว';
+              const label = type === 'upcoming' ? t('dashboard.upcoming') : type === 'ongoing' ? t('dashboard.ongoingActivities') : t('dashboard.pastActivities');
               const isActive = filter === type;
               return (
                 <TouchableOpacity

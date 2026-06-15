@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useAuth } from '../../src/contexts/AuthContext';
 import { Skeleton } from '../../src/components';
 import { useDashboard } from '../../src/features/dashboard/useDashboard';
 import { 
@@ -13,6 +14,7 @@ import {
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
+  const { user } = useAuth();
   
   const {
     timeframe, setTimeframe,
@@ -39,6 +41,7 @@ export default function DashboardScreen() {
           selectedWeek={selectedWeek} setSelectedWeek={setSelectedWeek}
           selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth}
           colors={colors}
+          username={user?.nickname || user?.fullName?.split(' ')[0] || 'User'}
         />
       </SafeAreaView>
 
