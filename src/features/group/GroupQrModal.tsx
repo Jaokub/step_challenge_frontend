@@ -140,5 +140,6 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     flexDirection: 'row',
+    gap: spacing.md,
   },
 });
