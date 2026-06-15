@@ -128,16 +128,16 @@ export default function ProfileScreen() {
               
               <View style={[styles.miniStatsContainer, { borderTopColor: colors.divider }]}>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalGroups}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.groups')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalGroups}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.groups')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalActivities}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.activities')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalActivities}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.activities')}</AppText>
                 </View>
                 <View style={styles.miniStatItem}>
-                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]}>{stats.totalCheckIns}</AppText>
-                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]}>{t('profile.checkins')}</AppText>
+                  <AppText style={[styles.miniStatValue, { color: colors.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>{stats.totalCheckIns}</AppText>
+                  <AppText style={[styles.miniStatLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{t('profile.checkins')}</AppText>
                 </View>
               </View>
             </View>
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
           <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('profile.thisMonthStats')}</AppText>
           {loading && healthSummary.totalSteps === 0 ? (
             <View style={styles.gridContainer}>
-              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={100} borderRadius={16} style={{ marginBottom: 16 }} />)}
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={116} borderRadius={16} style={{ marginBottom: 16 }} />)}
             </View>
           ) : (
             <View style={styles.gridContainer}>
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 20,
     marginBottom: 24,
+    minHeight: 180,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,

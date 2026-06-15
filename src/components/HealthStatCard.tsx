@@ -44,10 +44,18 @@ const HealthStatCard: React.FC<HealthStatCardProps> = ({
       >
         <Ionicons name={icon} size={22} color={iconColor} />
       </View>
-      <AppText style={[styles.label, { color: colors.textCardSecondary }]}>
+      <AppText 
+        style={[styles.label, { color: colors.textCardSecondary }]} 
+        numberOfLines={1} 
+        adjustsFontSizeToFit
+      >
         {label}
       </AppText>
-      <AppText style={[styles.value, { color: colors.textOnCard }]}>
+      <AppText 
+        style={[styles.value, { color: colors.textOnCard }]} 
+        numberOfLines={1} 
+        adjustsFontSizeToFit
+      >
         {typeof value === 'number' ? value.toLocaleString() : value}
       </AppText>
     </View>
@@ -61,6 +69,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignItems: 'flex-start',
     minWidth: 140,
+    minHeight: 116,
   },
   iconContainer: {
     width: 40,

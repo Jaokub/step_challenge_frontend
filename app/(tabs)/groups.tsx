@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { EmptyState, AppText, Skeleton } from '../../src/components';
+import { EmptyState, AppText, Skeleton, ScreenHeader } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 import { User } from '../../src/types';
 
@@ -94,25 +94,27 @@ export default function GroupsScreen() {
 
   const renderHeader = () => (
     <>
-      <View style={styles.header}>
-        <AppText style={styles.headerTitle}>{t('groups.friendsAndGroups')}</AppText>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => setModalType('REQUESTS')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-            <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
-            {requests.length > 0 && (
-              <View style={styles.badge}>
-                <AppText style={styles.badgeText}>{requests.length}</AppText>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-            <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-            <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ScreenHeader
+        title={t('groups.friendsAndGroups')}
+        rightActions={
+          <>
+            <TouchableOpacity onPress={() => setModalType('REQUESTS')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
+              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+              {requests.length > 0 && (
+                <View style={styles.badge}>
+                  <AppText style={styles.badgeText}>{requests.length}</AppText>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
+              <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card }]}>
+              <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
+          </>
+        }
+      />
 
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
@@ -124,7 +126,7 @@ export default function GroupsScreen() {
             onPress={() => setActiveTab('friends')}
           >
             <AppText style={[styles.tabText, activeTab === 'friends' ? { color: '#fff' } : { color: colors.textPrimary }]}>
-              เพื่อน
+              {t('groups.friends')}
             </AppText>
           </TouchableOpacity>
           {groups.map(g => (
@@ -225,22 +227,6 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
   iconBtn: {
     width: 36,
     height: 36,
