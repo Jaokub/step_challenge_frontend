@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,11 +23,16 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({
-  title = 'เกิดข้อผิดพลาดบางอย่าง',
-  message = 'ไม่สามารถโหลดข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง',
+  title,
+  message,
   onRetry,
-  retryLabel = 'ลองใหม่อีกครั้ง',
+  retryLabel,
 }) => {
+  const { t } = useTranslation();
+  
+  const displayTitle = title || t('common.somethingWentWrong');
+  const displayMessage = message || t('common.cannotLoadData');
+  const displayRetryLabel = retryLabel || t('common.tryAgain');
   const { colors } = useTheme();
   
   // Animation values
@@ -78,17 +84,17 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         </Animated.View>
         
         <AppText style={[styles.title, { color: colors.textPrimary }]}>
-          {title}
+          {displayTitle}
         </AppText>
         
         <AppText style={[styles.message, { color: colors.textSecondary }]}>
-          {message}
+          {displayMessage}
         </AppText>
         
         {onRetry && (
           <View style={styles.buttonContainer}>
             <PrimaryButton 
-              title={retryLabel} 
+              title={displayRetryLabel} 
               onPress={onRetry} 
               style={{ backgroundColor: colors.error }}
             />

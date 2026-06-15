@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { AppText } from '../../components';
@@ -12,6 +13,7 @@ interface FriendCardProps {
 }
 
 export function FriendCard({ member, accentColor = '#b0f237', isLast = false }: FriendCardProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   const rankColor = member.rank === 1 ? '#FFD700' : member.rank === 2 ? '#C0C0C0' : member.rank === 3 ? '#CD7F32' : '#7a8099';
@@ -45,7 +47,7 @@ export function FriendCard({ member, accentColor = '#b0f237', isLast = false }: 
           {member.name}
         </AppText>
         <AppText style={styles.stats}>
-          {member.steps.toLocaleString()} ก้าว · {member.distance} กม.
+          {member.steps.toLocaleString()} {t('friend.stepsCount')} · {member.distance} {t('friend.kmCount')}
         </AppText>
       </View>
 

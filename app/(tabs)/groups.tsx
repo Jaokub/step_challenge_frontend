@@ -22,7 +22,7 @@ const hashId = (id: string, mod: number) =>
   Math.abs(id.split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 0)) % mod;
 
 // Helper to convert User to LeaderboardMember for demo purposes
-const mapUserToLeaderboardMember = (u: User, index: number, isMe: boolean): LeaderboardMember => ({
+const mapUserToLeaderboardMember = (u: User, index: number, isMe: boolean, t: any): LeaderboardMember => ({
   id: u.id,
   rank: index + 1,
   name: u.nickname || u.fullName,
@@ -32,7 +32,7 @@ const mapUserToLeaderboardMember = (u: User, index: number, isMe: boolean): Lead
   distance: Number((hashId(u.id + 'dist', 100) / 10).toFixed(1)),
   points: u.totalPoints,
   isMe,
-  lastActive: 'เมื่อวาน'
+  lastActive: t('groups.yesterday')
 });
 
 export default function GroupsScreen() {
@@ -83,7 +83,7 @@ export default function GroupsScreen() {
     ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
     : [...friends, user].filter(Boolean) as User[];
   
-  const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id))
+  const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id, t))
     .sort((a, b) => b.points - a.points)
     .map((m, i) => ({ ...m, rank: i + 1 }));
 
@@ -95,7 +95,7 @@ export default function GroupsScreen() {
   const renderHeader = () => (
     <>
       <View style={styles.header}>
-        <AppText style={styles.headerTitle}>เพื่อนและกลุ่ม</AppText>
+        <AppText style={styles.headerTitle}>{t('groups.friendsAndGroups')}</AppText>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => setModalType('REQUESTS')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
             <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
@@ -188,7 +188,7 @@ export default function GroupsScreen() {
             (!isLoadingData && !isRefreshingGroups && !isRefreshingFriends && leaderboard.length === 0) ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
                 <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
-                <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>ไม่มีข้อมูลในขณะนี้</AppText>
+                <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>{t('groups.noData')}</AppText>
               </View>
             ) : null
           }

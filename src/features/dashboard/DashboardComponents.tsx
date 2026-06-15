@@ -23,6 +23,7 @@ export const DashboardHeader = ({
   timeframe, setTimeframe, selectedDate, setSelectedDate,
   selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth, colors
 }: any) => {
+  const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -51,8 +52,8 @@ export const DashboardHeader = ({
     <View>
       <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View>
-          <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 2 }}>สวัสดี,</AppText>
-          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>อรอนงค์ 👋</AppText>
+          <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 2 }}>{t('dashboard.hello')}</AppText>
+          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')} 👋</AppText>
         </View>
         <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
           <AppText variant="body-bold" style={{ color: '#fff', fontSize: 14 }}>AN</AppText>
@@ -63,7 +64,7 @@ export const DashboardHeader = ({
         <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, padding: 4 }}>
           {['Daily', 'Weekly', 'Monthly'].map((tf) => {
             const isActive = timeframe === tf;
-            const tfLabel = tf === 'Daily' ? 'วันนี้' : tf === 'Weekly' ? 'สัปดาห์' : 'เดือน';
+            const tfLabel = tf === 'Daily' ? t('dashboard.daily', 'Daily') : tf === 'Weekly' ? t('dashboard.weekly', 'Weekly') : t('dashboard.monthly', 'Monthly');
             return (
               <TouchableOpacity
                 key={tf}
@@ -139,7 +140,7 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
       <View style={{ backgroundColor: colors.card, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: colors.cardBorder, marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>เป้าหมายวันนี้</AppText>
+            <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>{t('dashboard.todayGoal')}</AppText>
 
             {/*
               FIX #1: ล็อค minHeight ให้เท่ากับ content จริง
@@ -152,7 +153,7 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
               ) : (
                 <>
                   <AppText variant="heading-bold" style={{ color: colors.primary, fontSize: 40, lineHeight: 48 }}>{progressPercent}%</AppText>
-                  <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>สำเร็จ</AppText>
+                  <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>{t('dashboard.achieved')}</AppText>
                 </>
               )}
             </View>
@@ -180,9 +181,9 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
       {/* Stats Grid */}
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
         {[
-          { icon: 'footsteps', iconColor: colors.primary, bgColor: `${colors.primary}20`, value: currentSteps.toLocaleString(), label: 'ก้าว' },
+          { icon: 'footsteps', iconColor: colors.primary, bgColor: `${colors.primary}20`, value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
           { icon: 'flame',     iconColor: colors.warning,  bgColor: `${colors.warning}20`,  value: Number(stats.activeCalories || 0).toFixed(2),           label: 'kcal' },
-          { icon: 'location',  iconColor: '#00e5ff',        bgColor: '#00e5ff20',             value: Number(stats.distance || 0).toFixed(2),                 label: 'กม.' },
+          { icon: 'location',  iconColor: '#00e5ff',        bgColor: '#00e5ff20',             value: Number(stats.distance || 0).toFixed(2),                 label: t('dashboard.km') },
         ].map(({ icon, iconColor, bgColor, value, label }) => (
           /*
             FIX #4: minHeight: 88 บน card แต่ละอัน ทำให้ขนาดไม่เปลี่ยนเมื่อ skeleton → content
@@ -245,10 +246,10 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Ionicons name="trophy" size={20} color={colors.primary} />
-          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>อันดับ</AppText>
+          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{t('dashboard.ranking')}</AppText>
         </View>
         <TouchableOpacity>
-          <AppText style={{ fontSize: 13, color: colors.primary }}>ดูทั้งหมด</AppText>
+          <AppText style={{ fontSize: 13, color: colors.primary }}>{t('dashboard.seeAll')}</AppText>
         </TouchableOpacity>
       </View>
 
@@ -262,7 +263,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
               setSelectedGroupId('friends');
             }}
           >
-            <AppText style={{ fontSize: 13, color: selectedGroupId === 'friends' ? '#fff' : colors.textPrimary }}>เพื่อน</AppText>
+            <AppText style={{ fontSize: 13, color: selectedGroupId === 'friends' ? '#fff' : colors.textPrimary }}>{t('dashboard.friends')}</AppText>
           </TouchableOpacity>
           {userGroups?.map((group: any) => {
             const isActive = group.id === selectedGroupId;
@@ -371,12 +372,12 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
     <View style={{ paddingHorizontal: 20, paddingBottom: 30 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <Ionicons name="flash" size={20} color={colors.warning} />
-        <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>กิจกรรมที่กำลังดำเนินการ</AppText>
+        <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{t('dashboard.ongoingActivities')}</AppText>
       </View>
 
       {events.length === 0 ? (
         <View style={{ paddingVertical: 20 }}>
-          <EmptyState icon="calendar-outline" title="ไม่มีกิจกรรม" subtitle="คุณยังไม่มีกิจกรรมที่กำลังจะมาถึงในช่วงนี้" />
+          <EmptyState icon="calendar-outline" title={t('dashboard.noActivitiesTitle')} subtitle={t('dashboard.noActivitiesSubtitle')} />
         </View>
       ) : (
         <View style={{ gap: 12 }}>
@@ -390,7 +391,7 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                   <View style={{ backgroundColor: `${colors.primary}20`, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
-                    <AppText style={{ fontSize: 11, color: colors.primary, fontWeight: '600' }}>กำลังจะมาถึง</AppText>
+                    <AppText style={{ fontSize: 11, color: colors.primary, fontWeight: '600' }}>{t('dashboard.upcoming')}</AppText>
                   </View>
                 </View>
                 <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textPrimary, marginBottom: 6 }}>{event.title}</AppText>
@@ -401,7 +402,7 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>48 คน</AppText>
+                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>48 {t('activity.people')}</AppText>
                   </View>
                 </View>
               </View>

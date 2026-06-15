@@ -182,7 +182,7 @@ export default function LeaderboardScreen() {
           <EmptyState
             icon="trophy-outline"
             title={t('leaderboard.noData')}
-            subtitle="เริ่มเดินและเข้าร่วมกิจกรรมเพื่อสะสมแต้มเป็นคนแรก!"
+            subtitle={t('leaderboard.startWalking')}
           />
         }
       />

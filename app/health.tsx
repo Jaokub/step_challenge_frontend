@@ -195,7 +195,7 @@ export default function HealthScreen() {
                 {summary.bestDay.steps.toLocaleString()} {t('health.stepsUnit')}
               </AppText>
               <AppText style={[styles.bestDayDate, { color: colors.textCardSecondary }]}>
-                {t('health.onDate')} {new Date(summary.bestDay.recordDate).toLocaleDateString(t('settings.language') === 'ไทย' ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {t('health.onDate')} {new Date(summary.bestDay.recordDate).toLocaleDateString(t('settings.language') === 'th' ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
               </AppText>
             </AppCard>
           )}
@@ -217,7 +217,7 @@ export default function HealthScreen() {
               >
                 <View style={styles.historyLeft}>
                   <AppText style={[styles.historyDate, { color: colors.textOnCard }]}>
-                    {new Date(record.recordDate).toLocaleDateString(t('settings.language') === 'ไทย' ? 'th-TH' : 'en-US', {
+                    {new Date(record.recordDate).toLocaleDateString(t('settings.language') === 'th' ? 'th-TH' : 'en-US', {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'short',

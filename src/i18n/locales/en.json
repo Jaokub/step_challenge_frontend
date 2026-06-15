@@ -19,7 +19,10 @@
     "participants": "Participants",
     "success": "Success",
     "ok": "OK",
-    "pts": "pts"
+    "pts": "pts",
+    "somethingWentWrong": "Something went wrong",
+    "cannotLoadData": "Cannot load data at the moment. Please try again.",
+    "tryAgain": "Try again"
   },
   "auth": {
     "login": "Sign In",
@@ -41,25 +44,31 @@
     "departmentRequired": "Department is required",
     "welcomeTitle": "Step Challenge",
     "welcomeSubtitle": "Track your activities",
-    "nicknameOptional": "Nickname (Optional)"
+    "nicknameOptional": "Nickname (Optional)",
+    "deptComputer": "Computer Engineering",
+    "deptElectrical": "Electrical Engineering",
+    "deptMechanical": "Mechanical Engineering",
+    "deptCivil": "Civil Engineering",
+    "deptIndustrial": "Industrial Engineering",
+    "deptChemical": "Chemical Engineering",
+    "deptEnvironmental": "Environmental Engineering",
+    "deptSurvey": "Survey Engineering",
+    "deptMetallurgical": "Metallurgical Engineering",
+    "deptOther": "Other"
   },
   "dashboard": {
-    "greeting": "Hello",
-    "todayHealth": "Today's Health",
+    "hello": "Hello,",
+    "todayGoal": "Today's Goal",
+    "achieved": "Achieved",
     "steps": "Steps",
-    "calories": "Calories",
-    "distance": "Distance",
-    "activeMinutes": "Active Minutes",
-    "totalPoints": "Total Points",
-    "activitiesJoined": "Activities Joined",
-    "currentStreak": "Current Streak",
-    "days": "days",
-    "upcomingActivities": "Upcoming Activities",
-    "recentCheckins": "Recent Check-ins",
-    "noUpcoming": "No upcoming activities",
-    "noCheckins": "No check-ins yet",
-    "viewDetails": "View Details",
-    "km": "km"
+    "km": "km",
+    "ranking": "Ranking",
+    "seeAll": "See All",
+    "friends": "Friends",
+    "ongoingActivities": "Ongoing Activities",
+    "noActivitiesTitle": "No Activities",
+    "noActivitiesSubtitle": "You do not have any upcoming activities right now",
+    "upcoming": "Upcoming"
   },
   "activities": {
     "title": "Activities",
@@ -92,25 +101,26 @@
     "myQr": "My QR",
     "myQrCode": "My QR Code",
     "showCodeCheckIn": "Show this code to check-in or add friend",
-    "shareLink": "Share Link"
+    "shareLink": "Share Link",
+    "scanQrCode": "Scan QR Code",
+    "scanSubtitle": "Add friends or register for an event",
+    "scanBtn": "Scan",
+    "myQrTab": "My QR",
+    "placeQrInFrame": "Place the QR Code in the frame",
+    "addFriendTitle": "Add Friend",
+    "addFriendDesc": "Scan QR to add a new friend",
+    "registerEventTitle": "Register Event",
+    "registerEventDesc": "Scan to join an activity",
+    "defaultUser": "User",
+    "shareQrFooter": "Let your friends scan this QR to add you as a friend",
+    "inviteLink": "Invite Link",
+    "shareLinkBtn": "Share Link"
   },
   "groups": {
-    "title": "Groups",
-    "myGroups": "My Groups",
-    "createGroup": "Create Group",
-    "joinGroup": "Join Group",
-    "groupName": "Group Name",
-    "groupDescription": "Description",
-    "inviteCode": "Invite Code",
-    "enterInviteCode": "Enter invite code",
-    "leaveGroup": "Leave Group",
-    "deleteGroup": "Delete Group",
-    "removeMember": "Remove Member",
-    "owner": "Owner",
-    "admin": "Admin",
-    "member": "Member",
-    "noGroups": "No groups yet",
-    "qrInvite": "QR Invite Code"
+    "yesterday": "Yesterday",
+    "friendsAndGroups": "Friends & Groups",
+    "friends": "Friends",
+    "noData": "No data at the moment"
   },
   "profile": {
     "title": "Profile",
@@ -140,13 +150,28 @@
     "passwordChanged": "Password changed successfully.",
     "failedToChangePassword": "Failed to change password.",
     "copySuccess": "Copied Successfully",
-    "copyDesc": "Paste the Sync Token in iOS Shortcuts to start syncing steps."
+    "copyDesc": "Paste the Sync Token in iOS Shortcuts to start syncing steps.",
+    "groups": "Groups",
+    "activities": "Activities",
+    "checkins": "Check-ins",
+    "thisMonthStats": "This Month's Stats",
+    "totalSteps": "Total Steps",
+    "distanceKm": "Distance (km)",
+    "calories": "Calories",
+    "recordedDays": "Recorded Days",
+    "weeklySteps": "Weekly Steps",
+    "adminPanel": "Admin Panel",
+    "privacy": "Privacy",
+    "languageLabel": "Language",
+    "help": "Help",
+    "days": "days"
   },
   "leaderboard": {
     "title": "Leaderboard",
     "rank": "Rank",
     "you": "You",
-    "noData": "No data yet"
+    "noData": "No data yet",
+    "startWalking": "Start walking and join activities to be the first to collect points!"
   },
   "health": {
     "title": "Health Data",
@@ -244,6 +269,32 @@
     "failedToSendRequest": "Failed to send friend request.",
     "sendFriendRequest": "Send Friend Request",
     "goBack": "Go Back",
-    "wantsToBeFriends": "Wants to be friends"
+    "wantsToBeFriends": "Wants to be friends",
+    "yourRank": "Your Rank",
+    "stepsCount": "steps",
+    "kmCount": "km"
+  },
+  "activity": {
+    "run": "Run",
+    "bike": "Bike",
+    "yoga": "Yoga",
+    "swim": "Swim",
+    "hiit": "HIIT",
+    "notFound": "Activity not found",
+    "start": "Start:",
+    "end": "End:",
+    "participantsUncapped": " people (Unlimited)",
+    "noDescription": "No description for this activity",
+    "creator": "Activity Creator",
+    "search": "Search activities...",
+    "people": "people"
+  },
+  "tabs": {
+    "home": "Home",
+    "activities": "Activities",
+    "scan": "Scan",
+    "friendsAndGroups": "Friends & Groups",
+    "friends": "Friends",
+    "profile": "Profile"
   }
 }

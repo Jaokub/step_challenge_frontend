@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AppText } from '../../components';
@@ -11,6 +12,7 @@ interface RankSummaryCardProps {
 }
 
 export function RankSummaryCard({ member, accentColor = '#b0f237', isGroupTab = false }: RankSummaryCardProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <View 
@@ -27,10 +29,10 @@ export function RankSummaryCard({ member, accentColor = '#b0f237', isGroupTab = 
         </View>
         
         <View style={styles.infoContainer}>
-          <AppText style={styles.title}>อันดับของคุณ</AppText>
+          <AppText style={styles.title}>{t('friend.yourRank')}</AppText>
           <View style={styles.statsRow}>
-            <AppText style={styles.statText}>{member.steps.toLocaleString()} ก้าว</AppText>
-            <AppText style={styles.statText}>{member.distance} กม.</AppText>
+            <AppText style={styles.statText}>{member.steps.toLocaleString()} {t('friend.stepsCount')}</AppText>
+            <AppText style={styles.statText}>{member.distance} {t('friend.kmCount')}</AppText>
             <AppText style={styles.statText}>{member.calories} kcal</AppText>
           </View>
         </View>

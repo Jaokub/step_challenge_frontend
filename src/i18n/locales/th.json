@@ -19,7 +19,10 @@
     "participants": "ผู้เข้าร่วม",
     "success": "สำเร็จ",
     "ok": "ตกลง",
-    "pts": "คะแนน"
+    "pts": "คะแนน",
+    "somethingWentWrong": "เกิดข้อผิดพลาดบางอย่าง",
+    "cannotLoadData": "ไม่สามารถโหลดข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง",
+    "tryAgain": "ลองใหม่อีกครั้ง"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
@@ -41,25 +44,31 @@
     "departmentRequired": "กรุณาเลือกภาควิชา",
     "welcomeTitle": "Step Challenge",
     "welcomeSubtitle": "ติดตามกิจกรรมของคุณ",
-    "nicknameOptional": "ชื่อเล่น (ไม่บังคับ)"
+    "nicknameOptional": "ชื่อเล่น (ไม่บังคับ)",
+    "deptComputer": "วิศวกรรมคอมพิวเตอร์",
+    "deptElectrical": "วิศวกรรมไฟฟ้า",
+    "deptMechanical": "วิศวกรรมเครื่องกล",
+    "deptCivil": "วิศวกรรมโยธา",
+    "deptIndustrial": "วิศวกรรมอุตสาหกรรม",
+    "deptChemical": "วิศวกรรมเคมี",
+    "deptEnvironmental": "วิศวกรรมสิ่งแวดล้อม",
+    "deptSurvey": "วิศวกรรมสำรวจ",
+    "deptMetallurgical": "วิศวกรรมโลหการ",
+    "deptOther": "อื่นๆ"
   },
   "dashboard": {
-    "greeting": "สวัสดี",
-    "todayHealth": "สุขภาพวันนี้",
+    "hello": "สวัสดี,",
+    "todayGoal": "เป้าหมายวันนี้",
+    "achieved": "สำเร็จ",
     "steps": "ก้าว",
-    "calories": "แคลอรี่",
-    "distance": "ระยะทาง",
-    "activeMinutes": "เวลาออกกำลังกาย",
-    "totalPoints": "คะแนนรวม",
-    "activitiesJoined": "กิจกรรมที่เข้าร่วม",
-    "currentStreak": "สตรีคปัจจุบัน",
-    "days": "วัน",
-    "upcomingActivities": "กิจกรรมที่กำลังจะมา",
-    "recentCheckins": "เช็คอินล่าสุด",
-    "noUpcoming": "ยังไม่มีกิจกรรมที่กำลังจะมา",
-    "noCheckins": "ยังไม่มีการเช็คอิน",
-    "viewDetails": "ดูรายละเอียด",
-    "km": "กม."
+    "km": "กม.",
+    "ranking": "อันดับ",
+    "seeAll": "ดูทั้งหมด",
+    "friends": "เพื่อน",
+    "ongoingActivities": "กิจกรรมที่กำลังดำเนินการ",
+    "noActivitiesTitle": "ไม่มีกิจกรรม",
+    "noActivitiesSubtitle": "คุณยังไม่มีกิจกรรมที่กำลังจะมาถึงในช่วงนี้",
+    "upcoming": "กำลังจะมาถึง"
   },
   "activities": {
     "title": "กิจกรรม",
@@ -92,25 +101,26 @@
     "myQr": "QR ของฉัน",
     "myQrCode": "QR Code ของฉัน",
     "showCodeCheckIn": "แสดงรหัสนี้เพื่อเช็คอินหรือเพิ่มเพื่อน",
-    "shareLink": "แชร์ลิงก์"
+    "shareLink": "แชร์ลิงก์",
+    "scanQrCode": "แสกน QR Code",
+    "scanSubtitle": "เพิ่มเพื่อนหรือลงทะเบียน Event",
+    "scanBtn": "แสกน",
+    "myQrTab": "QR ของฉัน",
+    "placeQrInFrame": "นำ QR Code ไว้ในกรอบ",
+    "addFriendTitle": "เพิ่มเพื่อน",
+    "addFriendDesc": "แสกน QR เพื่อเพิ่มเพื่อนใหม่",
+    "registerEventTitle": "ลงทะเบียน Event",
+    "registerEventDesc": "แสกนเพื่อเข้าร่วมกิจกรรม",
+    "defaultUser": "ผู้ใช้งาน",
+    "shareQrFooter": "ให้เพื่อนแสกน QR นี้เพื่อเพิ่มเป็นเพื่อน",
+    "inviteLink": "ลิงค์เชิญ",
+    "shareLinkBtn": "แชร์ลิงค์"
   },
   "groups": {
-    "title": "กลุ่ม",
-    "myGroups": "กลุ่มของฉัน",
-    "createGroup": "สร้างกลุ่ม",
-    "joinGroup": "เข้าร่วมกลุ่ม",
-    "groupName": "ชื่อกลุ่ม",
-    "groupDescription": "คำอธิบาย",
-    "inviteCode": "รหัสเชิญ",
-    "enterInviteCode": "กรอกรหัสเชิญ",
-    "leaveGroup": "ออกจากกลุ่ม",
-    "deleteGroup": "ลบกลุ่ม",
-    "removeMember": "ลบสมาชิก",
-    "owner": "เจ้าของ",
-    "admin": "แอดมิน",
-    "member": "สมาชิก",
-    "noGroups": "ยังไม่มีกลุ่ม",
-    "qrInvite": "QR เชิญเข้ากลุ่ม"
+    "yesterday": "เมื่อวาน",
+    "friendsAndGroups": "เพื่อนและกลุ่ม",
+    "friends": "เพื่อน",
+    "noData": "ไม่มีข้อมูลในขณะนี้"
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -140,13 +150,28 @@
     "passwordChanged": "เปลี่ยนรหัสผ่านสำเร็จ",
     "failedToChangePassword": "เปลี่ยนรหัสผ่านล้มเหลว",
     "copySuccess": "คัดลอกสำเร็จ",
-    "copyDesc": "นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน"
+    "copyDesc": "นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน",
+    "groups": "กลุ่ม",
+    "activities": "กิจกรรม",
+    "checkins": "เช็คอิน",
+    "thisMonthStats": "สถิติเดือนนี้",
+    "totalSteps": "จำนวนก้าว",
+    "distanceKm": "ระยะทาง (กม.)",
+    "calories": "แคลอรี่",
+    "recordedDays": "วันที่บันทึก",
+    "weeklySteps": "ก้าวรายสัปดาห์",
+    "adminPanel": "แผงควบคุม (Admin Panel)",
+    "privacy": "ความเป็นส่วนตัว",
+    "languageLabel": "ภาษา",
+    "help": "ช่วยเหลือ",
+    "days": "วัน"
   },
   "leaderboard": {
     "title": "กระดานผู้นำ",
     "rank": "อันดับ",
     "you": "คุณ",
-    "noData": "ยังไม่มีข้อมูล"
+    "noData": "ยังไม่มีข้อมูล",
+    "startWalking": "เริ่มเดินและเข้าร่วมกิจกรรมเพื่อสะสมแต้มเป็นคนแรก!"
   },
   "health": {
     "title": "ข้อมูลสุขภาพ",
@@ -244,6 +269,32 @@
     "failedToSendRequest": "ส่งคำขอเป็นเพื่อนล้มเหลว",
     "sendFriendRequest": "ส่งคำขอเป็นเพื่อน",
     "goBack": "กลับ",
-    "wantsToBeFriends": "ต้องการเป็นเพื่อน"
+    "wantsToBeFriends": "ต้องการเป็นเพื่อน",
+    "yourRank": "อันดับของคุณ",
+    "stepsCount": "ก้าว",
+    "kmCount": "กม."
+  },
+  "activity": {
+    "run": "วิ่ง",
+    "bike": "จักรยาน",
+    "yoga": "โยคะ",
+    "swim": "ว่ายน้ำ",
+    "hiit": "HIIT",
+    "notFound": "ไม่พบกิจกรรม",
+    "start": "เริ่ม:",
+    "end": "สิ้นสุด:",
+    "participantsUncapped": " คน (ไม่จำกัด)",
+    "noDescription": "ไม่มีคำอธิบายสำหรับกิจกรรมนี้",
+    "creator": "ผู้สร้างกิจกรรม",
+    "search": "ค้นหากิจกรรม...",
+    "people": "คน"
+  },
+  "tabs": {
+    "home": "หน้าแรก",
+    "activities": "กิจกรรม",
+    "scan": "สแกน",
+    "friendsAndGroups": "เพื่อนและกลุ่ม",
+    "friends": "เพื่อน",
+    "profile": "โปรไฟล์"
   }
 }
