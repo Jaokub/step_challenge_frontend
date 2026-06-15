@@ -172,7 +172,7 @@ export default function ProfileScreen() {
 
           {/* Menu Items */}
           <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
-            <SettingsRow icon="person-outline" label={t('settings.account')} onPress={() => {}} />
+            <SettingsRow icon="person-outline" label={t('Account')} onPress={() => {}} />
 
             {isAdmin && (
               <SettingsRow 
@@ -193,21 +193,21 @@ export default function ProfileScreen() {
               />
             )}
 
-            <SettingsRow icon="notifications-outline" label={t('settings.notifications')} onPress={() => {}} />
-            <SettingsRow icon="lock-closed-outline" label={t('settings.privacy') || 'ความเป็นส่วนตัว'} onPress={() => {}} />
+            <SettingsRow icon="notifications-outline" label={t('Notifications')} onPress={() => {}} />
+            <SettingsRow icon="lock-closed-outline" label={t('Privacy') || 'ความเป็นส่วนตัว'} onPress={() => {}} />
             
             <SettingsRow 
               icon="language-outline" 
-              label={i18n.language === 'th' ? 'Change to English' : 'เปลี่ยนเป็นภาษาไทย'} 
+              label={i18n.language === 'th' ? 'ภาษา' : 'Language'} 
               onPress={() => i18n.changeLanguage(i18n.language === 'th' ? 'en' : 'th')} 
             />
 
-            <SettingsRow icon="help-circle-outline" label={t('settings.help') || 'ช่วยเหลือ'} onPress={() => {}} />
+            <SettingsRow icon="help-circle-outline" label={t('Help') || 'ช่วยเหลือ'} onPress={() => {}} />
           </View>
 
           <TouchableOpacity style={[styles.logoutBtn, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]} onPress={signOut}>
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <AppText style={[styles.logoutText, { color: colors.error }]}>{t('common.logout')}</AppText>
+            <AppText style={[styles.logoutText, { color: colors.error }]}>{t('Logout')}</AppText>
           </TouchableOpacity>
         </View>
       </ScrollView>

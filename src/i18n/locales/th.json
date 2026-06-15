@@ -78,9 +78,9 @@
   "scan": {
     "title": "สแกน QR",
     "instruction": "สแกน QR Code เพื่อเช็คอิน",
-    "success": "เช็คอินสำเร็จ!",
-    "failed": "เช็คอินไม่สำเร็จ",
-    "alreadyCheckedIn": "คุณเช็คอินกิจกรรมนี้แล้ว",
+    "success": "สแกนสำเร็จ!",
+    "failed": "สแกนไม่สำเร็จ",
+    "alreadyCheckedIn": "คุณได้สแกนกิจกรรมนี้แล้ว",
     "invalidQR": "QR Code ไม่ถูกต้อง",
     "permissionRequired": "ต้องการสิทธิ์เข้าถึงกล้อง",
     "torch": "ไฟฉาย"

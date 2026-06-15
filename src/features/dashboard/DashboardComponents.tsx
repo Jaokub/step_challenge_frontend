@@ -179,8 +179,8 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
         {[
           { icon: 'footsteps', iconColor: colors.primary, bgColor: `${colors.primary}20`, value: currentSteps.toLocaleString(), label: 'ก้าว' },
-          { icon: 'flame',     iconColor: colors.warning,  bgColor: `${colors.warning}20`,  value: stats.activeCalories,           label: 'kcal' },
-          { icon: 'location',  iconColor: '#00e5ff',        bgColor: '#00e5ff20',             value: stats.distance,                 label: 'กม.' },
+          { icon: 'flame',     iconColor: colors.warning,  bgColor: `${colors.warning}20`,  value: Number(stats.activeCalories || 0).toFixed(2),           label: 'kcal' },
+          { icon: 'location',  iconColor: '#00e5ff',        bgColor: '#00e5ff20',             value: Number(stats.distance || 0).toFixed(2),                 label: 'กม.' },
         ].map(({ icon, iconColor, bgColor, value, label }) => (
           /*
             FIX #4: minHeight: 88 บน card แต่ละอัน ทำให้ขนาดไม่เปลี่ยนเมื่อ skeleton → content
