@@ -40,6 +40,7 @@ const PointsBadge: React.FC<PointsBadgeProps> = ({ points, size = 'md' }) => {
         style={styles.icon}
       />
       <AppText
+        variant="numeric"
         style={[
           styles.label,
           { fontSize: config.fontSize },
