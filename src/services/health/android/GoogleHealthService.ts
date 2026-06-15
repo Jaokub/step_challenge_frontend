@@ -1,28 +1,14 @@
-/*
 import {
   initialize,
   requestPermission,
-  readRecords,
-  Permission
+  readRecords
 } from 'react-native-health-connect';
-*/
+import { TimeRangeFilter } from 'react-native-health-connect/lib/typescript/types/base.types';
 
 export class GoogleHealthService {
-  // เปิดโหมดจำลองข้อมูล (Mock) ไว้เป็น true ก่อน
-  private useMockData = true;
 
-  /**
-   * Request permissions to access Google Health Connect data
-   */
-  async initHealthConnect(): Promise<boolean> {
-    console.log('Initializing Google Health Connect...');
-    
-    if (this.useMockData) {
-      console.log('✅ [MOCK] Google Health Connect Permission Granted');
-      return true;
-    }
-
-    /*
+  //initialize health connect and request permission
+  public initHealthConnect = async (): Promise<boolean> => {
     try {
       const isInitialized = await initialize();
       if (!isInitialized) {
@@ -30,49 +16,73 @@ export class GoogleHealthService {
         return false;
       }
 
-      const permissions: Permission[] = [
-        { accessType: 'read', recordType: 'Steps' }
-      ];
-
-      const granted = await requestPermission(permissions);
-      return granted.length > 0;
+      const granted = await requestPermission([
+        { accessType: "read", recordType: "Steps" },
+        { accessType: "read", recordType: "Distance" },
+        { accessType: "read", recordType: "TotalCaloriesBurned" },
+      ]);
+      console.log("Permissions status updated:", granted);
+      if (granted.length == 3) console.log("Permissions granted");
+      else console.log("Permissions not granted");
+      return true;
     } catch (error) {
-      console.error('Error initializing Health Connect:', error);
+        console.error('Error initializing Health Connect:', error);
+      }
       return false;
-    }
-    */
-    return false;
-  }
+    };
 
-  /**
-   * Fetch step count data from Google Health Connect
-   */
-  async getSteps(startDate: Date, endDate: Date): Promise<number> {
-    console.log(`Fetching steps from Google Health Connect between ${startDate.toISOString()} and ${endDate.toISOString()}...`);
-    
-    if (this.useMockData) {
-      const mockSteps = Math.floor(Math.random() * 5000) + 3000;
-      console.log(`🚶‍♂️ [MOCK] กลับค่าจำลอง: ${mockSteps} ก้าว`);
-      return mockSteps;
-    }
-
-    /*
+  //fetch the data from health connect
+  public getSteps = async (startTime: string, endTime: string): Promise<number> => {
     try {
-      const result = await readRecords('Steps', {
-        timeRangeFilter: {
-          operator: 'between',
-          startTime: startDate.toISOString(),
-          endTime: endDate.toISOString(),
-        },
-      });
-
-      const totalSteps = result.records.reduce((sum, record) => sum + record.count, 0);
-      return totalSteps;
+      console.log(`Fetching steps from Google Health Connect between ${startTime} and ${endTime}...`);
+      const timeRangeFilter: TimeRangeFilter = {
+        operator: "between",
+        startTime: startTime,
+        endTime: endTime
+      }
+      console.log("timeRangeFilter: ",timeRangeFilter);
+      const stepRecords = await readRecords("Steps", { timeRangeFilter });
+      console.log("Steps: ", stepRecords);
+      return stepRecords.records.reduce((sum, r) => sum + (r.count || 0), 0);
     } catch (error) {
-      console.error('Error fetching steps from Health Connect:', error);
-      return 0;
+      console.error('Error fetching Health Connect Data:', error);
     }
-    */
+    return 0;
+  };
+
+  public getDistance = async (startTime: string, endTime: string): Promise<number> => {
+    try {
+      console.log(`Fetching distance from Google Health Connect between ${startTime} and ${endTime}...`);
+      const timeRangeFilter: TimeRangeFilter = {
+        operator: "between",
+        startTime: startTime,
+        endTime: endTime
+      }
+      console.log("timeRangeFilter: ",timeRangeFilter);
+      const distanceRecords = await readRecords("Distance", { timeRangeFilter });
+      console.log("Distance: ", distanceRecords);
+      return +distanceRecords.records.reduce((sum, r) => sum + (r.distance.inKilometers || 0), 0).toFixed(2);
+    } catch (error) {
+      console.error('Error fetching Health Connect Data:', error);
+    }
+    return 0;
+  };
+
+  public getCalories = async (startTime: string, endTime: string): Promise<number> => {
+    try {
+      console.log(`Fetching calories from Google Health Connect between ${startTime} and ${endTime}...`);
+      const timeRangeFilter: TimeRangeFilter = {
+        operator: "between",
+        startTime: startTime,
+        endTime: endTime
+      }
+      console.log("timeRangeFilter: ",timeRangeFilter);
+      const caloriesRecords = await readRecords("TotalCaloriesBurned", { timeRangeFilter });
+      console.log("Calories: ", caloriesRecords);
+      return +caloriesRecords.records.reduce((sum, r) => sum + (r.energy.inKilocalories || 0), 0).toFixed(2);
+    } catch (error) {
+      console.error('Error fetching Health Connect Data:', error);
+    }
     return 0;
   }
 }
