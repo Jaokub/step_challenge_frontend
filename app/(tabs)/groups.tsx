@@ -98,27 +98,24 @@ export default function GroupsScreen() {
     }
   };
 
-  const isGroupTab = activeTab !== 'friends' && activeTab !== 'myGroups';
-  const isMyGroupsTab = activeTab === 'myGroups';
-  const isLoadingData = isGroupTab 
-    ? (isLoadingGroups || !groupMembers[activeTab]) 
+  const isGroupTab = activeTab !== 'friends';
+  const isLoadingData = isGroupTab
+    ? (isLoadingGroups || !groupMembers[activeTab])
     : isLoadingFriends;
 
   React.useEffect(() => {
-    if (isGroupTab && activeTab !== 'myGroups') {
+    if (isGroupTab) {
       fetchGroupMembers(activeTab);
     }
   }, [activeTab, isGroupTab, fetchGroupMembers]);
 
   const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
-  const accentColor = isGroupTab ? '#00e5ff' : isMyGroupsTab ? '#00e5ff' : '#b0f237'; // Mock color
+  const accentColor = isGroupTab ? '#00e5ff' : '#b0f237';
 
   // Prepare leaderboard data
-  const rawList = isGroupTab 
+  const rawList = isGroupTab
     ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
-    : isMyGroupsTab
-      ? Object.values(groupMembers).flat().map(m => m.user).filter(Boolean) as User[]
-      : [...friends, user].filter(Boolean) as User[];
+    : [...friends, user].filter(Boolean) as User[];
   
   const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id, t))
     .sort((a, b) => b.points - a.points)

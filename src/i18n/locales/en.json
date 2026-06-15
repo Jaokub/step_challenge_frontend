@@ -22,7 +22,8 @@
     "pts": "pts",
     "somethingWentWrong": "Something went wrong",
     "cannotLoadData": "Cannot load data at the moment. Please try again.",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "share": "Share"
   },
   "auth": {
     "login": "Sign In",
@@ -123,7 +124,9 @@
     "friends": "Friends",
     "noData": "No data at the moment",
     "myGroups": "My Groups",
-    "longPressForInvite": "Hold for Invite Code"
+    "longPressForInvite": "Hold for Invite Code",
+    "inviteCode": "Invitation Code",
+    "qrInvite": "Scan to Join Group"
   },
   "profile": {
     "title": "Profile",

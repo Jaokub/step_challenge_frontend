@@ -77,20 +77,6 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
             </AppText>
           </TouchableOpacity>
 
-          {groups.length > 0 && (
-            <TouchableOpacity
-              style={[
-                styles.tabPill,
-                activeTab === 'myGroups' ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.divider }
-              ]}
-              onPress={() => setActiveTab('myGroups')}
-            >
-              <Ionicons name="trophy-outline" size={13} color={activeTab === 'myGroups' ? '#fff' : colors.textPrimary} style={{ marginRight: 4 }} />
-              <AppText style={[styles.tabText, activeTab === 'myGroups' ? { color: '#fff' } : { color: colors.textPrimary }]}>
-                {t('groups.myGroups')}
-              </AppText>
-            </TouchableOpacity>
-          )}
 
           {groups.map(g => (
             <TouchableOpacity

@@ -67,7 +67,7 @@ export const GroupQrModal: React.FC<GroupQrModalProps> = ({
             <OutlineButton 
               title={t('common.cancel')} 
               onPress={onClose} 
-              style={{ flex: 1, marginRight: spacing.sm }}
+              style={{ flex: 1 }}
             />
             <PrimaryButton 
               title={t('common.share')} 
