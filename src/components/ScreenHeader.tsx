@@ -26,6 +26,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   return (
     <View style={[styles.header, containerPadding && styles.defaultPadding, style]}>
       <AppText
+        variant="heading-bold"
         style={[
           styles.title,
           { color: titleColor || colors.textPrimary },
@@ -46,9 +47,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   defaultPadding: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   title: {
     fontSize: fontSize['2xl'],

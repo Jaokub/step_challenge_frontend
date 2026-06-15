@@ -65,10 +65,11 @@
     "ranking": "อันดับ",
     "seeAll": "ดูทั้งหมด",
     "friends": "เพื่อน",
-    "ongoingActivities": "กิจกรรมที่กำลังดำเนินการ",
+    "ongoingActivities": "กำลังดำเนินการ",
     "noActivitiesTitle": "ไม่มีกิจกรรม",
     "noActivitiesSubtitle": "คุณยังไม่มีกิจกรรมที่กำลังจะมาถึงในช่วงนี้",
-    "upcoming": "กำลังจะมาถึง"
+    "upcoming": "กำลังจะมาถึง",
+    "pastActivities": "ผ่านมาแล้ว"
   },
   "activities": {
     "title": "กิจกรรม",
@@ -124,6 +125,8 @@
   },
   "profile": {
     "title": "โปรไฟล์",
+    "profile_setting": "การตั้งค่าโปรไฟล์",
+    "notification" : "การแจ้งเตือน",
     "editProfile": "แก้ไขโปรไฟล์",
     "healthData": "ข้อมูลสุขภาพ",
     "leaderboard": "กระดานผู้นำ",

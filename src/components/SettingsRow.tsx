@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    minHeight: 64,
   },
   iconContainer: {
     width: 36,

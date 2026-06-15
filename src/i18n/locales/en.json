@@ -65,10 +65,11 @@
     "ranking": "Ranking",
     "seeAll": "See All",
     "friends": "Friends",
-    "ongoingActivities": "Ongoing Activities",
+    "ongoingActivities": "Ongoing",
     "noActivitiesTitle": "No Activities",
     "noActivitiesSubtitle": "You do not have any upcoming activities right now",
-    "upcoming": "Upcoming"
+    "upcoming": "Upcoming",
+    "pastActivities": "Past"
   },
   "activities": {
     "title": "Activities",
@@ -124,6 +125,8 @@
   },
   "profile": {
     "title": "Profile",
+    "profile_setting": "Profile Setting",
+    "notification": "Notification",
     "editProfile": "Edit Profile",
     "healthData": "Health Data",
     "leaderboard": "Leaderboard",

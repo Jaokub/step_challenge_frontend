@@ -21,7 +21,7 @@ const { width } = Dimensions.get('window');
 // --- DashboardHeader ---
 export const DashboardHeader = ({
   timeframe, setTimeframe, selectedDate, setSelectedDate,
-  selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth, colors
+  selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth, colors, username
 }: any) => {
   const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
@@ -53,7 +53,7 @@ export const DashboardHeader = ({
       <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View>
           <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 2 }}>{t('dashboard.hello')}</AppText>
-          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')} 👋</AppText>
+          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')} 👋{username ? `, ${username}` : ''}</AppText>
         </View>
         <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
           <AppText variant="body-bold" style={{ color: '#fff', fontSize: 14 }}>AN</AppText>

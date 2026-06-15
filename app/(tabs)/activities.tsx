@@ -92,7 +92,7 @@ export default function ActivitiesScreen() {
         <View style={styles.filtersContainer}>
           <View style={[styles.filterPillContainer, { backgroundColor: colors.card }]}>
             {(['upcoming', 'ongoing', 'past'] as const).map((type) => {
-              const label = type === 'upcoming' ? t('dashboard.upcoming') : type === 'ongoing' ? t('dashboard.ongoingActivities') : 'Past';
+              const label = type === 'upcoming' ? t('dashboard.upcoming') : type === 'ongoing' ? t('dashboard.ongoingActivities') : t('dashboard.pastActivities');
               const isActive = filter === type;
               return (
                 <TouchableOpacity

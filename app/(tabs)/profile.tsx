@@ -97,8 +97,6 @@ export default function ProfileScreen() {
           <ScreenHeader 
             title={t('profile.title')} 
             titleColor={colors.textPrimary}
-            containerPadding={false}
-            style={{ paddingHorizontal: 20, paddingTop: 12 }}
             rightActions={
               <HeaderIconButton 
                 icon={isDark ? "sunny" : "moon"} 
@@ -172,7 +170,7 @@ export default function ProfileScreen() {
 
           {/* Menu Items */}
           <View style={[styles.menuCard, { backgroundColor: colors.card, shadowColor: colors.cardShadow }]}>
-            <SettingsRow icon="person-outline" label={t('Account')} onPress={() => {}} />
+            <SettingsRow icon="person-outline" label={t('profile.profile_setting')} onPress={() => {}} />
 
             {isAdmin && (
               <SettingsRow 
@@ -193,7 +191,7 @@ export default function ProfileScreen() {
               />
             )}
 
-            <SettingsRow icon="notifications-outline" label={t('Notifications')} onPress={() => {}} />
+            <SettingsRow icon="notifications-outline" label={t('profile.notification')} onPress={() => {}} />
             <SettingsRow icon="lock-closed-outline" label={t('profile.privacy')} onPress={() => {}} />
             
             <SettingsRow 
