@@ -6,6 +6,7 @@ import { fontSize, spacing } from '../constants/theme';
 
 interface ScreenHeaderProps {
   title: string;
+  subtitle?: string;
   rightActions?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   titleColor?: string;
@@ -15,6 +16,7 @@ interface ScreenHeaderProps {
 
 const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   title,
+  subtitle,
   rightActions,
   style,
   titleColor,
@@ -25,16 +27,23 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
 
   return (
     <View style={[styles.header, containerPadding && styles.defaultPadding, style]}>
-      <AppText
-        variant="heading-bold"
-        style={[
-          styles.title,
-          { color: titleColor || colors.textPrimary },
-          titleSize ? { fontSize: titleSize } : undefined,
-        ]}
-      >
-        {title}
-      </AppText>
+      <View style={styles.titleContainer}>
+        <AppText
+          variant="heading-bold"
+          style={[
+            styles.title,
+            { color: titleColor || colors.textPrimary },
+            titleSize ? { fontSize: titleSize } : undefined,
+          ]}
+        >
+          {title}
+        </AppText>
+        {subtitle && (
+          <AppText style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {subtitle}
+          </AppText>
+        )}
+      </View>
       {rightActions && <View style={styles.headerActions}>{rightActions}</View>}
     </View>
   );
@@ -51,12 +60,21 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 16,
   },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: fontSize['2xl'],
+    fontSize: 28,
+  },
+  subtitle: {
+    fontSize: 15,
+    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',
     gap: spacing.sm,
+    alignItems: 'center',
   },
 });
 

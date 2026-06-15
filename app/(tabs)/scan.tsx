@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import QRCode from 'react-native-qrcode-svg';
-import { AppText } from '../../src/components';
+import { AppText, ScreenHeader } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import checkinService from '../../src/features/activity/checkinService';
@@ -138,10 +138,10 @@ export default function ScanScreen() {
 
   const renderHeader = () => (
     <>
-      <View style={styles.header}>
-        <AppText style={[styles.headerTitle, { color: colors.textPrimary }]}>{t('scan.scanQrCode')}</AppText>
-        <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('scan.scanSubtitle')}</AppText>
-      </View>
+      <ScreenHeader 
+        title={t('scan.scanQrCode')} 
+        subtitle={t('scan.scanSubtitle')}
+      />
 
       <View style={styles.modeContainer}>
         <View style={[styles.modeToggle, { backgroundColor: colors.card }]}>
@@ -327,13 +327,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonText: { fontSize: 16, fontWeight: '600' },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  headerTitle: { fontSize: 24, fontWeight: 'bold' },
-  headerSubtitle: { fontSize: 14, marginTop: 4 },
   modeContainer: {
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.xl,
