@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -87,22 +87,38 @@ export default function GroupsScreen() {
     }
   };
 
-  const isGroupTab = activeTab !== 'friends';
-  const isLoadingData = isGroupTab ? (isLoadingGroups || !groupMembers[activeTab]) : isLoadingFriends;
+  const handleShareInvite = async () => {
+    if (!qrInviteCode) return;
+    try {
+      await Share.share({
+        message: qrInviteCode,
+      });
+    } catch (e) {
+      console.warn('Share failed', e);
+    }
+  };
+
+  const isGroupTab = activeTab !== 'friends' && activeTab !== 'myGroups';
+  const isMyGroupsTab = activeTab === 'myGroups';
+  const isLoadingData = isGroupTab 
+    ? (isLoadingGroups || !groupMembers[activeTab]) 
+    : isLoadingFriends;
 
   React.useEffect(() => {
-    if (isGroupTab) {
+    if (isGroupTab && activeTab !== 'myGroups') {
       fetchGroupMembers(activeTab);
     }
   }, [activeTab, isGroupTab, fetchGroupMembers]);
 
   const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
-  const accentColor = isGroupTab ? '#00e5ff' : '#b0f237'; // Mock color
+  const accentColor = isGroupTab ? '#00e5ff' : isMyGroupsTab ? '#00e5ff' : '#b0f237'; // Mock color
 
   // Prepare leaderboard data
   const rawList = isGroupTab 
     ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
-    : [...friends, user].filter(Boolean) as User[];
+    : isMyGroupsTab
+      ? Object.values(groupMembers).flat().map(m => m.user).filter(Boolean) as User[]
+      : [...friends, user].filter(Boolean) as User[];
   
   const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id, t))
     .sort((a, b) => b.points - a.points)
@@ -191,7 +207,7 @@ export default function GroupsScreen() {
         onClose={() => { setShowQrModal(false); setQrInviteCode(null); setQrImage(null); }}
         qrImage={qrImage}
         qrInviteCode={qrInviteCode}
-        onShare={() => {}} 
+        onShare={handleShareInvite} 
         colors={colors as any}
       />
     </View>
