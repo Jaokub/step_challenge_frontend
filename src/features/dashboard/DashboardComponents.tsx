@@ -53,7 +53,7 @@ export const DashboardHeader = ({
       <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View>
           <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 2 }}>{t('dashboard.hello')}</AppText>
-          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')} 👋{username ? `, ${username}` : ''}</AppText>
+          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')}{username ? `, ${username}` : ''} 👋</AppText>
         </View>
         <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
           <AppText variant="body-bold" style={{ color: '#fff', fontSize: 14 }}>AN</AppText>
@@ -182,8 +182,8 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
         {[
           { icon: 'footsteps', iconColor: colors.primary, bgColor: `${colors.primary}20`, value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
-          { icon: 'flame',     iconColor: colors.warning,  bgColor: `${colors.warning}20`,  value: Number(stats.activeCalories || 0).toFixed(2),           label: 'kcal' },
-          { icon: 'location',  iconColor: '#00e5ff',        bgColor: '#00e5ff20',             value: Number(stats.distance || 0).toFixed(2),                 label: t('dashboard.km') },
+          { icon: 'flame', iconColor: colors.warning, bgColor: `${colors.warning}20`, value: Number(stats.activeCalories || 0).toFixed(2), label: 'kcal' },
+          { icon: 'location', iconColor: '#00e5ff', bgColor: '#00e5ff20', value: Number(stats.distance || 0).toFixed(2), label: t('dashboard.km') },
         ].map(({ icon, iconColor, bgColor, value, label }) => (
           /*
             FIX #4: minHeight: 88 บน card แต่ละอัน ทำให้ขนาดไม่เปลี่ยนเมื่อ skeleton → content

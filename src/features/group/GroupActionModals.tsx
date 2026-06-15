@@ -86,7 +86,7 @@ export function GroupActionModals({
         />
         <PrimaryButton 
           title={isSubmitting ? t('common.loading', 'Loading...') : t('groups.joinGroup', 'Join Group')} 
-          onPress={() => onJoinGroup(inviteCode, handleJoinSuccess)} 
+          onPress={() => onJoinGroup(inviteCode.toUpperCase(), handleJoinSuccess)} 
           disabled={isSubmitting || !inviteCode.trim()} 
         />
       </CustomModal>
