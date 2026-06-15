@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   },
   defaultPadding: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 16,
     paddingBottom: 16,
   },
   titleContainer: {
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
   },
   subtitle: {
     fontSize: 15,

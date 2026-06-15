@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: 24,
-    borderRadius: borderRadius.sm,
+    borderRadius: 2,
   },
   dayLabel: {
     fontSize: 12,

@@ -121,7 +121,9 @@
     "yesterday": "Yesterday",
     "friendsAndGroups": "Friends & Groups",
     "friends": "Friends",
-    "noData": "No data at the moment"
+    "noData": "No data at the moment",
+    "myGroups": "My Groups",
+    "longPressForInvite": "Hold for Invite Code"
   },
   "profile": {
     "title": "Profile",
@@ -297,7 +299,7 @@
     "activities": "Activities",
     "scan": "Scan",
     "friendsAndGroups": "Friends & Groups",
-    "friends": "Friends",
+    "friends": "Friends", 
     "profile": "Profile"
   }
 }

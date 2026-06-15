@@ -121,7 +121,9 @@
     "yesterday": "เมื่อวาน",
     "friendsAndGroups": "เพื่อนและกลุ่ม",
     "friends": "เพื่อน",
-    "noData": "ไม่มีข้อมูลในขณะนี้"
+    "noData": "ไม่มีข้อมูลในขณะนี้",
+    "myGroups": "กลุ่มของฉัน",
+    "longPressForInvite": "กดค้างเพื่อดู Invite Code"
   },
   "profile": {
     "title": "โปรไฟล์",
