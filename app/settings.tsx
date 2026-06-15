@@ -16,6 +16,7 @@ export default function SettingsScreen() {
   const currentLang = i18n.language;
 
   const toggleLanguage = () => {
+  const { t } = useTranslation();
     const newLang = currentLang === 'th' ? 'en' : 'th';
     i18n.changeLanguage(newLang);
   };

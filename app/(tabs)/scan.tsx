@@ -129,7 +129,7 @@ export default function ScanScreen() {
             {t('scan.permissionRequired')}
           </AppText>
           <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={requestPermission}>
-            <AppText style={styles.buttonText}>Grant Permission</AppText>
+            <AppText style={styles.buttonText}>{t('scan.grantPermission')}</AppText>
           </TouchableOpacity>
         </SafeAreaView>
       </View>

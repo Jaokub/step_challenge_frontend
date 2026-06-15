@@ -105,7 +105,7 @@ export default function HealthScreen() {
                 {todayRecord?.steps.toLocaleString() || '0'}
               </AppText>
               <AppText style={[styles.stepsGoal, { color: colors.textCardSecondary }]}>
-                / 10,000 ก้าว
+                {t('health.stepsPerDay')}
               </AppText>
             </CircularProgress>
           </View>
@@ -121,14 +121,14 @@ export default function HealthScreen() {
             <HealthStatCard
               icon="navigate"
               label={t('health.distance')}
-              value={`${todayRecord?.distanceKm.toFixed(2) || '0.00'} กม.`}
+              value={`${todayRecord?.distanceKm.toFixed(2) || '0.00'} ${t('dashboard.km')}`}
               color="#4CAF50"
               style={styles.gridStat}
             />
             <HealthStatCard
               icon="time"
-              label="ออกกำลังกาย"
-              value={`${todayRecord?.activeMinutes || '0'} นาที`}
+              label={t('health.activeMinutesLabel')}
+              value={`${todayRecord?.activeMinutes || '0'} ${t('health.minutesUnit')}`}
               color="#FFC107"
               style={styles.gridStat}
             />
@@ -140,25 +140,25 @@ export default function HealthScreen() {
           <AppCard style={[styles.todayCard, { backgroundColor: colors.card }]}>
             <Ionicons name="fitness" size={32} color="#FF2D55" />
             <AppText style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: spacing.sm }]}>
-              Apple Health Sync
+              {t('health.appleHealthSync')}
             </AppText>
             <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm, textAlign: 'center', marginBottom: spacing.md }}>
-              เชื่อมต่อกับคำสั่งลัด (iOS Shortcuts) เพื่อซิงค์ข้อมูลสุขภาพของคุณโดยอัตโนมัติ
+              {t('health.syncTokenDesc')}
             </AppText>
             <TouchableOpacity
               style={[styles.syncTokenBtn, { backgroundColor: colors.primary }]}
               onPress={() => {
                 Clipboard.setString(user.syncToken);
-                Alert.alert('คัดลอกสำเร็จ', 'นำ Sync Token ไปวางในคำสั่งลัดเพื่อเริ่มซิงค์ข้อมูล');
+                Alert.alert(t('health.copySuccess'), t('health.copySuccessDesc'));
               }}
             >
-              <AppText style={{ color: '#FFF' }}>คัดลอก Sync Token</AppText>
+              <AppText style={{ color: '#FFF' }}>{t('health.copySyncToken')}</AppText>
             </TouchableOpacity>
           </AppCard>
         )}
 
         {/* Aggregated Summaries Section */}
-        <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>สถิติสะสม</AppText>
+        <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('health.accumulatedStats')}</AppText>
         <View style={styles.summaryGrid}>
           {/* Weekly Average */}
           <AppCard style={styles.summaryCard}>
@@ -167,7 +167,7 @@ export default function HealthScreen() {
               {t('health.weeklyAverage')}
             </AppText>
             <AppText style={[styles.summaryValue, { color: colors.textOnCard }]}>
-              {summary?.weeklyAverage?.steps.toLocaleString() || '0'} ก้าว/วัน
+              {summary?.weeklyAverage?.steps.toLocaleString() || '0'} {t('health.stepsPerDayUnit')}
             </AppText>
           </AppCard>
 
@@ -178,7 +178,7 @@ export default function HealthScreen() {
               {t('health.monthlyTotal')}
             </AppText>
             <AppText style={[styles.summaryValue, { color: colors.textOnCard }]}>
-              {summary?.monthlyTotal?.steps.toLocaleString() || '0'} ก้าว
+              {summary?.monthlyTotal?.steps.toLocaleString() || '0'} {t('health.stepsUnit')}
             </AppText>
           </AppCard>
 
@@ -192,10 +192,10 @@ export default function HealthScreen() {
                 </AppText>
               </View>
               <AppText style={[styles.summaryValue, { color: colors.textOnCard, fontSize: fontSize.lg }]}>
-                {summary.bestDay.steps.toLocaleString()} ก้าว
+                {summary.bestDay.steps.toLocaleString()} {t('health.stepsUnit')}
               </AppText>
               <AppText style={[styles.bestDayDate, { color: colors.textCardSecondary }]}>
-                เมื่อวันที่ {new Date(summary.bestDay.recordDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {t('health.onDate')} {new Date(summary.bestDay.recordDate).toLocaleDateString(t('settings.language') === 'ไทย' ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
               </AppText>
             </AppCard>
           )}
@@ -203,7 +203,7 @@ export default function HealthScreen() {
 
         {/* History List */}
         <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t('health.history')} (7 วันล่าสุด)
+          {t('health.history7Days')}
         </AppText>
         {history.length > 0 ? (
           <AppCard style={styles.historyCard}>
@@ -217,22 +217,22 @@ export default function HealthScreen() {
               >
                 <View style={styles.historyLeft}>
                   <AppText style={[styles.historyDate, { color: colors.textOnCard }]}>
-                    {new Date(record.recordDate).toLocaleDateString('th-TH', {
+                    {new Date(record.recordDate).toLocaleDateString(t('settings.language') === 'ไทย' ? 'th-TH' : 'en-US', {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'short',
                     })}
                   </AppText>
                   <AppText style={[styles.historySource, { color: colors.textCardSecondary }]}>
-                    แหล่งข้อมูล: {record.source}
+                    {t('health.dataSource')}{record.source}
                   </AppText>
                 </View>
                 <View style={styles.historyRight}>
                   <AppText style={[styles.historySteps, { color: colors.primary }]}>
-                    {record.steps.toLocaleString()} ก้าว
+                    {record.steps.toLocaleString()} {t('health.stepsUnit')}
                   </AppText>
                   <AppText style={[styles.historyCalories, { color: colors.textCardSecondary }]}>
-                    {record.calories.toFixed(0)} kcal | {record.distanceKm.toFixed(1)} กม.
+                    {record.calories.toFixed(0)} kcal | {record.distanceKm.toFixed(1)} {t('dashboard.km')}
                   </AppText>
                 </View>
               </View>
@@ -242,7 +242,7 @@ export default function HealthScreen() {
           <EmptyState
             icon="heart-dislike-outline"
             title={t('health.noData')}
-            subtitle="ไม่มีประวัติสุขภาพล่าสุด"
+            subtitle={t('health.noLatestHistory')}
           />
         )}
 

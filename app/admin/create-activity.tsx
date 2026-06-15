@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 
 export default function CreateActivityScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   
   const [title, setTitle] = useState('');
@@ -22,7 +24,7 @@ export default function CreateActivityScreen() {
 
   const handleCreate = async () => {
     if (!title || !goal || !startDate || !endDate) {
-      Alert.alert('Error', 'Please fill all required fields');
+      Alert.alert(t('common.error'), t('admin.fillRequiredFields'));
       return;
     }
     
@@ -37,15 +39,15 @@ export default function CreateActivityScreen() {
       });
       
       if (res && res.success) {
-        Alert.alert('Success', 'Activity created successfully!', [
-          { text: 'OK', onPress: () => router.back() }
+        Alert.alert(t('common.success'), t('admin.activityCreated'), [
+          { text: t('common.ok'), onPress: () => router.back() }
         ]);
       } else {
         throw new Error(res?.message || 'Failed to create activity');
       }
     } catch (error: any) {
       console.error('Failed to create activity', error);
-      Alert.alert('Error', error?.response?.data?.message || error.message || 'Failed to create activity');
+      Alert.alert(t('common.error'), error?.response?.data?.message || error.message || t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -69,7 +71,7 @@ export default function CreateActivityScreen() {
           label="Activity Title *" 
           value={title} 
           onChangeText={setTitle} 
-          placeholder="e.g. June Campus Run" 
+          placeholder={t('admin.egCampusRun')} 
           colors={colors} 
         />
         
@@ -77,7 +79,7 @@ export default function CreateActivityScreen() {
           label="Description" 
           value={description} 
           onChangeText={setDescription} 
-          placeholder="Describe the activity..." 
+          placeholder={t('admin.describeActivity')} 
           multiline={true}
           colors={colors} 
         />
@@ -86,7 +88,7 @@ export default function CreateActivityScreen() {
           label="Step Goal *" 
           value={goal} 
           onChangeText={setGoal} 
-          placeholder="e.g. 50000" 
+          placeholder={t('admin.egSteps')} 
           keyboardType="numeric"
           colors={colors} 
         />

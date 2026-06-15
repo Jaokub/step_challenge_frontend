@@ -23,7 +23,7 @@ export default function AddFriendScreen() {
 
   useEffect(() => {
     if (!userId) {
-      setError('Invalid link. No user ID provided.');
+      setError(t('friend.invalidUserId'));
       setLoading(false);
       return;
     }
@@ -34,10 +34,10 @@ export default function AddFriendScreen() {
         if (res.success) {
           setFriendProfile(res.data);
         } else {
-          setError('User not found.');
+          setError(t('friend.userNotFound'));
         }
       } catch (err: any) {
-        setError(err?.message || 'Failed to find user.');
+        setError(err?.message || t('friend.failedToFindUser'));
       } finally {
         setLoading(false);
       }
@@ -51,11 +51,11 @@ export default function AddFriendScreen() {
     setAdding(true);
     try {
       await friendService.sendFriendRequest(userId);
-      Alert.alert('Success', 'Friend request sent successfully!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/profile') }
+      Alert.alert(t('common.success'), t('friend.requestSentSuccess'), [
+        { text: t('common.ok'), onPress: () => router.replace('/(tabs)/profile') }
       ]);
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to send friend request.');
+      Alert.alert(t('common.error'), err?.message || t('friend.failedToSendRequest'));
     } finally {
       setAdding(false);
     }
@@ -65,7 +65,7 @@ export default function AddFriendScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
-          title="Add Friend" 
+          title={t('friend.addFriend')} 
           rightActions={
             <TouchableOpacity onPress={() => router.replace('/(tabs)/profile')} style={{ padding: 4 }}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -81,7 +81,7 @@ export default function AddFriendScreen() {
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
             <AppText style={[styles.errorText, { color: colors.error }]}>{error}</AppText>
-            <OutlineButton title="Go Back" onPress={() => router.replace('/(tabs)/profile')} style={{ marginTop: spacing.xl }} />
+            <OutlineButton title={t('friend.goBack')} onPress={() => router.replace('/(tabs)/profile')} style={{ marginTop: spacing.xl }} />
           </View>
         ) : friendProfile ? (
           <View style={styles.profileCard}>
@@ -103,12 +103,12 @@ export default function AddFriendScreen() {
 
             <View style={styles.actionContainer}>
               <PrimaryButton 
-                title="Send Friend Request" 
+                title={t('friend.sendFriendRequest')} 
                 onPress={handleSendRequest} 
                 loading={adding} 
               />
               <OutlineButton 
-                title="Cancel" 
+                title={t('common.cancel')} 
                 onPress={() => router.replace('/(tabs)/profile')} 
                 style={{ marginTop: spacing.md }}
                 disabled={adding}

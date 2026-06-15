@@ -125,11 +125,13 @@ export const DashboardHeader = ({
 };
 
 export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps } = svgProps;
 
   const stepGoal = 10000;
   const progressPercent = Math.min(100, Math.floor((currentSteps / stepGoal) * 100));
+  const currentLang = i18n.language;
+  const fontFamily = currentLang === 'en' ? 'Poppins_700Bold' : 'Sarabun_700Bold';
 
   return (
     <View style={{ paddingHorizontal: 20 }}>
@@ -323,11 +325,11 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                   </View>
                   <View style={{ flex: 1 }}>
                     <AppText style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 2 }}>---</AppText>
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- ก้าว · - กม.</AppText>
+                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- steps · - km.</AppText>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textSecondary }}>-</AppText>
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal -</AppText>
+                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- kcal</AppText>
                   </View>
                 </View>
               );
@@ -347,11 +349,11 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 </View>
                 <View style={{ flex: 1 }}>
                   <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, marginBottom: 2 }}>{userObj.name}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{userObj.steps || 0} ก้าว · {userObj.distance || 0} กม.</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{userObj.steps || 0} steps · {Number(userObj.distance || 0).toFixed(2)} km</AppText>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary }}>{userObj.points}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>kcal {userObj.calories || 0}</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{Number(userObj.calories || 0).toFixed(2)} kcal</AppText>
                 </View>
               </View>
             );

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import AppText from './AppText';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';

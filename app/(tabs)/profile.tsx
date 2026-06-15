@@ -188,7 +188,7 @@ export default function ProfileScreen() {
                 label="Connect Apple Health" 
                 onPress={() => {
                   Clipboard.setString(profile.syncToken);
-                  Alert.alert('คัดลอกสำเร็จ', 'นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน');
+                  Alert.alert(t('profile.copySuccess'), t('profile.copyDesc'));
                 }} 
               />
             )}

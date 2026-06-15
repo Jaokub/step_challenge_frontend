@@ -1,7 +1,7 @@
 {
   "common": {
     "loading": "กำลังโหลด...",
-    "error": "เกิดข้อผิดพลาด",
+    "error": "ข้อผิดพลาด",
     "retry": "ลองอีกครั้ง",
     "cancel": "ยกเลิก",
     "save": "บันทึก",
@@ -16,7 +16,10 @@
     "close": "ปิด",
     "points": "คะแนน",
     "members": "สมาชิก",
-    "participants": "ผู้เข้าร่วม"
+    "participants": "ผู้เข้าร่วม",
+    "success": "สำเร็จ",
+    "ok": "ตกลง",
+    "pts": "คะแนน"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
@@ -37,7 +40,8 @@
     "nameRequired": "กรุณากรอกชื่อ-นามสกุล",
     "departmentRequired": "กรุณาเลือกภาควิชา",
     "welcomeTitle": "Step Challenge",
-    "welcomeSubtitle": "ติดตามกิจกรรมของคุณ"
+    "welcomeSubtitle": "ติดตามกิจกรรมของคุณ",
+    "nicknameOptional": "ชื่อเล่น (ไม่บังคับ)"
   },
   "dashboard": {
     "greeting": "สวัสดี",
@@ -83,7 +87,12 @@
     "alreadyCheckedIn": "คุณได้สแกนกิจกรรมนี้แล้ว",
     "invalidQR": "QR Code ไม่ถูกต้อง",
     "permissionRequired": "ต้องการสิทธิ์เข้าถึงกล้อง",
-    "torch": "ไฟฉาย"
+    "torch": "ไฟฉาย",
+    "grantPermission": "อนุญาตให้เข้าถึง",
+    "myQr": "QR ของฉัน",
+    "myQrCode": "QR Code ของฉัน",
+    "showCodeCheckIn": "แสดงรหัสนี้เพื่อเช็คอินหรือเพิ่มเพื่อน",
+    "shareLink": "แชร์ลิงก์"
   },
   "groups": {
     "title": "กลุ่ม",
@@ -112,7 +121,26 @@
     "settings": "ตั้งค่า",
     "signOut": "ออกจากระบบ",
     "signOutConfirm": "คุณต้องการออกจากระบบหรือไม่?",
-    "rank": "อันดับ"
+    "rank": "อันดับ",
+    "profileInformation": "ข้อมูลโปรไฟล์",
+    "nickname": "ชื่อเล่น",
+    "johnDoe": "สมชาย ใจดี",
+    "compEng": "วิศวกรรมคอมพิวเตอร์",
+    "saveProfile": "บันทึกโปรไฟล์",
+    "changePassword": "เปลี่ยนรหัสผ่าน",
+    "currentPassword": "รหัสผ่านปัจจุบัน",
+    "newPassword": "รหัสผ่านใหม่",
+    "confirmNewPassword": "ยืนยันรหัสผ่านใหม่",
+    "nameRequired": "กรุณากรอกชื่อ-นามสกุล",
+    "profileUpdated": "อัปเดตโปรไฟล์สำเร็จ",
+    "failedToUpdate": "อัปเดตโปรไฟล์ล้มเหลว",
+    "fillAllPasswordFields": "กรุณากรอกรหัสผ่านให้ครบทุกช่อง",
+    "passwordsNotMatch": "รหัสผ่านใหม่ไม่ตรงกัน",
+    "passwordTooShort": "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร",
+    "passwordChanged": "เปลี่ยนรหัสผ่านสำเร็จ",
+    "failedToChangePassword": "เปลี่ยนรหัสผ่านล้มเหลว",
+    "copySuccess": "คัดลอกสำเร็จ",
+    "copyDesc": "นำ Sync Token ไปวางในคำสั่งลัด (iOS Shortcuts) เพื่อเริ่มซิงค์ข้อมูลก้าวเดิน"
   },
   "leaderboard": {
     "title": "กระดานผู้นำ",
@@ -131,7 +159,23 @@
     "calories": "แคลอรี่",
     "distance": "ระยะทาง",
     "activeMinutes": "นาที",
-    "noData": "ยังไม่มีข้อมูลสุขภาพ"
+    "noData": "ยังไม่มีข้อมูลสุขภาพ",
+    "goal": "เป้าหมาย",
+    "stepsPerDay": " / 10,000 ก้าว",
+    "stepsUnit": "ก้าว",
+    "stepsPerDayUnit": "ก้าว/วัน",
+    "activeMinutesLabel": "ออกกำลังกาย",
+    "minutesUnit": "นาที",
+    "appleHealthSync": "Apple Health Sync",
+    "syncTokenDesc": "เชื่อมต่อกับคำสั่งลัด (iOS Shortcuts) เพื่อซิงค์ข้อมูลสุขภาพของคุณโดยอัตโนมัติ",
+    "copySyncToken": "คัดลอก Sync Token",
+    "copySuccess": "คัดลอกสำเร็จ",
+    "copySuccessDesc": "นำ Sync Token ไปวางในคำสั่งลัดเพื่อเริ่มซิงค์ข้อมูล",
+    "accumulatedStats": "สถิติสะสม",
+    "onDate": "เมื่อวันที่ ",
+    "history7Days": "ประวัติ (7 วันล่าสุด)",
+    "dataSource": "แหล่งข้อมูล: ",
+    "noLatestHistory": "ไม่มีประวัติสุขภาพล่าสุด"
   },
   "admin": {
     "dashboard": "แดชบอร์ดแอดมิน",
@@ -153,7 +197,25 @@
     "activityPoints": "คะแนน",
     "create": "สร้าง",
     "update": "อัปเดต",
-    "cancelActivity": "ยกเลิกกิจกรรม"
+    "cancelActivity": "ยกเลิกกิจกรรม",
+    "totalCheckedIn": "เช็คอินทั้งหมด",
+    "scanUserQr": "สแกน QR ผู้ใช้",
+    "fillRequiredFields": "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน",
+    "activityCreated": "สร้างกิจกรรมสำเร็จ!",
+    "activityUpdated": "อัปเดตกิจกรรมสำเร็จ!",
+    "deleteWarningTitle": "คำเตือน",
+    "deleteWarningDesc": "คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+    "deleted": "ลบแล้ว",
+    "activityDeleted": "ลบกิจกรรมแล้ว",
+    "egCampusRun": "เช่น วิ่งรอบมหาลัยเดือนมิถุนายน",
+    "describeActivity": "อธิบายกิจกรรม...",
+    "egSteps": "เช่น 50000",
+    "roleAdmin": "แอดมิน",
+    "statusArchived": "เก็บถาวร",
+    "searchUsers": "ค้นหาผู้ใช้หรือภาควิชา...",
+    "checkInRate": "อัตราการเช็คอิน",
+    "dauWau": "DAU / WAU",
+    "activeEnded": "ดำเนินการ / สิ้นสุด"
   },
   "settings": {
     "title": "ตั้งค่า",
@@ -164,12 +226,24 @@
     "thai": "ไทย",
     "english": "English",
     "about": "เกี่ยวกับ",
-    "version": "เวอร์ชัน"
+    "version": "เวอร์ชัน",
+    "adminManagement": "การจัดการแอดมิน"
   },
   "status": {
     "UPCOMING": "กำลังจะมา",
     "ONGOING": "กำลังดำเนินการ",
     "COMPLETED": "เสร็จสิ้น",
     "CANCELLED": "ยกเลิก"
+  },
+  "friend": {
+    "addFriend": "เพิ่มเพื่อน",
+    "invalidUserId": "ลิงก์ไม่ถูกต้อง ไม่มีรหัสผู้ใช้",
+    "userNotFound": "ไม่พบผู้ใช้",
+    "failedToFindUser": "ค้นหาผู้ใช้ล้มเหลว",
+    "requestSentSuccess": "ส่งคำขอเป็นเพื่อนสำเร็จ!",
+    "failedToSendRequest": "ส่งคำขอเป็นเพื่อนล้มเหลว",
+    "sendFriendRequest": "ส่งคำขอเป็นเพื่อน",
+    "goBack": "กลับ",
+    "wantsToBeFriends": "ต้องการเป็นเพื่อน"
   }
 }

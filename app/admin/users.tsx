@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +10,7 @@ import userService from '../../src/services/userService';
 import { spacing, fontSize } from '../../src/constants/theme';
 
 export default function UsersManagementScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -56,12 +58,12 @@ export default function UsersManagementScreen() {
             </AppText>
             {item.role === 'ADMIN' && (
               <View style={[styles.roleBadge, { backgroundColor: colors.warning }]}>
-                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>ADMIN</AppText>
+                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>{t('admin.roleAdmin')}</AppText>
               </View>
             )}
             {item.isArchived && (
               <View style={[styles.roleBadge, { backgroundColor: colors.textSecondary }]}>
-                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>ARCHIVED</AppText>
+                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>{t('admin.statusArchived')}</AppText>
               </View>
             )}
           </View>
@@ -97,7 +99,7 @@ export default function UsersManagementScreen() {
           <Ionicons name="search" size={20} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
           <TextInput
             style={[styles.searchInput, { color: colors.textPrimary }]}
-            placeholder="Search users or department..."
+            placeholder={t('admin.searchUsers')}
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}

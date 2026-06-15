@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ interface MyQRCodeViewProps {
 }
 
 export function MyQRCodeView({ user, onClose }: MyQRCodeViewProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const qrPayload = JSON.stringify({ type: 'friend', userId: user?.id || 'guest' });
 
@@ -36,7 +38,7 @@ export function MyQRCodeView({ user, onClose }: MyQRCodeViewProps) {
           <TouchableOpacity onPress={onClose} style={styles.iconButton}>
             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <AppText variant="heading-bold" style={[styles.scanTitle, { color: colors.textPrimary }]}>My QR Code</AppText>
+          <AppText variant="heading-bold" style={[styles.scanTitle, { color: colors.textPrimary }]}>{t('scan.myQrCode')}</AppText>
           <View style={{ width: 48 }} />
         </View>
         <View style={styles.qrContainer}>
@@ -51,12 +53,12 @@ export function MyQRCodeView({ user, onClose }: MyQRCodeViewProps) {
               {user?.fullName || 'User'}
             </AppText>
             <AppText style={{ color: '#666666', marginTop: spacing.xs, fontSize: fontSize.sm }}>
-              Show this code to check-in or add friend
+              {t('scan.showCodeCheckIn')}
             </AppText>
           </View>
           <TouchableOpacity style={styles.shareButton} onPress={handleShareLink}>
             <Ionicons name="share-social-outline" size={20} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-            <AppText style={{ color: '#FFFFFF', fontSize: fontSize.md, fontWeight: '600' }}>Share Link</AppText>
+            <AppText style={{ color: '#FFFFFF', fontSize: fontSize.md, fontWeight: '600' }}>{t('scan.shareLink')}</AppText>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

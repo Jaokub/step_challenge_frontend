@@ -100,7 +100,7 @@ export default function RegisterScreen() {
                 <Ionicons name="happy-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Nickname (Optional)"
+                  placeholder={t('auth.nicknameOptional')}
                   placeholderTextColor="#9CA3AF"
                   value={nickname}
                   onChangeText={setNickname}

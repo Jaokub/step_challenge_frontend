@@ -42,15 +42,15 @@ const EditProfileScreen = () => {
 
   const handleUpdateProfile = async () => {
     if (!fullName) {
-      Alert.alert('Error', 'Full name is required.');
+      Alert.alert(t('common.error'), t('profile.nameRequired'));
       return;
     }
     setLoading(true);
     try {
       await userService.updateProfile({ fullName, nickname, department });
-      Alert.alert('Success', 'Profile updated successfully.');
+      Alert.alert(t('common.success'), t('profile.profileUpdated'));
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to update profile.');
+      Alert.alert(t('common.error'), e.message || t('profile.failedToUpdate'));
     } finally {
       setLoading(false);
     }
@@ -58,26 +58,26 @@ const EditProfileScreen = () => {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all password fields.');
+      Alert.alert(t('common.error'), t('profile.fillAllPasswordFields'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match.');
+      Alert.alert(t('common.error'), t('profile.passwordsNotMatch'));
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters.');
+      Alert.alert(t('common.error'), t('profile.passwordTooShort'));
       return;
     }
     setPasswordLoading(true);
     try {
       await authService.changePassword(currentPassword, newPassword);
-      Alert.alert('Success', 'Password changed successfully.');
+      Alert.alert(t('common.success'), t('profile.passwordChanged'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to change password.');
+      Alert.alert(t('common.error'), e.message || t('profile.failedToChangePassword'));
     } finally {
       setPasswordLoading(false);
     }
@@ -87,7 +87,7 @@ const EditProfileScreen = () => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
-          title="Edit Profile"
+          title={t('profile.editProfile')}
           rightActions={
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -97,43 +97,43 @@ const EditProfileScreen = () => {
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <AppText style={[styles.sectionTitle, { color: colors.primary }]}>Profile Information</AppText>
+        <AppText style={[styles.sectionTitle, { color: colors.primary }]}>{t('profile.profileInformation')}</AppText>
         
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>Full Name</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('auth.fullName')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={fullName}
             onChangeText={setFullName}
-            placeholder="John Doe"
+            placeholder={t('profile.johnDoe')}
             placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>Nickname</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.nickname')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={nickname}
             onChangeText={setNickname}
-            placeholder="Nickname"
+            placeholder={t('profile.nickname')}
             placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>Department</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('auth.department')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={department}
             onChangeText={setDepartment}
-            placeholder="Computer Engineering"
+            placeholder={t('profile.compEng')}
             placeholderTextColor={colors.textSecondary}
           />
         </View>
 
         <PrimaryButton 
-          title="Save Profile" 
+          title={t('profile.saveProfile')} 
           onPress={handleUpdateProfile} 
           loading={loading}
           style={{ marginTop: spacing.md }}
@@ -141,10 +141,10 @@ const EditProfileScreen = () => {
 
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
 
-        <AppText style={[styles.sectionTitle, { color: colors.primary }]}>Change Password</AppText>
+        <AppText style={[styles.sectionTitle, { color: colors.primary }]}>{t('profile.changePassword')}</AppText>
 
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>Current Password</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.currentPassword')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={currentPassword}
@@ -156,7 +156,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>New Password</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.newPassword')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={newPassword}
@@ -168,7 +168,7 @@ const EditProfileScreen = () => {
         </View>
 
         <View style={styles.inputGroup}>
-          <AppText style={[styles.label, { color: colors.textSecondary }]}>Confirm New Password</AppText>
+          <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.confirmNewPassword')}</AppText>
           <TextInput
             style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
             value={confirmPassword}
@@ -180,7 +180,7 @@ const EditProfileScreen = () => {
         </View>
 
         <OutlineButton 
-          title="Change Password" 
+          title={t('profile.changePassword')} 
           onPress={handleChangePassword} 
           loading={passwordLoading}
           style={{ marginTop: spacing.md }}
