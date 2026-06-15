@@ -64,17 +64,21 @@ export const GroupQrModal: React.FC<GroupQrModalProps> = ({
           </View>
           
           <View style={styles.modalActions}>
-            <OutlineButton 
-              title={t('common.cancel')} 
-              onPress={onClose} 
-              style={{ flex: 1 }}
-            />
-            <PrimaryButton 
-              title={t('common.share')} 
-              onPress={onShare}
-              icon="share-social-outline"
-              style={{ flex: 1 }}
-            />
+            <View style={{ flex: 1 }}>
+              <OutlineButton 
+                title={t('common.cancel')} 
+                onPress={onClose} 
+                style={{ width: '100%' }}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <PrimaryButton 
+                title={t('common.share')} 
+                onPress={onShare}
+                icon="share-social-outline"
+                style={{ width: '100%' }}
+              />
+            </View>
           </View>
         </View>
       </View>

@@ -56,6 +56,9 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
                 </View>
               )}
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
+              <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/add-friend')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
               <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
             </TouchableOpacity>
