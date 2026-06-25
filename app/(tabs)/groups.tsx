@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,9 @@ import { FriendCard } from '../../src/features/friend/FriendCard';
 import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
 import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
 import { GroupActionModals, ModalType } from '../../src/features/group/GroupActionModals';
+import { GroupHeaderSection } from '../../src/features/group/GroupHeaderSection';
+import { GroupQrModal } from '../../src/features/group/GroupQrModal';
+import groupService from '../../src/features/group/groupService';
 
 // helper: deterministic number from string id
 const hashId = (id: string, mod: number) =>
@@ -43,6 +46,10 @@ export default function GroupsScreen() {
   
   const [activeTab, setActiveTab] = useState<string>('friends');
   const [modalType, setModalType] = useState<ModalType>('NONE');
+  const [qrGroupId, setQrGroupId] = useState<string | null>(null);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrInviteCode, setQrInviteCode] = useState<string | null>(null);
+  const [qrImage, setQrImage] = useState<string | null>(null);
 
   const {
     friends,
@@ -66,8 +73,35 @@ export default function GroupsScreen() {
     fetchGroupMembers
   } = useGroups(true);
 
+  const handleShowGroupInvite = async (groupId: string) => {
+    setQrGroupId(groupId);
+    setShowQrModal(true);
+    try {
+      const res = await groupService.getGroupQRCode(groupId);
+      if (res.success) {
+        setQrInviteCode(res.data.inviteCode);
+        setQrImage(res.data.qrCode);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch QR code', e);
+    }
+  };
+
+  const handleShareInvite = async () => {
+    if (!qrInviteCode) return;
+    try {
+      await Share.share({
+        message: qrInviteCode,
+      });
+    } catch (e) {
+      console.warn('Share failed', e);
+    }
+  };
+
   const isGroupTab = activeTab !== 'friends';
-  const isLoadingData = isGroupTab ? (isLoadingGroups || !groupMembers[activeTab]) : isLoadingFriends;
+  const isLoadingData = isGroupTab
+    ? (isLoadingGroups || !groupMembers[activeTab])
+    : isLoadingFriends;
 
   React.useEffect(() => {
     if (isGroupTab) {
@@ -76,10 +110,10 @@ export default function GroupsScreen() {
   }, [activeTab, isGroupTab, fetchGroupMembers]);
 
   const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
-  const accentColor = isGroupTab ? '#00e5ff' : '#b0f237'; // Mock color
+  const accentColor = isGroupTab ? '#00e5ff' : '#b0f237';
 
   // Prepare leaderboard data
-  const rawList = isGroupTab 
+  const rawList = isGroupTab
     ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
     : [...friends, user].filter(Boolean) as User[];
   
@@ -93,75 +127,19 @@ export default function GroupsScreen() {
   const rest = totalCount > 3 ? leaderboard.slice(3) : [];
 
   const renderHeader = () => (
-    <>
-      <ScreenHeader
-        title={t('groups.friendsAndGroups')}
-        rightActions={
-          <>
-            <TouchableOpacity onPress={() => setModalType('REQUESTS')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
-              {requests.length > 0 && (
-                <View style={styles.badge}>
-                  <AppText style={styles.badgeText}>{requests.length}</AppText>
-                </View>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
-            </TouchableOpacity>
-          </>
-        }
-      />
-
-      <View style={styles.tabsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-          <TouchableOpacity
-            style={[
-              styles.tabPill,
-              activeTab === 'friends' ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.divider }
-            ]}
-            onPress={() => setActiveTab('friends')}
-          >
-            <AppText style={[styles.tabText, activeTab === 'friends' ? { color: '#fff' } : { color: colors.textPrimary }]}>
-              {t('groups.friends')}
-            </AppText>
-          </TouchableOpacity>
-          {groups.map(g => (
-            <TouchableOpacity
-              key={g.id}
-              style={[
-                styles.tabPill,
-                activeTab === g.id ? { backgroundColor: accentColor, borderColor: accentColor } : { backgroundColor: colors.card, borderColor: colors.divider }
-              ]}
-              onPress={() => setActiveTab(g.id)}
-            >
-              <AppText style={[styles.tabText, activeTab === g.id ? { color: '#fff' } : { color: colors.textPrimary }]}>
-                {g.name}
-              </AppText>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {isLoadingData ? (
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
-          <Skeleton height={80} borderRadius={16} style={{ marginBottom: spacing.xl }} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 180, marginBottom: spacing.xl }}>
-            <Skeleton width="30%" height={120} borderRadius={16} />
-            <Skeleton width="34%" height={160} borderRadius={16} />
-            <Skeleton width="30%" height={100} borderRadius={16} />
-          </View>
-        </View>
-      ) : (
-        <>
-          {myEntry && <RankSummaryCard member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />}
-          <Podium topThree={topThree} accentColor={accentColor} />
-        </>
-      )}
-    </>
+    <GroupHeaderSection
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      groups={groups}
+      requestsCount={requests.length}
+      setModalType={setModalType}
+      handleShowGroupInvite={handleShowGroupInvite}
+      isLoadingData={isLoadingData}
+      myEntry={myEntry}
+      topThree={topThree}
+      isGroupTab={isGroupTab}
+      accentColor={accentColor}
+    />
   );
 
   return (
@@ -220,6 +198,15 @@ export default function GroupsScreen() {
         onAcceptRequest={handleAcceptRequest}
         onRejectRequest={handleRejectRequest}
       />
+
+      <GroupQrModal
+        visible={showQrModal}
+        onClose={() => { setShowQrModal(false); setQrInviteCode(null); setQrImage(null); }}
+        qrImage={qrImage}
+        qrInviteCode={qrInviteCode}
+        onShare={handleShareInvite} 
+        colors={colors as any}
+      />
     </View>
   );
 }
@@ -227,46 +214,6 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#EF4444',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  tabsContainer: {
-    marginBottom: spacing.md,
-  },
-  tabsScroll: {
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  tabPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    justifyContent: 'center',
-  },
-  tabText: {
-    fontSize: 13,
-  },
   listContent: {
     paddingBottom: spacing['4xl'],
   },
