@@ -6,30 +6,40 @@ import {
 import { TimeRangeFilter } from 'react-native-health-connect/lib/typescript/types/base.types';
 
 export class GoogleHealthService {
+  private permissionGranted = false;
 
   //initialize health connect and request permission
   public initHealthConnect = async (): Promise<boolean> => {
     try {
+      if(this.permissionGranted) return true;
+
       const isInitialized = await initialize();
       if (!isInitialized) {
         console.error('Failed to initialize Health Connect');
         return false;
       }
+      console.log('done init');
 
       const granted = await requestPermission([
         { accessType: "read", recordType: "Steps" },
         { accessType: "read", recordType: "Distance" },
         { accessType: "read", recordType: "TotalCaloriesBurned" },
       ]);
+      console.log('created granted object');
+
       console.log("Permissions status updated:", granted);
-      if (granted.length == 3) console.log("Permissions granted");
-      else console.log("Permissions not granted");
-      return true;
-    } catch (error) {
-        console.error('Error initializing Health Connect:', error);
+      if(granted.length == 4) {
+        console.log("Permissions granted");
+        this.permissionGranted = true;
+        return true;
       }
+      console.log("Permissions not granted");
       return false;
-    };
+    } catch (error) {
+      console.error('Error initializing Health Connect:', error);
+    }
+    return false;
+  };
 
   //fetch the data from health connect
   public getSteps = async (startTime: string, endTime: string): Promise<number> => {
@@ -42,7 +52,7 @@ export class GoogleHealthService {
       }
       console.log("timeRangeFilter: ",timeRangeFilter);
       const stepRecords = await readRecords("Steps", { timeRangeFilter });
-      console.log("Steps: ", stepRecords);
+      //console.log("Steps: ", stepRecords);
       return stepRecords.records.reduce((sum, r) => sum + (r.count || 0), 0);
     } catch (error) {
       console.error('Error fetching Health Connect Data:', error);
@@ -60,7 +70,7 @@ export class GoogleHealthService {
       }
       console.log("timeRangeFilter: ",timeRangeFilter);
       const distanceRecords = await readRecords("Distance", { timeRangeFilter });
-      console.log("Distance: ", distanceRecords);
+      //console.log("Distance: ", distanceRecords);
       return +distanceRecords.records.reduce((sum, r) => sum + (r.distance.inKilometers || 0), 0).toFixed(2);
     } catch (error) {
       console.error('Error fetching Health Connect Data:', error);
@@ -78,7 +88,7 @@ export class GoogleHealthService {
       }
       console.log("timeRangeFilter: ",timeRangeFilter);
       const caloriesRecords = await readRecords("TotalCaloriesBurned", { timeRangeFilter });
-      console.log("Calories: ", caloriesRecords);
+      //console.log("Calories: ", caloriesRecords);
       return +caloriesRecords.records.reduce((sum, r) => sum + (r.energy.inKilocalories || 0), 0).toFixed(2);
     } catch (error) {
       console.error('Error fetching Health Connect Data:', error);

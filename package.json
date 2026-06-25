@@ -17,6 +17,7 @@
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.5",
     "expo-haptics": "~56.0.3",
+    "expo-health-connect": "^0.1.1",
     "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.13",
     "expo-notifications": "~56.0.16",

@@ -31,5 +31,27 @@ export const HealthService = {
     }
     console.warn('HealthService: Unsupported platform');
     return 0;
-  }
+  },
+
+  /**
+   * Get total distance in kilometres for a specific date range
+   */
+  getDistance: async (startTime: string, endTime: string): Promise<number> => {
+    if (Platform.OS === 'android') {
+      return googleHealthService.getDistance(startTime, endTime);
+    }
+    console.warn('HealthService: getDistance not implemented for this platform');
+    return 0;
+  },
+
+  /**
+   * Get total calories burned for a specific date range
+   */
+  getCalories: async (startTime: string, endTime: string): Promise<number> => {
+    if (Platform.OS === 'android') {
+      return googleHealthService.getCalories(startTime, endTime);
+    }
+    console.warn('HealthService: getCalories not implemented for this platform');
+    return 0;
+  },
 };

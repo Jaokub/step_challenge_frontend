@@ -47,11 +47,14 @@
         "expo-build-properties",
         {
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "targetSdkVersion": 36,
+            "compileSdkVersion": 36
           }
         }
       ],
-      "react-native-health-connect"
+      "react-native-health-connect",
+      "expo-health-connect"
     ],
     "experiments": {
       "typedRoutes": true

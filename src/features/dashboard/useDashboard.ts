@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import dashboardService from './dashboardService';
 import healthService from '../health/healthService';
+import { syncTodayHealthData } from '../health/syncHealthData';
 import leaderboardService from '../leaderboard/leaderboardService';
 import groupService from '../group/groupService';
 import { calculateDateRange, getCurrentDateRange, MOCK_MONTHS } from './dateRangeCalculator';
@@ -53,6 +54,13 @@ export function useDashboard(colors: any) {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
+      // Push today's Health Connect data to the backend first,
+      // so the summary/history we fetch below reflects the latest reading.
+      // Errors here are non-fatal — dashboard still loads with stale data.
+      await syncTodayHealthData().catch((e) =>
+        console.warn('[useDashboard] Health sync failed, continuing:', e)
+      );
+
       const [dashRes, sumRes, histRes, groupsRes] = await Promise.all([
         dashboardService.getPersonalDashboard(),
         healthService.getHealthSummary(),
