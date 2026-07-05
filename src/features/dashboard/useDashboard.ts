@@ -173,7 +173,7 @@ export function useDashboard(colors: any) {
     id: act.id,
     icon: 'walk',
     title: act.title,
-    date: new Date(act.startDate).toLocaleDateString(),
+    date: new Date(act.startDate).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }),
   }));
 
   const currentLeaderboard = [...leaderboardData]
