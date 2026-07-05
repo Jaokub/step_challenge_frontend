@@ -47,3 +47,6 @@ export { default as SearchBar } from './SearchBar';
 // Settings & Preferences
 export { default as SettingsRow } from './SettingsRow';
 export { default as ThemeToggle } from './ThemeToggle';
+
+// Feedback
+export { default as Toast } from './Toast';

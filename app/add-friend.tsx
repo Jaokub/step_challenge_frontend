@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useToast } from '../src/contexts/ToastContext';
 import userService from '../src/features/auth/userService';
 import friendService from '../src/features/friend/friendService';
 import type { User } from '../src/types';
@@ -14,6 +15,7 @@ import { spacing, fontSize, borderRadius } from '../src/constants/theme';
 export default function AddFriendScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { userId } = useLocalSearchParams<{ userId: string }>();
 
   const [loading, setLoading] = useState(true);
@@ -51,9 +53,8 @@ export default function AddFriendScreen() {
     setAdding(true);
     try {
       await friendService.sendFriendRequest(userId);
-      Alert.alert(t('common.success'), t('friend.requestSentSuccess'), [
-        { text: t('common.ok'), onPress: () => router.replace('/(tabs)/profile') }
-      ]);
+      showToast(t('friend.requestSentSuccess'), 'success');
+      setTimeout(() => router.replace('/(tabs)/profile'), 1000);
     } catch (err: any) {
       Alert.alert(t('common.error'), err?.message || t('friend.failedToSendRequest'));
     } finally {

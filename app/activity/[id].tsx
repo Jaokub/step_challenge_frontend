@@ -18,23 +18,13 @@ import {
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import activityService from '../../src/features/activity/activityService';
 import type { Activity } from '../../src/types';
+import { formatDate } from '../../src/utils/formatDate';
 
 const { width } = Dimensions.get('window');
 
-const formatDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('th-TH', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-
 export default function ActivityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isAdmin } = useAuth();
   const { colors } = useTheme();
 
@@ -150,10 +140,10 @@ export default function ActivityDetailScreen() {
                 {t('activities.date')}
               </AppText>
               <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {t('activity.start')} {formatDate(activity.startDate)}
+                {t('activity.start')} {formatDate(activity.startDate, i18n.language, 'datetime')}
               </AppText>
               <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {t('activity.end')} {formatDate(activity.endDate)}
+                {t('activity.end')} {formatDate(activity.endDate, i18n.language, 'datetime')}
               </AppText>
             </View>
           </View>

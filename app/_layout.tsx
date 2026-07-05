@@ -7,6 +7,7 @@ import * as SplashScreen from 'expo-splash-screen' ;
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { AuthProvider } from '../src/contexts/AuthContext';
+import { ToastProvider } from '../src/contexts/ToastContext';
 import { registerForPushNotificationsAsync } from '../src/services/notificationService';
 import '../src/i18n/i18n';
 
@@ -63,7 +64,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider>
         <AuthProvider>
-          <RootLayoutInner />
+          <ToastProvider>
+            <RootLayoutInner />
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

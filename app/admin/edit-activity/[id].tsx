@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../../src/contexts/ThemeContext';
+import { useToast } from '../../../src/contexts/ToastContext';
 import { FormInput, FormDatePicker } from '../../../src/features/admin/ActivityFormComponents';
 import { PrimaryButton, ScreenHeader } from '../../../src/components';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ export default function EditActivityScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -37,9 +39,8 @@ export default function EditActivityScreen() {
       return;
     }
     // TODO: Call API to update activity
-    Alert.alert('Success', 'Activity updated successfully!', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
+    showToast(t('admin.activityUpdated'), 'success');
+    setTimeout(() => router.back(), 1000);
   };
 
   const handleDelete = () => {
@@ -50,7 +51,8 @@ export default function EditActivityScreen() {
         style: 'destructive',
         onPress: () => {
           // TODO: Call API to delete
-          Alert.alert('Deleted', 'Activity deleted.', [{ text: 'OK', onPress: () => router.back() }]);
+          showToast(t('admin.activityDeleted'), 'success');
+          setTimeout(() => router.back(), 1000);
         }
       }
     ]);

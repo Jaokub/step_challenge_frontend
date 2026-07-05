@@ -7,6 +7,7 @@ import { AppText } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, borderRadius } from '../../constants/theme';
 import type { Activity } from '../../types';
+import { formatDate } from '../../utils/formatDate';
 
 interface ActivityCardProps {
   activity: Activity;
@@ -24,17 +25,17 @@ const getMockData = (id: string, t: any) => {
 };
 
 export function ActivityCard({ activity }: ActivityCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const { color, category } = getMockData(activity.id, t);
-  
+
   const participants = activity.participantCount || 0;
   const maxParticipants = activity.maxParticipants || 100;
   const pct = Math.min(100, Math.round((participants / maxParticipants) * 100));
 
   const startDate = new Date(activity.startDate);
-  const dateStr = startDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-  const timeStr = startDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = formatDate(startDate, i18n.language, 'short');
+  const timeStr = startDate.toLocaleTimeString(i18n.language === 'th' ? 'th-TH' : 'en-US', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <TouchableOpacity 

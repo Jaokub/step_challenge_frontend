@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useToast } from '../../src/contexts/ToastContext';
 import { FormInput, FormDatePicker } from '../../src/features/admin/ActivityFormComponents';
 import activityService from '../../src/services/activityService';
 import { PrimaryButton, ScreenHeader } from '../../src/components';
@@ -13,7 +14,8 @@ import { TouchableOpacity } from 'react-native';
 export default function CreateActivityScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  
+  const { showToast } = useToast();
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [goal, setGoal] = useState('');
@@ -39,9 +41,8 @@ export default function CreateActivityScreen() {
       });
       
       if (res && res.success) {
-        Alert.alert(t('common.success'), t('admin.activityCreated'), [
-          { text: t('common.ok'), onPress: () => router.back() }
-        ]);
+        showToast(t('admin.activityCreated'), 'success');
+        setTimeout(() => router.back(), 1000);
       } else {
         throw new Error(res?.message || 'Failed to create activity');
       }

@@ -2,10 +2,12 @@ import AppText from './AppText';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { borderRadius, fontSize, shadows, spacing } from '../constants/theme';
 import StatusBadge from './StatusBadge';
 import PointsBadge from './PointsBadge';
+import { formatDate } from '../utils/formatDate';
 
 import type { Activity } from '../types';
 
@@ -14,17 +16,9 @@ interface ActivityCardProps {
   onPress: () => void;
 }
 
-const formatDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onPress }) => {
   const { colors } = useTheme();
+  const { i18n } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -78,7 +72,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onPress }) => {
             color={colors.textCardSecondary}
           />
           <AppText style={[styles.infoText, { color: colors.textCardSecondary }]}>
-            {formatDate(activity.startDate)} – {formatDate(activity.endDate)}
+            {formatDate(activity.startDate, i18n.language, 'short')} – {formatDate(activity.endDate, i18n.language, 'short')}
           </AppText>
         </View>
 

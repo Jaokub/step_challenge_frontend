@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import dashboardService from './dashboardService';
 import healthService from '../health/healthService';
 import { syncTodayHealthData } from '../health/syncHealthData';
@@ -8,6 +9,7 @@ import { calculateDateRange, getCurrentDateRange, MOCK_MONTHS } from './dateRang
 import { aggregateStats } from './statsAggregator';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatDate } from '../../utils/formatDate';
 
 export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
@@ -20,6 +22,7 @@ export { MOCK_MONTHS };
 
 export function useDashboard(colors: any) {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
 
   // Computed fresh inside the hook so they never go stale across midnight
   const today = new Date();
@@ -39,6 +42,7 @@ export function useDashboard(colors: any) {
 
   // ─── Data state ───────────────────────────────────────────
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [dashboardData, setDashboardData] = useState<PersonalDashboard | null>(null);
   const [userGroups, setUserGroups] = useState<AppGroup[]>([]);
   const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
@@ -53,6 +57,7 @@ export function useDashboard(colors: any) {
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       // Push today's Health Connect data to the backend first,
       // so the summary/history we fetch below reflects the latest reading.
@@ -72,8 +77,9 @@ export function useDashboard(colors: any) {
       if (sumRes.success) setHealthSummary(sumRes.data || null);
       if (histRes.success) setHealthHistory(histRes.data || []);
       if (groupsRes?.success) setUserGroups(groupsRes.data || []);
-    } catch (error) {
-      console.error('fetchDashboardData error:', error);
+    } catch (err) {
+      console.error('fetchDashboardData error:', err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -173,7 +179,7 @@ export function useDashboard(colors: any) {
     id: act.id,
     icon: 'walk',
     title: act.title,
-    date: new Date(act.startDate).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }),
+    date: formatDate(act.startDate, i18n.language, 'weekday'),
   }));
 
   const currentLeaderboard = [...leaderboardData]
@@ -215,6 +221,8 @@ export function useDashboard(colors: any) {
     upcomingEvents,
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
     loading,
+    error,
+    hasData: dashboardData !== null,
     isLeaderboardLoading,
     isStatsLoading,
     refreshDashboard: fetchDashboardData,

@@ -1,11 +1,12 @@
 import { AppText } from '../src/components';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Alert, Clipboard } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useToast } from '../src/contexts/ToastContext';
 import {
   AppCard,
   HealthStatCard,
@@ -17,10 +18,12 @@ import { spacing, borderRadius, fontSize } from '../src/constants/theme';
 import healthService from '../src/features/health/healthService';
 import { useAuth } from '../src/contexts/AuthContext';
 import type { HealthSummary, HealthRecord } from '../src/types';
+import { formatDate } from '../src/utils/formatDate';
 
 export default function HealthScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useTheme();
+  const { showToast } = useToast();
   const { user } = useAuth();
 
   const [summary, setSummary] = useState<HealthSummary | null>(null);
@@ -149,7 +152,7 @@ export default function HealthScreen() {
               style={[styles.syncTokenBtn, { backgroundColor: colors.primary }]}
               onPress={() => {
                 Clipboard.setString(user.syncToken);
-                Alert.alert(t('health.copySuccess'), t('health.copySuccessDesc'));
+                showToast(t('health.copySuccessDesc'), 'success');
               }}
             >
               <AppText style={{ color: '#FFF' }}>{t('health.copySyncToken')}</AppText>
@@ -195,7 +198,7 @@ export default function HealthScreen() {
                 {summary.bestDay.steps.toLocaleString()} {t('health.stepsUnit')}
               </AppText>
               <AppText style={[styles.bestDayDate, { color: colors.textCardSecondary }]}>
-                {t('health.onDate')} {new Date(summary.bestDay.recordDate).toLocaleDateString(t('settings.language') === 'th' ? 'th-TH' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {t('health.onDate')} {formatDate(summary.bestDay.recordDate, i18n.language, 'long')}
               </AppText>
             </AppCard>
           )}
@@ -217,11 +220,7 @@ export default function HealthScreen() {
               >
                 <View style={styles.historyLeft}>
                   <AppText style={[styles.historyDate, { color: colors.textOnCard }]}>
-                    {new Date(record.recordDate).toLocaleDateString(t('settings.language') === 'th' ? 'th-TH' : 'en-US', {
-                      weekday: 'short',
-                      day: 'numeric',
-                      month: 'short',
-                    })}
+                    {formatDate(record.recordDate, i18n.language, 'weekday')}
                   </AppText>
                   <AppText style={[styles.historySource, { color: colors.textCardSecondary }]}>
                     {t('health.dataSource')}{record.source}

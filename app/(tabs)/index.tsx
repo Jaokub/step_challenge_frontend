@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { Skeleton } from '../../src/components';
+import { Skeleton, ErrorState } from '../../src/components';
 import { useDashboard } from '../../src/features/dashboard/useDashboard';
 import { 
   DashboardHeader, 
@@ -29,6 +29,8 @@ export default function DashboardScreen() {
     upcomingEvents,
     svgProps,
     loading,
+    error,
+    hasData,
     isLeaderboardLoading,
     isStatsLoading,
     refreshDashboard,
@@ -80,6 +82,10 @@ export default function DashboardScreen() {
             </View>
             <Skeleton width="100%" height={200} borderRadius={16} />
             <Skeleton width="100%" height={150} borderRadius={16} />
+          </View>
+        ) : error && !hasData ? (
+          <View style={{ minHeight: 400 }}>
+            <ErrorState onRetry={refreshDashboard} />
           </View>
         ) : (
           <>

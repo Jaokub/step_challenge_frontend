@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useToast } from '../src/contexts/ToastContext';
 import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
 import authService from '../src/features/auth/authService';
 import userService from '../src/features/auth/userService';
@@ -13,6 +14,7 @@ import { spacing, fontSize } from '../src/constants/theme';
 const EditProfileScreen = () => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { showToast } = useToast();
 
   const [fullName, setFullName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -48,7 +50,7 @@ const EditProfileScreen = () => {
     setLoading(true);
     try {
       await userService.updateProfile({ fullName, nickname, department });
-      Alert.alert(t('common.success'), t('profile.profileUpdated'));
+      showToast(t('profile.profileUpdated'), 'success');
     } catch (e: any) {
       Alert.alert(t('common.error'), e.message || t('profile.failedToUpdate'));
     } finally {
@@ -72,7 +74,7 @@ const EditProfileScreen = () => {
     setPasswordLoading(true);
     try {
       await authService.changePassword(currentPassword, newPassword);
-      Alert.alert(t('common.success'), t('profile.passwordChanged'));
+      showToast(t('profile.passwordChanged'), 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -96,7 +98,11 @@ const EditProfileScreen = () => {
         />
       </SafeAreaView>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <AppText style={[styles.sectionTitle, { color: colors.primary }]}>{t('profile.profileInformation')}</AppText>
         
         <View style={styles.inputGroup}>

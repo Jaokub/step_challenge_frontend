@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useToast } from '../../src/contexts/ToastContext';
 import authService from '../../src/features/auth/authService';
 import userService from '../../src/services/userService';
 import healthApiService from '../../src/services/healthApiService';
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { signOut, isAdmin } = useAuth();
   const { colors, isDark, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   
   const [profile, setProfile] = useState<User | null>(null);
   const [stats, setStats] = useState({ totalCheckIns: 0, totalActivities: 0, totalGroups: 0 });
@@ -186,7 +188,7 @@ export default function ProfileScreen() {
                 label="Connect Apple Health" 
                 onPress={() => {
                   Clipboard.setString(profile.syncToken);
-                  Alert.alert(t('profile.copySuccess'), t('profile.copyDesc'));
+                  showToast(t('profile.copyDesc'), 'success');
                 }} 
               />
             )}
