@@ -1,20 +1,50 @@
 import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { AppText } from '../../components';
+import { AppText, Skeleton } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, borderRadius } from '../../constants/theme';
 import { LeaderboardMember } from './Podium';
 
 interface FriendCardProps {
-  member: LeaderboardMember;
+  member?: LeaderboardMember;
   accentColor?: string;
   isLast?: boolean;
+  isLoading?: boolean;
 }
 
-export function FriendCard({ member, accentColor = '#b0f237', isLast = false }: FriendCardProps) {
+export const FriendCard = ({ member, accentColor = '#b0f237', isLast = false, isLoading = false }: FriendCardProps) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+
+  if (isLoading) {
+    return (
+      <View 
+        style={[
+          styles.card, 
+          !isLast && { borderBottomWidth: 1, borderBottomColor: colors.divider }
+        ]}
+      >
+        <View style={{ width: 20, alignItems: 'center' }}>
+          <Skeleton width={12} height={16} borderRadius={4} />
+        </View>
+        
+        <Skeleton width={36} height={36} borderRadius={18} />
+        
+        <View style={styles.info}>
+          <Skeleton width="50%" height={14} borderRadius={4} />
+          <Skeleton width="70%" height={12} borderRadius={4} style={{ marginTop: 4 }} />
+        </View>
+
+        <View style={styles.rightContent}>
+          <Skeleton width={40} height={14} borderRadius={4} />
+          <Skeleton width={50} height={12} borderRadius={4} style={{ marginTop: 4 }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (!member) return null;
 
   const rankColor = member.rank === 1 ? '#FFD700' : member.rank === 2 ? '#C0C0C0' : member.rank === 3 ? '#CD7F32' : '#7a8099';
   const rankLabel = member.rank === 1 ? '🥇' : member.rank === 2 ? '🥈' : member.rank === 3 ? '🥉' : String(member.rank);
@@ -59,7 +89,7 @@ export function FriendCard({ member, accentColor = '#b0f237', isLast = false }: 
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   card: {

@@ -174,15 +174,12 @@ export default function GroupsScreen() {
           }
           renderItem={({ item, index }) => (
             <View style={styles.cardContainer}>
-              {isLoadingData ? (
-                <Skeleton height={70} borderRadius={16} style={{ marginBottom: spacing.md }} />
-              ) : (
-                <FriendCard 
-                  member={item} 
-                  accentColor={accentColor} 
-                  isLast={index === rest.length - 1} 
-                />
-              )}
+              <FriendCard 
+                isLoading={isLoadingData}
+                member={isLoadingData ? undefined : item} 
+                accentColor={accentColor} 
+                isLast={isLoadingData ? index === 3 : index === rest.length - 1} 
+              />
             </View>
           )}
         />

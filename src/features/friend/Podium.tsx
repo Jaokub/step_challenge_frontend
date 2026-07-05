@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { AppText } from '../../components';
+import { AppText, Skeleton } from '../../components';
 import { spacing } from '../../constants/theme';
 
 export interface LeaderboardMember {
@@ -19,6 +19,7 @@ export interface LeaderboardMember {
 interface PodiumProps {
   topThree: LeaderboardMember[];
   accentColor?: string;
+  isLoading?: boolean;
 }
 
 const PodiumItem = ({ member, height, accentColor, isFirst }: { member: LeaderboardMember, height: number, accentColor: string, isFirst?: boolean }) => {
@@ -44,7 +45,45 @@ const PodiumItem = ({ member, height, accentColor, isFirst }: { member: Leaderbo
   );
 };
 
-export function Podium({ topThree, accentColor = '#b0f237' }: PodiumProps) {
+export const Podium = ({ topThree, accentColor = '#b0f237', isLoading = false }: PodiumProps) => {
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.podiumRow}>
+          {/* Rank 2 Skeleton */}
+          <View style={styles.podiumItemContainer}>
+            <View style={styles.avatarWrapper}>
+              <Skeleton width={48} height={48} borderRadius={24} />
+            </View>
+            <Skeleton width={50} height={16} borderRadius={4} />
+            <Skeleton width={40} height={16} borderRadius={4} />
+            <Skeleton width="100%" height={90} borderRadius={8} />
+          </View>
+          
+          {/* Rank 1 Skeleton */}
+          <View style={styles.podiumItemContainer}>
+            <View style={styles.avatarWrapper}>
+              <Skeleton width={48} height={48} borderRadius={24} />
+            </View>
+            <Skeleton width={50} height={16} borderRadius={4} />
+            <Skeleton width={40} height={16} borderRadius={4} />
+            <Skeleton width="100%" height={120} borderRadius={8} />
+          </View>
+
+          {/* Rank 3 Skeleton */}
+          <View style={styles.podiumItemContainer}>
+            <View style={styles.avatarWrapper}>
+              <Skeleton width={48} height={48} borderRadius={24} />
+            </View>
+            <Skeleton width={50} height={16} borderRadius={4} />
+            <Skeleton width={40} height={16} borderRadius={4} />
+            <Skeleton width="100%" height={70} borderRadius={8} />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   if (topThree.length === 0) return null;
 
   return (
@@ -64,7 +103,7 @@ export function Podium({ topThree, accentColor = '#b0f237' }: PodiumProps) {
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -110,10 +149,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 60,
     color: '#FFFFFF',
+    height: 16,
+    lineHeight: 16,
   },
   points: {
     fontSize: 12,
     fontWeight: 'bold',
+    height: 16,
+    lineHeight: 16,
   },
   bar: {
     width: '100%',

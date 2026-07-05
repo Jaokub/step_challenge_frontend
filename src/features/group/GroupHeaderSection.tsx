@@ -109,21 +109,8 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
         </ScrollView>
       </View>
 
-      {isLoadingData ? (
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
-          <Skeleton height={80} borderRadius={16} style={{ marginBottom: spacing.xl }} />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 180, marginBottom: spacing.xl }}>
-            <Skeleton width="30%" height={120} borderRadius={16} />
-            <Skeleton width="34%" height={160} borderRadius={16} />
-            <Skeleton width="30%" height={100} borderRadius={16} />
-          </View>
-        </View>
-      ) : (
-        <>
-          {myEntry && <RankSummaryCard member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />}
-          <Podium topThree={topThree} accentColor={accentColor} />
-        </>
-      )}
+      <RankSummaryCard isLoading={isLoadingData} member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />
+      <Podium isLoading={isLoadingData} topThree={topThree} accentColor={accentColor} />
     </>
   );
 };
