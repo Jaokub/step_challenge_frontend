@@ -112,7 +112,7 @@ export default function ProfileScreen() {
         <View style={styles.content}>
           {/* Profile Card */}
           {loading && !profile ? (
-            <Skeleton width="100%" height={180} borderRadius={24} style={{ marginBottom: 24 }} />
+            <Skeleton width="100%" height={200} borderRadius={24} style={{ marginBottom: 24 }} />
           ) : (
             <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, shadowColor: colors.cardShadow }]}>
               <View style={styles.profileCardTop}>
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
           <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('profile.thisMonthStats')}</AppText>
           {loading && healthSummary.totalSteps === 0 ? (
             <View style={styles.gridContainer}>
-              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={116} borderRadius={16} style={{ marginBottom: 16 }} />)}
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} width="48%" height={120} borderRadius={16} style={{ marginBottom: 16 }} />)}
             </View>
           ) : (
             <View style={styles.gridContainer}>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 20,
     marginBottom: 24,
-    minHeight: 180,
+    minHeight: 200,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,

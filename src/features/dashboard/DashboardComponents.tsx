@@ -167,7 +167,9 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
           {/* FIX #3: ล็อค width/height SVG container ไว้ตายตัว ให้ทั้ง skeleton และ SVG จริงใช้ขนาดเดียวกัน */}
           <View style={{ width: 96, height: 96, marginLeft: 16 }}>
             {isLoading ? (
-              <Skeleton width={96} height={96} borderRadius={48} />
+              <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
+                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.cardBorder} strokeWidth={SV_STROKE} fill="none" />
+              </Svg>
             ) : (
               <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
                 <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.background} strokeWidth={SV_STROKE} fill="none" />
@@ -199,7 +201,7 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
               {isLoading ? (
                 <Skeleton width="80%" height={24} borderRadius={6} />
               ) : (
-                <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{value}</AppText>
+                <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary, lineHeight: 24 }}>{value}</AppText>
               )}
             </View>
             <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{label}</AppText>
@@ -348,13 +350,13 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.isMe ? colors.primary : colors.background }}>
                   <AppText variant="body-bold" style={{ fontSize: 14, color: userObj.isMe ? '#fff' : colors.textPrimary }}>{userObj.name.substring(0, 2).toUpperCase()}</AppText>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, marginBottom: 2 }}>{userObj.name}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{userObj.steps || 0} steps · {Number(userObj.distance || 0).toFixed(2)} km</AppText>
+                <View style={{ flex: 1, height: 42, justifyContent: 'space-between' }}>
+                  <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, lineHeight: 20 }}>{userObj.name}</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16 }}>{userObj.steps || 0} steps · {Number(userObj.distance || 0).toFixed(2)} km</AppText>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary }}>{userObj.points}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{Number(userObj.calories || 0).toFixed(2)} kcal</AppText>
+                <View style={{ alignItems: 'flex-end', height: 42, justifyContent: 'space-between' }}>
+                  <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, lineHeight: 20 }}>{userObj.points}</AppText>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16 }}>{Number(userObj.calories || 0).toFixed(2)} kcal</AppText>
                 </View>
               </View>
             );

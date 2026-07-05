@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignItems: 'flex-start',
     minWidth: 140,
-    minHeight: 116,
+    height: 120,
   },
   iconContainer: {
     width: 40,
