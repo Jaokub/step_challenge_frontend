@@ -27,6 +27,8 @@ interface ActivityInput {
   maxParticipants?: number;
   imageUrl?: string;
   points: number;
+  expectedSteps?: number | null;
+  totalDistance?: number | null;
 }
 
 const activityService = {

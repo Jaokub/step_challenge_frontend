@@ -16,6 +16,8 @@ export interface Activity {
   maxParticipants?: number;
   imageUrl?: string;
   points: number;
+  expectedSteps?: number | null;
+  totalDistance?: number | null;
   participantCount?: number;
   createdBy?: User;
   isCheckedIn?: boolean;
