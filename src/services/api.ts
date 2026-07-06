@@ -6,15 +6,16 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  getToken,
+  setToken,
+  clearTokens,
+} from './tokenStorage';
 
-// ─── Storage Keys ───────────────────────────────────────────
-
-/** AsyncStorage key for the JWT access token */
-export const TOKEN_KEY = '@step_challenge_access_token';
-
-/** AsyncStorage key for the JWT refresh token */
-export const REFRESH_TOKEN_KEY = '@step_challenge_refresh_token';
+// Re-export so existing imports of the keys keep working.
+export { TOKEN_KEY, REFRESH_TOKEN_KEY };
 
 // ─── Axios Instance ─────────────────────────────────────────
 
@@ -37,7 +38,7 @@ const api: AxiosInstance = axios.create({
  * @param token - JWT access token
  */
 export const setAuthToken = async (token: string): Promise<void> => {
-  await AsyncStorage.setItem(TOKEN_KEY, token);
+  await setToken(TOKEN_KEY, token);
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 };
 
@@ -45,7 +46,7 @@ export const setAuthToken = async (token: string): Promise<void> => {
  * Remove tokens from storage and clear the Authorization header.
  */
 export const clearAuthToken = async (): Promise<void> => {
-  await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  await clearTokens();
   delete api.defaults.headers.common['Authorization'];
 };
 
@@ -78,7 +79,7 @@ api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // If no Authorization header is set yet, try loading from storage
     if (!config.headers['Authorization']) {
-      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      const token = await getToken(TOKEN_KEY);
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }
@@ -122,7 +123,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+        const refreshToken = await getToken(REFRESH_TOKEN_KEY);
 
         if (!refreshToken) {
           throw new Error('No refresh token available');
@@ -136,7 +137,7 @@ api.interceptors.response.use(
         const newRefreshToken: string = data.data.refreshToken;
 
         await setAuthToken(newAccessToken);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+        await setToken(REFRESH_TOKEN_KEY, newRefreshToken);
 
         processQueue(null, newAccessToken);
 

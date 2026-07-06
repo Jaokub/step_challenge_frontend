@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen } from '../../src/components';
-import userService from '../../src/services/userService';
+import userService from '../../src/features/auth/userService';
 import { spacing, fontSize } from '../../src/constants/theme';
 
 export default function UsersManagementScreen() {
@@ -22,13 +22,13 @@ export default function UsersManagementScreen() {
     setLoading(true);
     setError(null);
     try {
-      const res = await userService.getUsers();
-      if (res && res.success) {
-        setUsers(res.data.users || res.data);
+      const res = await userService.getAllUsers();
+      if (res && res.success && res.data) {
+        setUsers(res.data.users || (res.data as any));
       }
     } catch (err: any) {
       console.error('Failed to fetch users', err);
-      setError(err?.response?.data?.message || 'Failed to load users');
+      setError(err?.response?.data?.message || t('common.cannotLoadData'));
     } finally {
       setLoading(false);
     }

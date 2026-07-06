@@ -4,10 +4,23 @@
 import api from '../../services/api';
 import type { ApiResponse, CheckIn } from '../../types';
 
+/** Shape of a successful QR check-in response from the backend. */
+export interface QRCheckinResult {
+  checkIn: CheckIn;
+  pointsAwarded: number;
+}
+
+/** Shape of the activity check-ins (attendees) response from the backend. */
+export interface ActivityCheckinsResult {
+  activity: { id: string; title: string };
+  checkIns: CheckIn[];
+  totalCheckIns: number;
+}
+
 const checkinService = {
-  async checkinWithQR(qrCode: string): Promise<ApiResponse<CheckIn>> {
+  async checkinWithQR(qrCode: string): Promise<ApiResponse<QRCheckinResult>> {
     try {
-      const { data } = await api.post<ApiResponse<CheckIn>>('/checkins/qr', {
+      const { data } = await api.post<ApiResponse<QRCheckinResult>>('/checkins/qr', {
         qrCode,
       });
       return data;
@@ -39,9 +52,9 @@ const checkinService = {
 
   async getCheckinsByActivity(
     activityId: string,
-  ): Promise<ApiResponse<CheckIn[]>> {
+  ): Promise<ApiResponse<ActivityCheckinsResult>> {
     try {
-      const { data } = await api.get<ApiResponse<CheckIn[]>>(
+      const { data } = await api.get<ApiResponse<ActivityCheckinsResult>>(
         `/checkins/activity/${activityId}`,
       );
       return data;

@@ -3,16 +3,17 @@ import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useTheme } from '../../src/contexts/ThemeContext';
 import { PrimaryButton } from '../../src/components';
-import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
+import { spacing, borderRadius, fontSize, shadows } from '../../src/constants/theme';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { signUp } = useAuth();
+  const { colors } = useTheme();
 
   const DEPARTMENTS = [
     t('auth.deptComputer'),
@@ -54,8 +55,13 @@ export default function RegisterScreen() {
     }
   };
 
+  const inputContainerStyle = [
+    styles.inputContainer,
+    { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder },
+  ];
+
   return (
-    <LinearGradient colors={['#0D0D2B', '#161637']} style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -68,52 +74,52 @@ export default function RegisterScreen() {
           >
             {/* Logo */}
             <View style={styles.logoSection}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="person-add" size={40} color="#4A6CF7" />
+              <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="person-add" size={40} color={colors.primary} />
               </View>
-              <AppText style={styles.appTitle}>{t('auth.register')}</AppText>
+              <AppText style={[styles.appTitle, { color: colors.textPrimary }]}>{t('auth.register')}</AppText>
             </View>
 
             {/* Register Card */}
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
               {error ? (
-                <View style={styles.errorBox}>
-                  <Ionicons name="alert-circle" size={18} color="#FF5252" />
-                  <AppText style={styles.errorText}>{error}</AppText>
+                <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+                  <Ionicons name="alert-circle" size={18} color={colors.error} />
+                  <AppText style={[styles.errorText, { color: colors.error }]}>{error}</AppText>
                 </View>
               ) : null}
 
               {/* Full Name */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="person-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={inputContainerStyle}>
+                <Ionicons name="person-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.fullName') || 'Full Name'}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={fullName}
                   onChangeText={setFullName}
                 />
               </View>
 
               {/* Nickname */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="happy-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={inputContainerStyle}>
+                <Ionicons name="happy-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.nicknameOptional')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={nickname}
                   onChangeText={setNickname}
                 />
               </View>
 
               {/* Email */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={inputContainerStyle}>
+                <Ionicons name="mail-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.email')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -123,29 +129,29 @@ export default function RegisterScreen() {
 
               {/* Department Picker */}
               <TouchableOpacity
-                style={styles.inputContainer}
+                style={inputContainerStyle}
                 onPress={() => setShowDeptPicker(true)}
               >
-                <Ionicons name="business-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
-                <AppText style={[styles.input, !department && { color: '#9CA3AF' }]}>
+                <Ionicons name="business-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
+                <AppText style={[styles.input, { color: department ? colors.inputText : colors.inputPlaceholder }]}>
                   {department || t('auth.department')}
                 </AppText>
-                <Ionicons name="chevron-down" size={20} color="#9CA3AF" style={styles.chevron} />
+                <Ionicons name="chevron-down" size={20} color={colors.inputPlaceholder} style={styles.chevron} />
               </TouchableOpacity>
 
               {/* Password */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={inputContainerStyle}>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.password')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9CA3AF" />
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.inputPlaceholder} />
                 </TouchableOpacity>
               </View>
 
@@ -160,9 +166,9 @@ export default function RegisterScreen() {
 
             {/* Login Link */}
             <View style={styles.loginRow}>
-              <AppText style={styles.loginText}>{t('auth.hasAccount')} </AppText>
+              <AppText style={[styles.loginText, { color: colors.textSecondary }]}>{t('auth.hasAccount')} </AppText>
               <TouchableOpacity onPress={() => router.back()}>
-                <AppText style={styles.loginLink}>{t('auth.loginHere')}</AppText>
+                <AppText style={[styles.loginLink, { color: colors.primary }]}>{t('auth.loginHere')}</AppText>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -170,21 +176,21 @@ export default function RegisterScreen() {
 
         {/* Department Picker Modal */}
         <Modal visible={showDeptPicker} transparent animationType="slide">
-          <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowDeptPicker(false)}>
-            <View style={styles.modalContent}>
-              <AppText style={styles.modalTitle}>{t('auth.department')}</AppText>
+          <TouchableOpacity style={[styles.modalOverlay, { backgroundColor: colors.overlay }]} onPress={() => setShowDeptPicker(false)}>
+            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+              <AppText style={[styles.modalTitle, { color: colors.textOnCard }]}>{t('auth.department')}</AppText>
               <FlatList
                 data={DEPARTMENTS}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    style={[styles.deptItem, department === item && styles.deptItemActive]}
+                    style={[styles.deptItem, department === item && { backgroundColor: colors.primary + '15' }]}
                     onPress={() => { setDepartment(item); setShowDeptPicker(false); }}
                   >
-                    <AppText style={[styles.deptText, department === item && styles.deptTextActive]}>
+                    <AppText style={[styles.deptText, { color: department === item ? colors.primary : colors.textOnCard }]}>
                       {item}
                     </AppText>
-                    {department === item && <Ionicons name="checkmark" size={20} color="#4A6CF7" />}
+                    {department === item && <Ionicons name="checkmark" size={20} color={colors.primary} />}
                   </TouchableOpacity>
                 )}
               />
@@ -192,7 +198,7 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </Modal>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -209,45 +215,44 @@ const styles = StyleSheet.create({
   logoSection: { alignItems: 'center', marginBottom: spacing['3xl'] },
   iconCircle: {
     width: 80, height: 80, borderRadius: 40,
-    backgroundColor: 'rgba(74, 108, 247, 0.15)',
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md,
   },
-  appTitle: { fontSize: fontSize['2xl'], color: '#FFFFFF' },
+  appTitle: { fontSize: fontSize['2xl'] },
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.xl,
     padding: spacing['2xl'],
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15, shadowRadius: 12, elevation: 5,
+    borderWidth: 1,
+    ...shadows.card,
   },
   errorBox: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,82,82,0.1)', borderRadius: borderRadius.md,
+    borderRadius: borderRadius.md,
     padding: spacing.md, marginBottom: spacing.lg, gap: spacing.sm,
   },
-  errorText: { fontSize: fontSize.sm, color: '#FF5252', flex: 1 },
+  errorText: { fontSize: fontSize.sm, flex: 1 },
   inputContainer: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F5F5F5', borderRadius: borderRadius.lg,
-    marginBottom: spacing.lg, borderWidth: 1, borderColor: '#E5E7EB',
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.lg, borderWidth: 1,
   },
   inputIcon: { paddingLeft: spacing.lg },
   input: {
-    flex: 1, fontSize: fontSize.md, color: '#1A1A2E',
+    flex: 1, fontSize: fontSize.md,
     paddingVertical: spacing.lg, paddingHorizontal: spacing.md,
   },
   eyeButton: { paddingRight: spacing.lg, paddingVertical: spacing.lg },
   chevron: { paddingRight: spacing.lg },
   loginRow: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing['2xl'] },
-  loginText: { fontSize: fontSize.md, color: 'rgba(255,255,255,0.6)' },
-  loginLink: { fontSize: fontSize.md, color: '#4A6CF7' },
+  loginText: { fontSize: fontSize.md },
+  loginLink: { fontSize: fontSize.md },
   modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end',
+    flex: 1, justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF', borderTopLeftRadius: borderRadius.xl,
+    borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl, padding: spacing['2xl'], maxHeight: '60%',
   },
-  modalTitle: { fontSize: fontSize.lg, color: '#1A1A2E',
+  modalTitle: { fontSize: fontSize.lg,
     marginBottom: spacing.lg, textAlign: 'center',
   },
   deptItem: {
@@ -255,7 +260,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.md, marginBottom: spacing.xs,
   },
-  deptItemActive: { backgroundColor: 'rgba(74, 108, 247, 0.1)' },
-  deptText: { fontSize: fontSize.md, color: '#1A1A2E' },
-  deptTextActive: { color: '#4A6CF7' },
+  deptText: { fontSize: fontSize.md },
 });

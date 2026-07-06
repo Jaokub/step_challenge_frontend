@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,7 +44,7 @@ const EditProfileScreen = () => {
 
   const handleUpdateProfile = async () => {
     if (!fullName) {
-      Alert.alert(t('common.error'), t('profile.nameRequired'));
+      showToast(t('profile.nameRequired'), 'error');
       return;
     }
     setLoading(true);
@@ -52,7 +52,7 @@ const EditProfileScreen = () => {
       await userService.updateProfile({ fullName, nickname, department });
       showToast(t('profile.profileUpdated'), 'success');
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.message || t('profile.failedToUpdate'));
+      showToast(e.message || t('profile.failedToUpdate'), 'error');
     } finally {
       setLoading(false);
     }
@@ -60,15 +60,15 @@ const EditProfileScreen = () => {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert(t('common.error'), t('profile.fillAllPasswordFields'));
+      showToast(t('profile.fillAllPasswordFields'), 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert(t('common.error'), t('profile.passwordsNotMatch'));
+      showToast(t('profile.passwordsNotMatch'), 'error');
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert(t('common.error'), t('profile.passwordTooShort'));
+      showToast(t('profile.passwordTooShort'), 'error');
       return;
     }
     setPasswordLoading(true);
@@ -79,7 +79,7 @@ const EditProfileScreen = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (e: any) {
-      Alert.alert(t('common.error'), e.message || t('profile.failedToChangePassword'));
+      showToast(e.message || t('profile.failedToChangePassword'), 'error');
     } finally {
       setPasswordLoading(false);
     }

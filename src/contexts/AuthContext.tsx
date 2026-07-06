@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TOKEN_KEY, REFRESH_TOKEN_KEY, setAuthToken, clearAuthToken } from '../services/api';
+import { setAuthToken, clearAuthToken } from '../services/api';
+import { TOKEN_KEY, getToken } from '../services/tokenStorage';
 import authService from '../features/auth/authService';
 import type { User } from '../types';
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        const token = await getToken(TOKEN_KEY);
         if (token) {
           setAuthToken(token);
           const response = await authService.getMe();
@@ -54,8 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.warn('Auto-login failed:', error);
         // Clear invalid tokens
-        await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY]);
-        clearAuthToken();
+        await clearAuthToken();
       } finally {
         setIsLoading(false);
       }

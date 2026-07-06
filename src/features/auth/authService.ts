@@ -1,13 +1,8 @@
 // ============================================================
 // Step Challenge Mobile App — Auth Service
 // ============================================================
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api, {
-  setAuthToken,
-  clearAuthToken,
-  TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-} from '../../services/api';
+import api, { setAuthToken, clearAuthToken } from '../../services/api';
+import { REFRESH_TOKEN_KEY, setToken } from '../../services/tokenStorage';
 import type { ApiResponse, User } from '../../types';
 
 interface AuthPayload {
@@ -30,7 +25,7 @@ const authService = {
 
       if (data.success) {
         await setAuthToken(data.data.accessToken);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, data.data.refreshToken);
+        await setToken(REFRESH_TOKEN_KEY, data.data.refreshToken);
       }
 
       return data;
@@ -57,7 +52,7 @@ const authService = {
 
       if (data.success) {
         await setAuthToken(data.data.accessToken);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, data.data.refreshToken);
+        await setToken(REFRESH_TOKEN_KEY, data.data.refreshToken);
       }
 
       return data;
@@ -76,7 +71,7 @@ const authService = {
 
       if (data.success) {
         await setAuthToken(data.data.accessToken);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, data.data.refreshToken);
+        await setToken(REFRESH_TOKEN_KEY, data.data.refreshToken);
       }
 
       return data;

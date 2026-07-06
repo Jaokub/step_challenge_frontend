@@ -116,7 +116,10 @@
     "defaultUser": "User",
     "shareQrFooter": "Let your friends scan this QR to add you as a friend",
     "inviteLink": "Invite Link",
-    "shareLinkBtn": "Share Link"
+    "shareLinkBtn": "Share Link",
+    "friendRequestSent": "Friend request sent!",
+    "pointsEarned": "+{{points}} points",
+    "shareMessage": "Add me as a friend on Step Challenge! {{link}}"
   },
   "groups": {
     "yesterday": "Yesterday",
@@ -302,7 +305,7 @@
     "activities": "Activities",
     "scan": "Scan",
     "friendsAndGroups": "Friends & Groups",
-    "friends": "Friends", 
+    "friends": "Friends",
     "profile": "Profile"
   }
 }

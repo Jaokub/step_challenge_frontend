@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,8 @@ export default function AddFriendScreen() {
       try {
         const res = await userService.getProfile(userId);
         if (res.success) {
-          setFriendProfile(res.data);
+          // Backend wraps the profile: { user, stats }
+          setFriendProfile(res.data.user);
         } else {
           setError(t('friend.userNotFound'));
         }
@@ -56,7 +57,7 @@ export default function AddFriendScreen() {
       showToast(t('friend.requestSentSuccess'), 'success');
       setTimeout(() => router.replace('/(tabs)/profile'), 1000);
     } catch (err: any) {
-      Alert.alert(t('common.error'), err?.message || t('friend.failedToSendRequest'));
+      showToast(err?.message || t('friend.failedToSendRequest'), 'error');
     } finally {
       setAdding(false);
     }

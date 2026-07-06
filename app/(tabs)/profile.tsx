@@ -8,7 +8,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useToast } from '../../src/contexts/ToastContext';
 import authService from '../../src/features/auth/authService';
-import userService from '../../src/services/userService';
+import userService from '../../src/features/auth/userService';
 import healthApiService from '../../src/services/healthApiService';
 import type { User } from '../../src/types';
 import { 

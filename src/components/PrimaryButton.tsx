@@ -61,18 +61,18 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
         ]}
       >
         {loading ? (
-          <ActivityIndicator color="#FFFFFF" size="small" />
+          <ActivityIndicator color={colors.onPrimary} size="small" />
         ) : (
           <View style={styles.content}>
             {icon && (
               <Ionicons
                 name={icon}
                 size={20}
-                color="#FFFFFF"
+                color={colors.onPrimary}
                 style={styles.icon}
               />
             )}
-            <AppText style={styles.title}>{title}</AppText>
+            <AppText style={[styles.title, { color: colors.onPrimary }]}>{title}</AppText>
           </View>
         )}
       </Pressable>
@@ -96,7 +96,6 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   title: {
-    color: '#FFFFFF',
     fontSize: fontSize.md,
   },
 });

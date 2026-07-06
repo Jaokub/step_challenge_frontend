@@ -36,15 +36,12 @@ export default function AttendeesScreen() {
     try {
       const response = await checkinService.getCheckinsByActivity(id as string);
       if (response.success && response.data) {
-        setAttendees(response.data);
+        // Backend wraps the list: { activity, checkIns, totalCheckIns }
+        setAttendees(response.data.checkIns ?? []);
       }
     } catch (err) {
-      console.warn('Failed to fetch attendees, using mock data');
-      // Mock data if backend fails
-      setAttendees([
-        { id: '1', user: { fullName: 'Annika', department: 'HR' }, timestamp: new Date().toISOString() },
-        { id: '2', user: { fullName: 'David', department: 'IT' }, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-      ]);
+      console.warn('Failed to fetch attendees:', err);
+      setAttendees([]);
     } finally {
       setIsLoading(false);
     }
@@ -60,11 +57,21 @@ export default function AttendeesScreen() {
     } catch {}
 
     try {
-      // Expecting payload: {"userId": "12345"}
-      const payload = JSON.parse(data);
-      if (!payload.userId) throw new Error('Invalid QR Code format');
-      
-      await checkinService.adminCheckinUser(id as string, payload.userId);
+      // Accept the canonical "sc:friend:<userId>" format (what "My QR" now
+      // generates) plus the legacy JSON {"userId": "..."} format.
+      let scannedUserId: string | null = null;
+      const canonical = data.match(/^sc:friend:([\w-]+)$/);
+      if (canonical) {
+        scannedUserId = canonical[1];
+      } else {
+        try {
+          const payload = JSON.parse(data);
+          scannedUserId = payload.userId || null;
+        } catch {}
+      }
+      if (!scannedUserId) throw new Error('Invalid QR Code format');
+
+      await checkinService.adminCheckinUser(id as string, scannedUserId);
       setResult({ success: true, message: 'Checked in successfully!' });
       fetchAttendees(); // Refresh list
     } catch (err: any) {
@@ -79,7 +86,7 @@ export default function AttendeesScreen() {
   };
 
   const renderItem = ({ item, index }: { item: any; index: number }) => {
-    const timeString = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timeString = new Date(item.checkedInAt ?? item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return (
       <View style={[styles.attendeeCard, { backgroundColor: colors.card, borderBottomColor: colors.cardBorder }]}>
         <View style={[styles.avatar, { backgroundColor: colors.primary + '20' }]}>

@@ -37,11 +37,19 @@ const userService = {
     }
   },
 
-  async getProfile(id: string): Promise<ApiResponse<User>> {
+  async getProfile(id: string): Promise<
+    ApiResponse<{
+      user: User;
+      stats: { totalCheckIns: number; totalActivities: number; totalGroups: number };
+    }>
+  > {
     try {
-      const { data } = await api.get<ApiResponse<User>>(
-        `/users/profile/${id}`,
-      );
+      const { data } = await api.get<
+        ApiResponse<{
+          user: User;
+          stats: { totalCheckIns: number; totalActivities: number; totalGroups: number };
+        }>
+      >(`/users/profile/${id}`);
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

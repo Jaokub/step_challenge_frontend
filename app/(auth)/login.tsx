@@ -1,15 +1,14 @@
 import { AppText } from '../../src/components';
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, TextInput, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { PrimaryButton } from '../../src/components';
-import { spacing, borderRadius, fontSize, gradients } from '../../src/constants/theme';
+import { spacing, borderRadius, fontSize, shadows } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -47,7 +46,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={['#0D0D2B', '#161637']} style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -60,31 +59,31 @@ export default function LoginScreen() {
           >
             {/* Logo Section */}
             <View style={styles.logoSection}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="footsteps" size={48} color="#4A6CF7" />
+              <View style={[styles.iconCircle, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="footsteps" size={48} color={colors.primary} />
               </View>
-              <AppText style={styles.appTitle}>{t('auth.welcomeTitle')}</AppText>
-              <AppText style={styles.appSubtitle}>{t('auth.welcomeSubtitle')}</AppText>
+              <AppText style={[styles.appTitle, { color: colors.textPrimary }]}>{t('auth.welcomeTitle')}</AppText>
+              <AppText style={[styles.appSubtitle, { color: colors.textSecondary }]}>{t('auth.welcomeSubtitle')}</AppText>
             </View>
 
             {/* Login Card */}
-            <View style={styles.card}>
-              <AppText style={styles.cardTitle}>{t('auth.login')}</AppText>
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <AppText style={[styles.cardTitle, { color: colors.textOnCard }]}>{t('auth.login')}</AppText>
 
               {error ? (
-                <View style={styles.errorBox}>
-                  <Ionicons name="alert-circle" size={18} color="#FF5252" />
-                  <AppText style={styles.errorText}>{error}</AppText>
+                <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+                  <Ionicons name="alert-circle" size={18} color={colors.error} />
+                  <AppText style={[styles.errorText, { color: colors.error }]}>{error}</AppText>
                 </View>
               ) : null}
 
               {/* Email Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}>
+                <Ionicons name="mail-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.email')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -94,12 +93,12 @@ export default function LoginScreen() {
               </View>
 
               {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" style={styles.inputIcon} />
+              <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.inputPlaceholder} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.inputText }]}
                   placeholder={t('auth.password')}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.inputPlaceholder}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -112,7 +111,7 @@ export default function LoginScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color="#9CA3AF"
+                    color={colors.inputPlaceholder}
                   />
                 </TouchableOpacity>
               </View>
@@ -129,15 +128,15 @@ export default function LoginScreen() {
 
             {/* Register Link */}
             <View style={styles.registerRow}>
-              <AppText style={styles.registerText}>{t('auth.noAccount')} </AppText>
+              <AppText style={[styles.registerText, { color: colors.textSecondary }]}>{t('auth.noAccount')} </AppText>
               <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                <AppText style={styles.registerLink}>{t('auth.registerHere')}</AppText>
+                <AppText style={[styles.registerLink, { color: colors.primary }]}>{t('auth.registerHere')}</AppText>
               </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -159,40 +158,31 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(74, 108, 247, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   appTitle: {
     fontSize: fontSize['3xl'],
-    color: '#FFFFFF',
     marginBottom: spacing.xs,
   },
   appSubtitle: {
     fontSize: fontSize.md,
-    color: 'rgba(255,255,255,0.6)',
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: borderRadius.xl,
     padding: spacing['2xl'],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
+    borderWidth: 1,
+    ...shadows.card,
   },
   cardTitle: {
     fontSize: fontSize.xl,
-    color: '#1A1A2E',
     marginBottom: spacing.xl,
     textAlign: 'center',
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,82,82,0.1)',
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.lg,
@@ -200,17 +190,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: fontSize.sm,
-    color: '#FF5252',
     flex: 1,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
     borderRadius: borderRadius.lg,
     marginBottom: spacing.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   inputIcon: {
     paddingLeft: spacing.lg,
@@ -218,7 +205,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: fontSize.md,
-    color: '#1A1A2E',
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
   },
@@ -236,10 +222,8 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: fontSize.md,
-    color: 'rgba(255,255,255,0.6)',
   },
   registerLink: {
     fontSize: fontSize.md,
-    color: '#4A6CF7',
   },
 });

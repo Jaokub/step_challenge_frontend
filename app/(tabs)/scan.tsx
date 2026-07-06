@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Share, Animated } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,8 +26,10 @@ export default function ScanScreen() {
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   
   const [mode, setMode] = useState<Mode>("scan");
-  
-  const scanLineAnim = new Animated.Value(0);
+
+  // useRef so the animated value survives re-renders (a plain `new Animated.Value`
+  // here would be recreated every render and the scan line would stutter/reset).
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (mode === "scan") {
@@ -50,18 +52,43 @@ export default function ScanScreen() {
     }
   }, [mode]);
 
-  const qrPayload = JSON.stringify({ type: 'friend', userId: user?.id || 'guest' });
+  // Canonical friend-QR format: "sc:friend:<userId>".
+  // The scanner below also accepts the legacy JSON/link formats for QR codes
+  // that are already printed or screenshotted.
+  const qrPayload = `sc:friend:${user?.id || 'guest'}`;
 
   const handleShareLink = async () => {
     try {
       const link = `step-challenge://add-friend?userId=${user?.id}`;
       await Share.share({
-        message: `Add me as a friend on Step Challenge! ${link}`,
+        message: t('scan.shareMessage', { link }),
         url: link,
       });
     } catch (error) {
       console.warn('Share error:', error);
     }
+  };
+
+  /** Extract a friend userId from any supported QR payload, or null. */
+  const parseFriendQR = (data: string): string | null => {
+    // Canonical: sc:friend:<userId>
+    const canonical = data.match(/^sc:friend:([\w-]+)$/);
+    if (canonical) return canonical[1];
+
+    // Legacy: JSON {type:'friend', userId} or {userId}/{id}
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.type === 'friend' || parsed.userId) {
+        return parsed.userId || parsed.id || null;
+      }
+    } catch {
+      // Legacy: deep link / URL containing userId
+      if (data.includes('add-friend') || data.includes('userId')) {
+        const match = data.match(/userId[=:'"\s]+([^&"'\s}]+)/i);
+        if (match && match[1]) return match[1];
+      }
+    }
+    return null;
   };
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
@@ -74,31 +101,20 @@ export default function ScanScreen() {
     } catch {}
 
     try {
-      let isFriendQR = false;
-      let scannedUserId = null;
+      const scannedUserId = parseFriendQR(data);
 
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed.type === 'friend' || parsed.userId) {
-          isFriendQR = true;
-          scannedUserId = parsed.userId || parsed.id;
-        }
-      } catch {
-        if (data.includes('add-friend') || data.includes('userId')) {
-          isFriendQR = true;
-          const match = data.match(/userId[=:'"\s]+([^&"'\s}]+)/i);
-          if (match && match[1]) {
-            scannedUserId = match[1];
-          }
-        }
-      }
-
-      if (isFriendQR && scannedUserId) {
+      if (scannedUserId) {
         await friendService.sendFriendRequest(scannedUserId);
-        setResult({ success: true, message: 'Friend request sent successfully!' });
+        setResult({ success: true, message: t('scan.friendRequestSent') });
       } else {
-        await checkinService.checkinWithQR(data);
-        setResult({ success: true, message: t('scan.success') });
+        const response = await checkinService.checkinWithQR(data);
+        const pointsAwarded = response.data?.pointsAwarded ?? 0;
+        setResult({
+          success: true,
+          message: pointsAwarded > 0
+            ? `${t('scan.success')}  ${t('scan.pointsEarned', { points: pointsAwarded })}`
+            : t('scan.success'),
+        });
       }
     } catch (err: any) {
       const msg = err?.message || err?.data?.message || t('scan.failed');
@@ -129,7 +145,7 @@ export default function ScanScreen() {
             {t('scan.permissionRequired')}
           </AppText>
           <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={requestPermission}>
-            <AppText style={styles.buttonText}>{t('scan.grantPermission')}</AppText>
+            <AppText style={[styles.buttonText, { color: colors.onPrimary }]}>{t('scan.grantPermission')}</AppText>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -152,9 +168,9 @@ export default function ScanScreen() {
               mode === "scan" ? { backgroundColor: colors.primary } : { backgroundColor: 'transparent' }
             ]}
           >
-            <Ionicons name="qr-code-outline" size={16} color={mode === "scan" ? "#000" : colors.textSecondary} />
-            <AppText style={[styles.modeText, { color: mode === "scan" ? "#000" : colors.textSecondary, fontWeight: mode === 'scan' ? 'bold' : 'normal' }]}>
-              แสกน
+            <Ionicons name="qr-code-outline" size={16} color={mode === "scan" ? colors.onPrimary : colors.textSecondary} />
+            <AppText style={[styles.modeText, { color: mode === "scan" ? colors.onPrimary : colors.textSecondary, fontWeight: mode === 'scan' ? 'bold' : 'normal' }]}>
+              {t('scan.scanBtn')}
             </AppText>
           </TouchableOpacity>
           <TouchableOpacity
@@ -164,9 +180,9 @@ export default function ScanScreen() {
               mode === "myqr" ? { backgroundColor: colors.primary } : { backgroundColor: 'transparent' }
             ]}
           >
-            <Ionicons name="person-add-outline" size={16} color={mode === "myqr" ? "#000" : colors.textSecondary} />
-            <AppText style={[styles.modeText, { color: mode === "myqr" ? "#000" : colors.textSecondary, fontWeight: mode === 'myqr' ? 'bold' : 'normal' }]}>
-              QR ของฉัน
+            <Ionicons name="person-add-outline" size={16} color={mode === "myqr" ? colors.onPrimary : colors.textSecondary} />
+            <AppText style={[styles.modeText, { color: mode === "myqr" ? colors.onPrimary : colors.textSecondary, fontWeight: mode === 'myqr' ? 'bold' : 'normal' }]}>
+              {t('scan.myQrTab')}
             </AppText>
           </TouchableOpacity>
         </View>
@@ -200,6 +216,7 @@ export default function ScanScreen() {
                       styles.scanLine, 
                       { 
                         backgroundColor: colors.primary,
+                        shadowColor: colors.primary,
                         transform: [{
                           translateY: scanLineAnim.interpolate({
                             inputRange: [0, 1],
@@ -221,15 +238,15 @@ export default function ScanScreen() {
 
             <View style={styles.useCasesContainer}>
               <View style={[styles.useCaseCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                <View style={[styles.useCaseIconBg, { backgroundColor: '#b0f23720' }]}>
-                  <Ionicons name="person-add" size={20} color="#b0f237" />
+                <View style={[styles.useCaseIconBg, { backgroundColor: colors.success + '20' }]}>
+                  <Ionicons name="person-add" size={20} color={colors.success} />
                 </View>
                 <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.addFriendTitle')}</AppText>
                 <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.addFriendDesc')}</AppText>
               </View>
               <View style={[styles.useCaseCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                <View style={[styles.useCaseIconBg, { backgroundColor: '#00e5ff20' }]}>
-                  <Ionicons name="ticket" size={20} color="#00e5ff" />
+                <View style={[styles.useCaseIconBg, { backgroundColor: colors.primary + '20' }]}>
+                  <Ionicons name="ticket" size={20} color={colors.primary} />
                 </View>
                 <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.registerEventTitle')}</AppText>
                 <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.registerEventDesc')}</AppText>
@@ -240,13 +257,17 @@ export default function ScanScreen() {
           <View style={styles.contentPadding}>
             <View style={[styles.myQrContainer, { backgroundColor: colors.card, borderColor: colors.divider }]}>
               <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                <AppText style={styles.avatarText}>
+                <AppText style={[styles.avatarText, { color: colors.onPrimary }]}>
                   {user?.fullName?.substring(0,2).toUpperCase() || 'ME'}
                 </AppText>
               </View>
               <AppText style={[styles.myName, { color: colors.textPrimary }]}>{user?.fullName || t('scan.defaultUser')}</AppText>
-              <AppText style={[styles.myHandle, { color: colors.textSecondary }]}>@{(user?.fullName || 'user').toLowerCase().replace(/\s/g, '_')}</AppText>
-              
+              {user?.nickname ? (
+                <AppText style={[styles.myHandle, { color: colors.textSecondary }]}>{user.nickname}</AppText>
+              ) : (
+                <View style={{ marginBottom: spacing.lg }} />
+              )}
+
               <View style={styles.qrWhiteBg}>
                 <QRCode
                   value={qrPayload}
@@ -258,24 +279,9 @@ export default function ScanScreen() {
               <AppText style={[styles.qrFooterText, { color: colors.textSecondary }]}>{t('scan.shareQrFooter')}</AppText>
             </View>
 
-            <View style={[styles.shareContainer, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-              <View style={styles.shareHeader}>
-                <Ionicons name="link" size={16} color={colors.primary} />
-                <AppText style={[styles.shareTitle, { color: colors.textPrimary }]}>{t('scan.inviteLink')}</AppText>
-              </View>
-              <View style={styles.shareLinkBox}>
-                <AppText style={[styles.shareLinkText, { color: colors.textSecondary }]} numberOfLines={1}>
-                  https://fittrack.app/add/{user?.id || 'anonong_fit_2026'}
-                </AppText>
-                <TouchableOpacity style={styles.copyBtn} onPress={() => {}}>
-                  <Ionicons name="copy-outline" size={14} color="#7a8099" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
             <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary, marginTop: 0 }]} onPress={handleShareLink}>
-              <Ionicons name="share-social" size={18} color="#000" style={{ marginRight: 8 }} />
-              <AppText style={[styles.buttonText, { color: '#000' }]}>{t('scan.shareLinkBtn')}</AppText>
+              <Ionicons name="share-social" size={18} color={colors.onPrimary} style={{ marginRight: 8 }} />
+              <AppText style={[styles.buttonText, { color: colors.onPrimary }]}>{t('scan.shareLinkBtn')}</AppText>
             </TouchableOpacity>
           </View>
         )}
@@ -301,7 +307,7 @@ export default function ScanScreen() {
             <AppText style={[styles.resultMessage, { color: colors.textSecondary }]}>{result.message}</AppText>
             
             <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={resetScan}>
-              <AppText style={[styles.buttonText, { color: '#000' }]}>{result.success ? 'OK' : t('common.retry')}</AppText>
+              <AppText style={[styles.buttonText, { color: colors.onPrimary }]}>{result.success ? t('common.ok') : t('common.retry')}</AppText>
             </TouchableOpacity>
           </View>
         </View>
@@ -354,7 +360,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: spacing.lg,
-    backgroundColor: '#1a1d24', // Fallback
+    backgroundColor: '#000000', // Camera fallback while the feed loads
   },
   overlay: {
     position: 'absolute',
@@ -392,7 +398,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
     top: 0,
-    shadowColor: '#b0f237',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
@@ -442,7 +447,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
-  avatarText: { color: '#000', fontSize: 20, fontWeight: 'bold' },
+  avatarText: { fontSize: 20, fontWeight: 'bold' },
   myName: { fontSize: 16, fontWeight: '600' },
   myHandle: { fontSize: 14, marginBottom: spacing.lg },
   qrWhiteBg: {
@@ -452,31 +457,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   qrFooterText: { fontSize: 12, textAlign: 'center' },
-  shareContainer: {
-    padding: spacing.md,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: spacing.md,
-  },
-  shareHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  shareTitle: { fontSize: 14, fontWeight: '500' },
-  shareLinkBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1e2330', // Mock secondary bg
-    padding: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  shareLinkText: { flex: 1, fontSize: 12, fontFamily: 'monospace' },
-  copyBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#1e2330',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   resultOverlay: {
     position: 'absolute',
     top: 0,

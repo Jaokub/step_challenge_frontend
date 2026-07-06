@@ -10,6 +10,8 @@ export interface ThemeColors {
   cardBorder: string;
   primary: string;
   primaryLight: string;
+  /** Text/icon color that stays readable on top of `primary` */
+  onPrimary: string;
   accent: string;
   success: string;
   warning: string;
@@ -37,6 +39,7 @@ export const darkColors: ThemeColors = {
   cardBorder: 'rgba(255, 255, 255, 0.05)',
   primary: '#14B8A6', // Soft Teal
   primaryLight: '#5EEAD4',
+  onPrimary: '#052E2B', // Dark teal-black — readable on the light teal primary
   accent: '#FBBF24',
   success: '#34D399',
   warning: '#FBBF24',
@@ -64,6 +67,7 @@ export const lightColors: ThemeColors = {
   cardBorder: 'rgba(15, 23, 42, 0.04)',
   primary: '#0D9488', // Soft Teal
   primaryLight: '#2DD4BF',
+  onPrimary: '#FFFFFF', // White — readable on the darker teal primary
   accent: '#F59E0B',
   success: '#10B981',
   warning: '#F59E0B',

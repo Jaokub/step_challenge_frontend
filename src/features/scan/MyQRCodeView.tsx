@@ -17,13 +17,14 @@ interface MyQRCodeViewProps {
 export function MyQRCodeView({ user, onClose }: MyQRCodeViewProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const qrPayload = JSON.stringify({ type: 'friend', userId: user?.id || 'guest' });
+  // Canonical friend-QR format (must match the parser in the scan screen).
+  const qrPayload = `sc:friend:${user?.id || 'guest'}`;
 
   const handleShareLink = async () => {
     try {
       const link = `step-challenge://add-friend?userId=${user?.id}`;
       await Share.share({
-        message: `Add me as a friend on Step Challenge! ${link}`,
+        message: t('scan.shareMessage', { link }),
         url: link,
       });
     } catch (error) {

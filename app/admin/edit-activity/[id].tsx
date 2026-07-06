@@ -35,7 +35,7 @@ export default function EditActivityScreen() {
 
   const handleUpdate = () => {
     if (!title || !goal || !startDate || !endDate) {
-      Alert.alert(t('common.error'), t('admin.fillRequiredFields'));
+      showToast(t('admin.fillRequiredFields'), 'error');
       return;
     }
     // TODO: Call API to update activity
@@ -44,10 +44,11 @@ export default function EditActivityScreen() {
   };
 
   const handleDelete = () => {
+    // Destructive action → OS confirm dialog is appropriate here.
     Alert.alert(t('admin.deleteWarningTitle'), t('admin.deleteWarningDesc'), [
-      { text: 'Cancel', style: 'cancel' },
-      { 
-        text: 'Delete', 
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () => {
           // TODO: Call API to delete

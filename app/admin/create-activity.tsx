@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useToast } from '../../src/contexts/ToastContext';
 import { FormInput, FormDatePicker } from '../../src/features/admin/ActivityFormComponents';
-import activityService from '../../src/services/activityService';
+import activityService from '../../src/features/activity/activityService';
 import { PrimaryButton, ScreenHeader } from '../../src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
@@ -26,19 +26,23 @@ export default function CreateActivityScreen() {
 
   const handleCreate = async () => {
     if (!title || !goal || !startDate || !endDate) {
-      Alert.alert(t('common.error'), t('admin.fillRequiredFields'));
+      showToast(t('admin.fillRequiredFields'), 'error');
       return;
     }
     
     setIsSubmitting(true);
     try {
+      // TODO: this payload predates the current backend contract — the API
+      // requires { location, points } and has no "goal" field, so creation
+      // may fail server-side validation. The form needs location/points
+      // inputs; payload kept as-is (cast) to avoid silently changing behavior.
       const res = await activityService.createActivity({
         title,
         description,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         goal: parseInt(goal, 10)
-      });
+      } as any);
       
       if (res && res.success) {
         showToast(t('admin.activityCreated'), 'success');

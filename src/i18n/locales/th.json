@@ -106,7 +106,7 @@
     "shareLink": "แชร์ลิงก์",
     "scanQrCode": "แสกน QR Code",
     "scanSubtitle": "เพิ่มเพื่อนหรือลงทะเบียน Event",
-    "scanBtn": "แสกน",
+    "scanBtn": "สแกน",
     "myQrTab": "QR ของฉัน",
     "placeQrInFrame": "นำ QR Code ไว้ในกรอบ",
     "addFriendTitle": "เพิ่มเพื่อน",
@@ -116,7 +116,10 @@
     "defaultUser": "ผู้ใช้งาน",
     "shareQrFooter": "ให้เพื่อนแสกน QR นี้เพื่อเพิ่มเป็นเพื่อน",
     "inviteLink": "ลิงค์เชิญ",
-    "shareLinkBtn": "แชร์ลิงค์"
+    "shareLinkBtn": "แชร์ลิงค์",
+    "friendRequestSent": "ส่งคำขอเป็นเพื่อนแล้ว!",
+    "pointsEarned": "+{{points}} แต้ม",
+    "shareMessage": "มาเป็นเพื่อนกันใน Step Challenge! {{link}}"
   },
   "groups": {
     "yesterday": "เมื่อวาน",
@@ -131,7 +134,7 @@
   "profile": {
     "title": "โปรไฟล์",
     "profile_setting": "การตั้งค่าโปรไฟล์",
-    "notification" : "การแจ้งเตือน",
+    "notification": "การแจ้งเตือน",
     "editProfile": "แก้ไขโปรไฟล์",
     "healthData": "ข้อมูลสุขภาพ",
     "leaderboard": "กระดานผู้นำ",
