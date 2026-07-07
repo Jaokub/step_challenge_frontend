@@ -1,81 +1,64 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import activityService from './activityService';
+import { queryKeys } from '../../constants/queryKeys';
 import type { Activity } from '../../types';
 
-export function useActivities() {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+const statusMap: Record<string, string> = {
+  upcoming: 'UPCOMING',
+  ongoing: 'ONGOING',
+  past: 'COMPLETED',
+};
 
-  const loadActivities = async (pageNumber: number, filter: string, isRefresh = false) => {
-    try {
-      const statusMap: Record<string, string> = {
-        upcoming: 'UPCOMING',
-        ongoing: 'ONGOING',
-        past: 'COMPLETED'
-      };
-      
-      const response = await activityService.getActivities({ 
-        page: pageNumber, 
-        limit: 10, 
-        status: filter !== 'all' ? statusMap[filter] : undefined 
+export function useActivities(filter: string) {
+  const {
+    data,
+    isPending,
+    isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.activities.list(filter),
+    queryFn: async ({ pageParam }) => {
+      const response = await activityService.getActivities({
+        page: pageParam,
+        limit: 10,
+        status: filter !== 'all' ? statusMap[filter] : undefined,
       });
-
-      if (!response.success) {
-        return; // Early return on failure
+      if (!response.success) throw new Error('Failed to load activities');
+      return response.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.pagination;
+      if (pagination && pagination.page < pagination.totalPages) {
+        return pagination.page + 1;
       }
+      return undefined;
+    },
+  });
 
-      const newActivities = response.data.activities;
-      
-      if (isRefresh) {
-        setActivities(newActivities);
-      } else {
-        setActivities(prev => [...prev, ...newActivities]);
-      }
-      
-      setHasMore(response.data.pagination?.page < response.data.pagination?.totalPages);
-    } catch (err) {
-      console.warn('Activities fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setLoadingMore(false);
+  const activities: Activity[] = data?.pages.flatMap((page) => page.activities) ?? [];
+
+  const refresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage && !isPending) {
+      fetchNextPage();
     }
-  };
-
-  const refresh = useCallback(async (filter: string) => {
-    setRefreshing(true);
-    setPage(1);
-    await loadActivities(1, filter, true);
-  }, []);
-
-  const fetchInitial = useCallback(async (filter: string) => {
-    setLoading(true);
-    setPage(1);
-    await loadActivities(1, filter, true);
-  }, []);
-
-  const loadMore = useCallback(async (filter: string) => {
-    if (hasMore && !loadingMore && !loading) {
-      setLoadingMore(true);
-      const nextPage = page + 1;
-      setPage(nextPage);
-      await loadActivities(nextPage, filter);
-    }
-  }, [hasMore, loadingMore, loading, page]);
+  }, [hasNextPage, isFetchingNextPage, isPending, fetchNextPage]);
 
   return {
     activities,
-    loading,
-    refreshing,
-    loadingMore,
-    hasMore,
+    loading: isPending,
+    refreshing: isRefetching && !isFetchingNextPage,
+    loadingMore: isFetchingNextPage,
+    hasMore: hasNextPage ?? false,
     refresh,
-    fetchInitial,
-    loadMore
+    loadMore,
   };
 }

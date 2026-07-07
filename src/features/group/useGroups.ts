@@ -1,93 +1,99 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import groupService from './groupService';
+import { queryKeys } from '../../constants/queryKeys';
 import type { AppGroup, GroupMember } from '../../types';
 
 export function useGroups(active: boolean) {
-  const [groups, setGroups] = useState<AppGroup[]>([]);
-  const [groupMembers, setGroupMembers] = useState<Record<string, GroupMember[]>>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchGroups = useCallback(async () => {
-    try {
+  const groupsQuery = useQuery({
+    queryKey: queryKeys.groups.list,
+    queryFn: async () => {
       const res = await groupService.getGroups();
-      if (res.success) setGroups(res.data);
-    } catch (error: any) {
-      console.warn('Error fetching groups:', error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
+      if (!res.success) throw new Error('Failed to load groups');
+      return res.data;
+    },
+    enabled: active,
+  });
 
-  useEffect(() => {
-    if (active) {
-      setIsLoading(true);
-      fetchGroups();
-    }
-  }, [active, fetchGroups]);
+  // Members live in the query cache (per-group key); this local mirror keeps
+  // the same Record shape the screen already renders from, and re-renders
+  // when a fetch resolves.
+  const [groupMembers, setGroupMembers] = useState<Record<string, GroupMember[]>>({});
 
-  const fetchGroupMembers = useCallback(async (groupId: string, force?: boolean) => {
-    if (!force && groupMembers[groupId]) return;
-    try {
-      const res = await groupService.getGroupMembers(groupId);
-      if (res.success) {
-        setGroupMembers(prev => ({ ...prev, [groupId]: res.data }));
+  const fetchGroupMembers = useCallback(
+    async (groupId: string, force?: boolean) => {
+      try {
+        const options = {
+          queryKey: queryKeys.groups.members(groupId),
+          queryFn: async () => {
+            const res = await groupService.getGroupMembers(groupId);
+            if (!res.success) throw new Error('Failed to load group members');
+            return res.data;
+          },
+        };
+        // fetchQuery refetches when stale; ensureQueryData reuses cache.
+        const data = force
+          ? await queryClient.fetchQuery({ ...options, staleTime: 0 })
+          : await queryClient.ensureQueryData(options);
+        setGroupMembers((prev) => ({ ...prev, [groupId]: data }));
+      } catch (error: any) {
+        console.warn('Error fetching group members:', error);
       }
-    } catch (error: any) {
-      console.warn('Error fetching group members:', error);
-    }
-  }, [groupMembers]);
+    },
+    [queryClient]
+  );
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setGroupMembers({}); // Clear cache to refetch members
-    fetchGroups();
+    setGroupMembers({});
+    queryClient.invalidateQueries({ queryKey: [...queryKeys.groups.all, 'members'] });
+    groupsQuery.refetch();
   };
+
+  const createMutation = useMutation({
+    mutationFn: ({ name, description }: { name: string; description: string }) =>
+      groupService.createGroup(name, description),
+    onError: (error: any) => Alert.alert('Error', error.message),
+  });
+
+  const joinMutation = useMutation({
+    mutationFn: (inviteCode: string) => groupService.joinGroup(inviteCode),
+    onError: (error: any) => Alert.alert('Error', error.message),
+  });
 
   const handleCreateGroup = async (groupName: string, groupDesc: string, onSuccess: () => void) => {
     if (!groupName.trim()) return;
-    setIsSubmitting(true);
-    try {
-      const res = await groupService.createGroup(groupName.trim(), groupDesc.trim());
-      if (res.success) {
-        onSuccess();
-        handleRefresh();
-      }
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsSubmitting(false);
+    const res = await createMutation
+      .mutateAsync({ name: groupName.trim(), description: groupDesc.trim() })
+      .catch(() => null);
+    if (res?.success) {
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
     }
   };
 
   const handleJoinGroup = async (inviteCode: string, onSuccess: () => void) => {
     if (!inviteCode.trim()) return;
-    setIsSubmitting(true);
-    try {
-      const res = await groupService.joinGroup(inviteCode.trim());
-      if (res.success) {
-        onSuccess();
-        handleRefresh();
-      }
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsSubmitting(false);
+    const res = await joinMutation.mutateAsync(inviteCode.trim()).catch(() => null);
+    if (res?.success) {
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
     }
   };
+
+  const groups: AppGroup[] = groupsQuery.data ?? [];
 
   return {
     groups,
     groupMembers,
-    isLoading,
-    isRefreshing,
-    isSubmitting,
+    isLoading: groupsQuery.isPending,
+    isRefreshing: groupsQuery.isRefetching,
+    isSubmitting: createMutation.isPending || joinMutation.isPending,
     handleRefresh,
     handleCreateGroup,
     handleJoinGroup,
-    fetchGroupMembers
+    fetchGroupMembers,
   };
 }

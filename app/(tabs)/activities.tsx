@@ -1,9 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { ScreenHeader, HeaderIconButton, AppText } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
@@ -24,15 +23,8 @@ export default function ActivitiesScreen() {
     refreshing,
     loadingMore,
     refresh,
-    fetchInitial,
     loadMore
-  } = useActivities();
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchInitial(filter);
-    }, [filter, fetchInitial])
-  );
+  } = useActivities(filter);
 
   const filteredActivities = activities.filter(a => 
     a.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -126,8 +118,8 @@ export default function ActivitiesScreen() {
           data={filteredActivities}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh(filter)} tintColor={colors.primary} />}
-          onEndReached={() => loadMore(filter)}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />}
+          onEndReached={loadMore}
           onEndReachedThreshold={0.3}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderListEmpty}

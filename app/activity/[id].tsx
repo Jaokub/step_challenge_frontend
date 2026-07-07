@@ -1,5 +1,6 @@
 import { AppText } from '../../src/components';
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import {
 } from '../../src/components';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import activityService from '../../src/features/activity/activityService';
+import { queryKeys } from '../../src/constants/queryKeys';
 import type { Activity } from '../../src/types';
 import { formatDate } from '../../src/utils/formatDate';
 
@@ -28,33 +30,19 @@ export default function ActivityDetailScreen() {
   const { isAdmin } = useAuth();
   const { colors } = useTheme();
 
-  const [activity, setActivity] = useState<Activity | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { data, isPending: loading, isRefetching: refreshing, refetch } = useQuery({
+    queryKey: queryKeys.activities.detail(id ?? ''),
+    queryFn: async () => {
+      const response = await activityService.getActivityById(id!);
+      if (!response.success) throw new Error('Failed to load activity');
+      return response.data;
+    },
+    enabled: !!id,
+  });
 
-  const fetchActivity = useCallback(async () => {
-    if (!id) return;
-    try {
-      const response = await activityService.getActivityById(id);
-      if (response.success) {
-        setActivity(response.data);
-      }
-    } catch (err) {
-      console.warn('Activity fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [id]);
+  const activity: Activity | null = data ?? null;
 
-  useEffect(() => {
-    fetchActivity();
-  }, [fetchActivity]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchActivity();
-  };
+  const onRefresh = () => refetch();
 
   if (loading) {
     return <LoadingScreen />;

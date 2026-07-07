@@ -1,5 +1,6 @@
 import { AppText } from '../src/components';
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import {
 import { spacing, borderRadius, fontSize } from '../src/constants/theme';
 import healthService from '../src/features/health/healthService';
 import { useAuth } from '../src/contexts/AuthContext';
+import { queryKeys } from '../src/constants/queryKeys';
 import type { HealthSummary, HealthRecord } from '../src/types';
 import { formatDate } from '../src/utils/formatDate';
 
@@ -26,40 +28,24 @@ export default function HealthScreen() {
   const { showToast } = useToast();
   const { user } = useAuth();
 
-  const [summary, setSummary] = useState<HealthSummary | null>(null);
-  const [history, setHistory] = useState<HealthRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchHealthData = useCallback(async () => {
-    try {
+  const { data, isPending: loading, isRefetching: refreshing, refetch } = useQuery({
+    queryKey: [...queryKeys.health.summary, 'screen'],
+    queryFn: async () => {
       const [summaryRes, historyRes] = await Promise.all([
         healthService.getHealthSummary(),
         healthService.getHealthHistory({ limit: 7 }),
       ]);
+      return {
+        summary: summaryRes.success ? summaryRes.data : null,
+        history: historyRes.success ? historyRes.data : [],
+      };
+    },
+  });
 
-      if (summaryRes.success) {
-        setSummary(summaryRes.data);
-      }
-      if (historyRes.success) {
-        setHistory(historyRes.data);
-      }
-    } catch (err) {
-      console.warn('Health data fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const summary: HealthSummary | null = data?.summary ?? null;
+  const history: HealthRecord[] = data?.history ?? [];
 
-  useEffect(() => {
-    fetchHealthData();
-  }, [fetchHealthData]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchHealthData();
-  };
+  const onRefresh = () => refetch();
 
   if (loading) {
     return <LoadingScreen />;

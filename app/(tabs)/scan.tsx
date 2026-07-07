@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import QRCode from 'react-native-qrcode-svg';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../src/constants/queryKeys';
 import { AppText, ScreenHeader } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -19,6 +21,7 @@ export default function ScanScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -105,10 +108,17 @@ export default function ScanScreen() {
 
       if (scannedUserId) {
         await friendService.sendFriendRequest(scannedUserId);
+        queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
         setResult({ success: true, message: t('scan.friendRequestSent') });
       } else {
         const response = await checkinService.checkinWithQR(data);
         const pointsAwarded = response.data?.pointsAwarded ?? 0;
+        // A check-in changes points, streak, and attendance — refresh
+        // everything that displays them.
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.personal });
+        queryClient.invalidateQueries({ queryKey: queryKeys.users.profileScreen });
+        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
         setResult({
           success: true,
           message: pointsAwarded > 0

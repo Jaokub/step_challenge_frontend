@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 import { useToast } from '../../src/contexts/ToastContext';
 import { FormInput, FormDateField } from '../../src/features/admin/ActivityFormComponents';
 import activityService from '../../src/features/activity/activityService';
+import { queryKeys } from '../../src/constants/queryKeys';
 import { PrimaryButton, ScreenHeader } from '../../src/components';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
@@ -15,6 +17,7 @@ export default function CreateActivityScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -60,6 +63,8 @@ export default function CreateActivityScreen() {
       });
 
       if (res && res.success) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.personal });
         showToast(t('admin.activityCreated'), 'success');
         setTimeout(() => router.back(), 1000);
       } else {

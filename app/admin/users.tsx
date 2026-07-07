@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -7,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen } from '../../src/components';
 import userService from '../../src/features/auth/userService';
+import { queryKeys } from '../../src/constants/queryKeys';
 import { spacing, fontSize } from '../../src/constants/theme';
 
 export default function UsersManagementScreen() {
@@ -14,29 +16,21 @@ export default function UsersManagementScreen() {
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  const { data, isPending: loading, error: queryError, refetch: fetchUsers } = useQuery({
+    queryKey: queryKeys.users.list,
+    queryFn: async () => {
       const res = await userService.getAllUsers();
       if (res && res.success && res.data) {
-        setUsers(res.data.users || (res.data as any));
+        return (res.data.users || (res.data as any)) as any[];
       }
-    } catch (err: any) {
-      console.error('Failed to fetch users', err);
-      setError(err?.response?.data?.message || t('common.cannotLoadData'));
-    } finally {
-      setLoading(false);
-    }
-  };
+      throw new Error(t('common.cannotLoadData'));
+    },
+  });
 
-  React.useEffect(() => {
-    fetchUsers();
-  }, []);
+  const users: any[] = data ?? [];
+  const error: string | null = queryError
+    ? (queryError as any)?.response?.data?.message || (queryError as any)?.message || t('common.cannotLoadData')
+    : null;
 
   const filteredUsers = users.filter(user => 
     user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 

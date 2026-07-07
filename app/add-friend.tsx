@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { View, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -9,6 +10,7 @@ import { useTheme } from '../src/contexts/ThemeContext';
 import { useToast } from '../src/contexts/ToastContext';
 import userService from '../src/features/auth/userService';
 import friendService from '../src/features/friend/friendService';
+import { queryKeys } from '../src/constants/queryKeys';
 import type { User } from '../src/types';
 import { spacing, fontSize, borderRadius } from '../src/constants/theme';
 
@@ -18,42 +20,35 @@ export default function AddFriendScreen() {
   const { showToast } = useToast();
   const { userId } = useLocalSearchParams<{ userId: string }>();
 
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
-  const [friendProfile, setFriendProfile] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!userId) {
-      setError(t('friend.invalidUserId'));
-      setLoading(false);
-      return;
-    }
+  const profileQuery = useQuery({
+    queryKey: queryKeys.users.profile(userId ?? ''),
+    queryFn: async () => {
+      const res = await userService.getProfile(userId!);
+      if (!res.success) throw new Error(t('friend.userNotFound'));
+      // Backend wraps the profile: { user, stats }
+      return res.data.user as User;
+    },
+    enabled: !!userId,
+    retry: false,
+  });
 
-    const fetchProfile = async () => {
-      try {
-        const res = await userService.getProfile(userId);
-        if (res.success) {
-          // Backend wraps the profile: { user, stats }
-          setFriendProfile(res.data.user);
-        } else {
-          setError(t('friend.userNotFound'));
-        }
-      } catch (err: any) {
-        setError(err?.message || t('friend.failedToFindUser'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [userId]);
+  const loading = !!userId && profileQuery.isPending;
+  const friendProfile = profileQuery.data ?? null;
+  const error: string | null = !userId
+    ? t('friend.invalidUserId')
+    : profileQuery.isError
+      ? (profileQuery.error as any)?.message || t('friend.failedToFindUser')
+      : null;
 
   const handleSendRequest = async () => {
     if (!userId) return;
     setAdding(true);
     try {
       await friendService.sendFriendRequest(userId);
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
       showToast(t('friend.requestSentSuccess'), 'success');
       setTimeout(() => router.replace('/(tabs)/profile'), 1000);
     } catch (err: any) {

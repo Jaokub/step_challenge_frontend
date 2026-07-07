@@ -1,5 +1,6 @@
 import { AppText } from '../src/components';
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import {
 } from '../src/components';
 import { spacing, borderRadius, fontSize } from '../src/constants/theme';
 import userService from '../src/features/auth/userService';
+import { queryKeys } from '../src/constants/queryKeys';
 import type { LeaderboardUser } from '../src/types';
 
 const { width } = Dimensions.get('window');
@@ -25,35 +27,19 @@ export default function LeaderboardScreen() {
   const { user: currentUser } = useAuth();
   const { colors } = useTheme();
 
-  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchLeaderboard = useCallback(async () => {
-    try {
+  const { data, isPending: loading, isRefetching: refreshing, refetch } = useQuery({
+    queryKey: queryKeys.leaderboard.global(50),
+    queryFn: async () => {
       const response = await userService.getLeaderboard({ limit: 50 });
-      if (response.success) {
-        // Backend returns: { success: true, data: { leaderboard: LeaderboardUser[], pagination: {...} } }
-        // Let's verify and parse response.data.leaderboard
-        const data = (response.data as any).leaderboard || response.data || [];
-        setLeaderboard(data);
-      }
-    } catch (err) {
-      console.warn('Leaderboard fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      if (!response.success) throw new Error('Failed to load leaderboard');
+      // Backend returns: { success: true, data: { leaderboard: LeaderboardUser[], pagination: {...} } }
+      return ((response.data as any).leaderboard || response.data || []) as LeaderboardUser[];
+    },
+  });
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [fetchLeaderboard]);
+  const leaderboard: LeaderboardUser[] = data ?? [];
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchLeaderboard();
-  };
+  const onRefresh = () => refetch();
 
   if (loading) {
     return <LoadingScreen />;

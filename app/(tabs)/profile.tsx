@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Platform, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +11,7 @@ import { useToast } from '../../src/contexts/ToastContext';
 import authService from '../../src/features/auth/authService';
 import userService from '../../src/features/auth/userService';
 import healthApiService from '../../src/services/healthApiService';
+import { queryKeys } from '../../src/constants/queryKeys';
 import type { User } from '../../src/types';
 import { 
   AppText, 
@@ -30,69 +32,68 @@ export default function ProfileScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
   const { showToast } = useToast();
   
-  const [profile, setProfile] = useState<User | null>(null);
-  const [stats, setStats] = useState({ totalCheckIns: 0, totalActivities: 0, totalGroups: 0 });
-  const [healthSummary, setHealthSummary] = useState({ 
-    totalSteps: 0, 
-    distanceKm: 0, 
-    calories: 0, 
-    activeDays: 0 
-  });
-  const [weeklyChart, setWeeklyChart] = useState<DailyStepData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    try {
+  const { data, isPending: loading, refetch } = useQuery({
+    queryKey: queryKeys.users.profileScreen,
+    queryFn: async () => {
       const result = await authService.getMe();
-      if (result.success) {
-        const user = result.data.user;
-        setProfile(user);
-        
-        // Fetch additional data in parallel
-        const [profileData, summaryData, chartData] = await Promise.all([
-          userService.getProfile(user.id).catch(() => null),
-          healthApiService.getHealthSummary().catch(() => null),
-          healthApiService.getWeeklyChartData().catch(() => null)
-        ]);
+      if (!result.success) throw new Error('Failed to load profile');
+      const user: User = result.data.user;
 
-        if (profileData && profileData.success) {
-          setStats(profileData.data.stats);
-        }
+      // Fetch additional data in parallel
+      const [profileData, summaryData, chartData] = await Promise.all([
+        userService.getProfile(user.id).catch(() => null),
+        healthApiService.getHealthSummary().catch(() => null),
+        healthApiService.getWeeklyChartData().catch(() => null)
+      ]);
 
-        if (summaryData && summaryData.success) {
-          const month = summaryData.data.monthlyTotal || { steps: 0, distanceKm: 0, calories: 0, daysWithData: 0 };
-          setHealthSummary({
-            totalSteps: month.steps,
-            distanceKm: month.distanceKm,
-            calories: month.calories,
-            activeDays: month.daysWithData,
-          });
-        }
+      const month = (summaryData && summaryData.success && summaryData.data.monthlyTotal)
+        || { steps: 0, distanceKm: 0, calories: 0, daysWithData: 0 };
 
-        if (chartData && chartData.success) {
-          setWeeklyChart(chartData.data);
-        }
-      }
-    } catch (err) {
-      console.warn('Profile fetch error:', err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      return {
+        profile: user,
+        stats: (profileData && profileData.success)
+          ? profileData.data.stats
+          : { totalCheckIns: 0, totalActivities: 0, totalGroups: 0 },
+        healthSummary: {
+          totalSteps: month.steps,
+          distanceKm: month.distanceKm,
+          calories: month.calories,
+          activeDays: month.daysWithData,
+        },
+        weeklyChart: (chartData && chartData.success) ? (chartData.data as DailyStepData[]) : [],
+      };
+    },
+  });
 
+  const profile = data?.profile ?? null;
+  const stats = data?.stats ?? { totalCheckIns: 0, totalActivities: 0, totalGroups: 0 };
+  const healthSummary = data?.healthSummary ?? { totalSteps: 0, distanceKm: 0, calories: 0, activeDays: 0 };
+  const weeklyChart = data?.weeklyChart ?? [];
+
+  // Silent background refetch every time the tab regains focus,
+  // so points/stats update after a check-in elsewhere in the app.
   useFocusEffect(
     useCallback(() => {
-      fetchData();
-    }, [fetchData])
+      refetch();
+    }, [refetch])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
         <SafeAreaView edges={['top']} style={{ paddingBottom: 8 }}>
           {/* Header */}

@@ -1,0 +1,48 @@
+/**
+ * Central query-key factory. Every useQuery/useInfiniteQuery key in the app
+ * must come from here so invalidations stay consistent.
+ *
+ * Hierarchy matters: invalidating `queryKeys.groups.all` also invalidates
+ * every key that starts with ['groups'].
+ */
+export const queryKeys = {
+  activities: {
+    all: ['activities'] as const,
+    list: (filter: string) => ['activities', 'list', filter] as const,
+    detail: (id: string) => ['activities', 'detail', id] as const,
+    checkins: (activityId: string) => ['activities', 'checkins', activityId] as const,
+  },
+  dashboard: {
+    personal: ['dashboard', 'personal'] as const,
+    admin: ['dashboard', 'admin'] as const,
+  },
+  health: {
+    summary: ['health', 'summary'] as const,
+    history: (limit: number) => ['health', 'history', limit] as const,
+    weeklyChart: ['health', 'weeklyChart'] as const,
+  },
+  leaderboard: {
+    global: (limit: number) => ['leaderboard', 'global', limit] as const,
+    scoped: (groupId: string, startDate?: string, endDate?: string) =>
+      ['leaderboard', 'scoped', groupId, startDate ?? 'none', endDate ?? 'none'] as const,
+  },
+  groups: {
+    all: ['groups'] as const,
+    list: ['groups', 'list'] as const,
+    detail: (id: string) => ['groups', 'detail', id] as const,
+    members: (id: string) => ['groups', 'members', id] as const,
+    qrcode: (id: string) => ['groups', 'qrcode', id] as const,
+  },
+  friends: {
+    all: ['friends'] as const,
+    list: ['friends', 'list'] as const,
+    requests: ['friends', 'requests'] as const,
+  },
+  users: {
+    all: ['users'] as const,
+    list: ['users', 'list'] as const,
+    profile: (id: string) => ['users', 'profile', id] as const,
+    me: ['users', 'me'] as const,
+    profileScreen: ['users', 'profileScreen'] as const,
+  },
+} as const;

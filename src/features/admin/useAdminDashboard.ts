@@ -1,28 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import dashboardService from '../dashboard/dashboardService';
-import type { AdminDashboard } from '../../types';
+import { queryKeys } from '../../constants/queryKeys';
 
 export function useAdminDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [adminData, setAdminData] = useState<AdminDashboard | null>(null);
-
-  const fetchAdminData = useCallback(async () => {
-    setLoading(true);
-    try {
+  const { data: adminData, isPending, refetch } = useQuery({
+    queryKey: queryKeys.dashboard.admin,
+    queryFn: async () => {
       const result = await dashboardService.getAdminDashboard();
-      if (result.success) {
-        setAdminData(result.data);
-      }
-    } catch (error) {
-      console.error('Error fetching admin dashboard data', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAdminData();
-  }, [fetchAdminData]);
+      if (!result.success) throw new Error('Failed to load admin dashboard');
+      return result.data;
+    },
+  });
 
   const stats = {
     totalUsers: adminData?.totalUsers || 0,
@@ -61,7 +49,7 @@ export function useAdminDashboard() {
     topActivities,
     topGroups,
     handleExportCSV,
-    loading,
-    refreshData: fetchAdminData
+    loading: isPending,
+    refreshData: refetch
   };
 }

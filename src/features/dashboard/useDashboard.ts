@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import dashboardService from './dashboardService';
 import healthService from '../health/healthService';
 import { syncTodayHealthData } from '../health/syncHealthData';
@@ -7,6 +8,7 @@ import leaderboardService from '../leaderboard/leaderboardService';
 import groupService from '../group/groupService';
 import { calculateDateRange, getCurrentDateRange, MOCK_MONTHS } from './dateRangeCalculator';
 import { aggregateStats } from './statsAggregator';
+import { queryKeys } from '../../constants/queryKeys';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/formatDate';
@@ -16,9 +18,12 @@ export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 export const MOCK_WEEKS = ['Last week', 'This week'];
 export { MOCK_MONTHS };
 
-// FIX #1: ลบ module-level MOCK_DATES ออก เพราะถูก shadow โดย inner declaration
-// และ export ไม่เคยถูกใช้จริง ย้ายมา compute ใน hook เพื่อให้ up-to-date เสมอ
-// หาก DashboardComponents ต้องการ MOCK_DATES ให้รับผ่าน return value ของ hook แทน
+interface DashboardBundle {
+  dashboard: PersonalDashboard | null;
+  healthSummary: HealthSummary | null;
+  healthHistory: HealthRecord[];
+  groups: AppGroup[];
+}
 
 export function useDashboard(colors: any) {
   const { user } = useAuth();
@@ -40,28 +45,15 @@ export function useDashboard(colors: any) {
   const [selectedMonth, setSelectedMonth] = useState(MOCK_MONTHS[today.getMonth()]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
-  // ─── Data state ───────────────────────────────────────────
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [dashboardData, setDashboardData] = useState<PersonalDashboard | null>(null);
-  const [userGroups, setUserGroups] = useState<AppGroup[]>([]);
-  const [healthSummary, setHealthSummary] = useState<HealthSummary | null>(null);
-  const [healthHistory, setHealthHistory] = useState<HealthRecord[]>([]);
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
-  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
 
-  const leaderboardCache = useRef<Record<string, any[]>>({});
-
-  // ─── Data fetching ────────────────────────────────────────
-
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      // Push today's Health Connect data to the backend first,
-      // so the summary/history we fetch below reflects the latest reading.
-      // Errors here are non-fatal — dashboard still loads with stale data.
+  // ─── Dashboard bundle (dashboard + health + groups) ───────
+  // Health sync runs first so the summary/history fetched below reflect the
+  // latest device reading. Sync errors are non-fatal — dashboard still loads
+  // with stale data.
+  const dashboardQuery = useQuery({
+    queryKey: queryKeys.dashboard.personal,
+    queryFn: async (): Promise<DashboardBundle> => {
       await syncTodayHealthData().catch((e) =>
         console.warn('[useDashboard] Health sync failed, continuing:', e)
       );
@@ -73,67 +65,58 @@ export function useDashboard(colors: any) {
         groupService.getGroups(),
       ]);
 
-      if (dashRes.success) setDashboardData(dashRes.data || null);
-      if (sumRes.success) setHealthSummary(sumRes.data || null);
-      if (histRes.success) setHealthHistory(histRes.data || []);
-      if (groupsRes?.success) setUserGroups(groupsRes.data || []);
-    } catch (err) {
-      console.error('fetchDashboardData error:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return {
+        dashboard: dashRes.success ? dashRes.data || null : null,
+        healthSummary: sumRes.success ? sumRes.data || null : null,
+        healthHistory: histRes.success ? histRes.data || [] : [],
+        groups: groupsRes?.success ? groupsRes.data || [] : [],
+      };
+    },
+  });
 
-  const fetchLeaderboard = useCallback(async () => {
-    try {
-      // FIX: Only show leaderboard skeleton when timeframe changes
-      // Small tabs and groups will update silently without skeleton on the leaderboard
+  const dashboardData = dashboardQuery.data?.dashboard ?? null;
+  const healthSummary = dashboardQuery.data?.healthSummary ?? null;
+  const healthHistory = dashboardQuery.data?.healthHistory ?? [];
+  const userGroups = dashboardQuery.data?.groups ?? [];
 
-      // แทนที่จะ hardcode ด้วย current date เสมอ
-      // ทำให้ leaderboard แสดงข้อมูลตรงกับ stats ที่ user เลือก
-      const { startDate, endDate } = getCurrentDateRange(timeframe);
+  // ─── Leaderboard ──────────────────────────────────────────
+  // Query key carries group + date range, so TanStack Query caches each
+  // combination (replaces the old hand-rolled leaderboardCache ref).
+  const { startDate, endDate } = getCurrentDateRange(timeframe);
+  const normalizeDate = (d: string | undefined) =>
+    d ? new Date(d).toISOString().split('T')[0] : undefined;
 
-      // FIX #3: normalize date string เพื่อป้องกัน cache miss จาก format ต่างกัน
-      const normalizeDate = (d: string | undefined) =>
-        d ? new Date(d).toISOString().split('T')[0] : 'none';
-
-      const cacheKey = `${selectedGroupId}_${normalizeDate(startDate)}_${normalizeDate(endDate)}`;
-
-      if (leaderboardCache.current[cacheKey]) {
-        setLeaderboardData(leaderboardCache.current[cacheKey]);
-        setIsLeaderboardLoading(false);
-        return;
-      }
-
+  const leaderboardQuery = useQuery({
+    queryKey: queryKeys.leaderboard.scoped(
+      selectedGroupId,
+      normalizeDate(startDate),
+      normalizeDate(endDate)
+    ),
+    queryFn: async () => {
       const params = { startDate, endDate };
       const res = selectedGroupId === 'friends'
         ? await leaderboardService.getFriendsLeaderboard(params)
         : await leaderboardService.getGroupLeaderboard(selectedGroupId, params);
+      if (!res?.success) throw new Error('Failed to load leaderboard');
+      return res.data as any[];
+    },
+  });
 
-      if (!res?.success) return;
-
-      // Keep top 5 but ensure the current user is always included
-      let top5 = res.data.slice(0, 5);
-      const myData = res.data.find((u: any) => u.id === user?.id);
-      if (myData && !top5.some((u: any) => u.id === myData.id)) {
-        top5 = [...top5, myData];
-      }
-
-      leaderboardCache.current[cacheKey] = top5;
-      setLeaderboardData(top5);
-    } catch (error) {
-      console.error('fetchLeaderboard error:', error);
-    } finally {
-      setIsLeaderboardLoading(false);
+  // Keep top 5 but ensure the current user is always included
+  const leaderboardData = useMemo(() => {
+    const data = leaderboardQuery.data ?? [];
+    let top5 = data.slice(0, 5);
+    const myData = data.find((u: any) => u.id === user?.id);
+    if (myData && !top5.some((u: any) => u.id === myData.id)) {
+      top5 = [...top5, myData];
     }
-  // FIX #4: เพิ่ม selectedDate, selectedWeek, selectedMonth เข้า dependency array
-  // ให้ครบตามที่ใช้จริงข้างในฟังก์ชัน
-  }, [selectedGroupId, timeframe, selectedDate, selectedWeek, selectedMonth, user?.id]);
+    return top5;
+  }, [leaderboardQuery.data, user?.id]);
+
+  // ─── Skeleton animation timers (unchanged behavior) ───────
 
   useEffect(() => {
-    // Big tab changes -> animate BOTH top and bottom
-    setIsLeaderboardLoading(true);
+    // Big tab changes -> animate the stats section
     setIsStatsLoading(true);
     const timer = setTimeout(() => setIsStatsLoading(false), 400);
     return () => clearTimeout(timer);
@@ -145,17 +128,6 @@ export function useDashboard(colors: any) {
     const timer = setTimeout(() => setIsStatsLoading(false), 400);
     return () => clearTimeout(timer);
   }, [selectedDate, selectedWeek, selectedMonth]);
-
-  useEffect(() => {
-    // Group changes -> animate BOTTOM ONLY
-    // Since fetchLeaderboard sets isLeaderboardLoading(false) when done,
-    // we only need to set it to true here. But wait, fetchLeaderboard doesn't set it to false if it's already fetching?
-    // fetchLeaderboard DOES set it to false in `finally`.
-    setIsLeaderboardLoading(true);
-  }, [selectedGroupId]);
-
-  useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
-  useEffect(() => { fetchLeaderboard(); }, [fetchLeaderboard]);
 
   // ─── Derived stats ────────────────────────────────────────
 
@@ -220,12 +192,12 @@ export function useDashboard(colors: any) {
     currentLeaderboard,
     upcomingEvents,
     svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
-    loading,
-    error,
+    loading: dashboardQuery.isPending,
+    error: dashboardQuery.isError,
     hasData: dashboardData !== null,
-    isLeaderboardLoading,
+    isLeaderboardLoading: leaderboardQuery.isPending || leaderboardQuery.isFetching,
     isStatsLoading,
-    refreshDashboard: fetchDashboardData,
+    refreshDashboard: dashboardQuery.refetch,
     currentStreak: dashboardData?.currentStreak || 0,
   };
 }
