@@ -89,7 +89,7 @@ const MonthYearPicker: React.FC<MonthYearPickerProps> = ({
                   {inner}
                 </LinearGradient>
               ) : (
-                <View style={{ paddingVertical: 12, alignItems: 'center', backgroundColor: colors.background }}>
+                <View style={{ paddingVertical: 12, alignItems: 'center', backgroundColor: colors.inputBackground }}>
                   {inner}
                 </View>
               )}

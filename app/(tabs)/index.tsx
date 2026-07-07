@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { layout } from '../../src/constants/theme';
 import { Skeleton, ErrorState } from '../../src/components';
 import { useDashboard } from '../../src/features/dashboard/useDashboard';
 import { 
@@ -80,13 +81,20 @@ export default function DashboardScreen() {
         }
       >
         {loading ? (
-          <View style={{ padding: 20, gap: 20 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Skeleton width="48%" height={120} borderRadius={16} />
-              <Skeleton width="48%" height={120} borderRadius={16} />
+          <View style={{ paddingHorizontal: layout.screenPaddingX, gap: layout.sectionGap }}>
+            {/* goal card */}
+            <Skeleton width="100%" height={148} borderRadius={26} />
+            {/* stat cards */}
+            <View style={{ flexDirection: 'row', gap: layout.cardGap }}>
+              <Skeleton width="31.5%" height={108} borderRadius={22} />
+              <Skeleton width="31.5%" height={108} borderRadius={22} />
+              <Skeleton width="31.5%" height={108} borderRadius={22} />
             </View>
-            <Skeleton width="100%" height={200} borderRadius={16} />
-            <Skeleton width="100%" height={150} borderRadius={16} />
+            {/* ranking rows */}
+            <View style={{ gap: 10 }}>
+              <Skeleton width={120} height={22} borderRadius={6} />
+              {[1, 2, 3, 4].map((i) => <Skeleton key={i} width="100%" height={64} borderRadius={20} />)}
+            </View>
           </View>
         ) : error && !hasData ? (
           <View style={{ minHeight: 400 }}>

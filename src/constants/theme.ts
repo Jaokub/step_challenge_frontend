@@ -64,7 +64,7 @@ export const lightColors: ThemeColors = {
   surface: '#FFFFFF',
   card: '#FFFFFF',
   cardShadow: 'rgba(15, 23, 42, 0.05)',
-  cardBorder: 'rgba(15, 23, 42, 0.04)',
+  cardBorder: 'rgba(15, 23, 42, 0.09)', // visible hairline so white cards separate from the off-white bg
   primary: '#12b39c', // Teal accent that pairs with the teal→lime gradient
   primaryLight: '#38e8c6',
   onPrimary: '#07201b', // Deep teal-black — readable on the light teal/lime gradient
@@ -97,6 +97,18 @@ export const spacing = {
   '3xl': 32,
   '4xl': 40,
   '5xl': 48,
+} as const;
+
+/**
+ * Central layout rhythm — the single source of truth for screen padding and the
+ * vertical gaps between UI blocks. Pull from here (do not hardcode 20 / 14 / 12)
+ * so spacing stays consistent across screens.
+ */
+export const layout = {
+  screenPaddingX: 20, // left/right padding for screen content
+  sectionGap: 20,     // vertical gap between major sections (goal card, stats, ranking…)
+  headerGap: 14,      // vertical gap between header sub-blocks (greeting, month nav, toggle…)
+  cardGap: 12,        // gap between cards sitting in the same row
 } as const;
 
 export const borderRadius = {
