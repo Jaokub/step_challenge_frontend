@@ -113,7 +113,10 @@
     "showMore": "ดูรายละเอียดเพิ่มเติม",
     "showLess": "ย่อรายละเอียด",
     "expectedSteps": "ก้าวที่คาดไว้",
-    "capacity": "จำนวนที่รับ"
+    "capacity": "จำนวนที่รับ",
+    "daysLeft": "เหลืออีก {{count}} วัน",
+    "today": "วันนี้",
+    "ended": "จบแล้ว"
   },
   "scan": {
     "title": "สแกน QR",

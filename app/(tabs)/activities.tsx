@@ -122,13 +122,6 @@ export default function ActivitiesScreen() {
           onEndReachedThreshold={0.3}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderListEmpty}
-          ListHeaderComponent={
-            filter === 'upcoming' && filteredActivities.length > 0 ? (
-              <AppText variant="body-semiBold" style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-                {t('activities.thisWeek')}
-              </AppText>
-            ) : null
-          }
           renderItem={({ item }) => <ActivityCard activity={item} />}
           ListFooterComponent={
             loadingMore ? (
@@ -191,10 +184,6 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 14,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    marginBottom: spacing.md,
   },
   listContent: {
     paddingHorizontal: spacing.xl,

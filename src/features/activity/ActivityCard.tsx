@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -14,15 +14,11 @@ import { isMockActivity } from './mockActivities';
 const GRAD_START = { x: 0, y: 0 };
 const GRAD_END = { x: 1, y: 1 };
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 interface ActivityCardProps {
   activity: Activity;
 }
 
-/** Derives the day/month badge text and a time label (falling back to "All day" for long spans). */
+/** Derives the day/month badge text, a time label ("All day" for long spans), and a days-remaining label. */
 function useActivityMeta(activity: Activity) {
   const { i18n, t } = useTranslation();
   const start = new Date(activity.startDate);
@@ -38,14 +34,19 @@ function useActivityMeta(activity: Activity) {
         hour: '2-digit',
         minute: '2-digit',
       });
-  return { day, month, timeStr };
+
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(start) - startOfDay(new Date())) / (1000 * 60 * 60 * 24));
+  const daysLabel = dayDiff > 0 ? t('activities.daysLeft', { count: dayDiff }) : dayDiff === 0 ? t('activities.today') : t('activities.ended');
+
+  return { day, month, timeStr, daysLabel };
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const { day, month, timeStr } = useActivityMeta(activity);
+  const { day, month, timeStr, daysLabel } = useActivityMeta(activity);
   const [expanded, setExpanded] = useState(false);
 
   const isMock = isMockActivity(activity.id);
@@ -56,6 +57,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     ? `${activity.totalDistance} ${t('dashboard.km')}`
     : `+${activity.points} pt`;
   const avatarColors = activityAccents.dateBoxText.map((c) => c[tone]);
+  // `colors.card` and `colors.inputBackground` are the same value in dark mode, so the stat
+  // chips need their own tone-aware background to actually stand out against the card.
+  const statChipBg = isDark ? colors.background : colors.inputBackground;
 
   const handleJoinPress = () => {
     if (isMock) {
@@ -65,10 +69,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     router.push(`/activity/${activity.id}`);
   };
 
-  const toggleExpand = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded((prev) => !prev);
-  };
+  const toggleExpand = () => setExpanded((prev) => !prev);
 
   const capacityText = activity.maxParticipants
     ? `${participantCount} / ${activity.maxParticipants} ${t('activity.people')}`
@@ -104,14 +105,21 @@ export function ActivityCard({ activity }: ActivityCardProps) {
           {activity.title}
         </AppText>
         <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-            <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{timeStr}</AppText>
+          <View style={styles.metaLeftGroup}>
+            <View style={styles.metaItem}>
+              <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+              <AppText style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 4 }}>{timeStr}</AppText>
+            </View>
+            <View style={[styles.metaItem, { marginLeft: 12, flexShrink: 1 }]}>
+              <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+              <AppText style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 4 }} numberOfLines={1}>
+                {activity.location}
+              </AppText>
+            </View>
           </View>
-          <View style={styles.metaItem}>
-            <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
-            <AppText style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={1}>
-              {activity.location}
+          <View style={[styles.daysChip, { backgroundColor: colors.primary + '1f' }]}>
+            <AppText variant="body-semiBold" style={{ fontSize: 11, color: colors.primary }} numberOfLines={1}>
+              {daysLabel}
             </AppText>
           </View>
         </View>
@@ -147,27 +155,27 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             </AppText>
 
             <View style={styles.statsGrid}>
-              <View style={[styles.statChip, { backgroundColor: colors.inputBackground }]}>
-                <AppText style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 2 }}>
+              <View style={[styles.statChip, { backgroundColor: statChipBg }]}>
+                <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>
                   {t('activity.people')}
                 </AppText>
-                <AppText variant="body-bold" style={{ fontSize: 13, color: colors.textPrimary }}>
+                <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>
                   {capacityText}
                 </AppText>
               </View>
               {!!activity.expectedSteps && (
-                <View style={[styles.statChip, { backgroundColor: colors.inputBackground }]}>
-                  <AppText style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 2 }}>
+                <View style={[styles.statChip, { backgroundColor: statChipBg }]}>
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>
                     {t('activities.expectedSteps')}
                   </AppText>
-                  <AppText variant="body-bold" style={{ fontSize: 13, color: colors.textPrimary }}>
+                  <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>
                     {activity.expectedSteps.toLocaleString()}
                   </AppText>
                 </View>
               )}
-              <View style={[styles.statChip, { backgroundColor: colors.inputBackground }]}>
-                <AppText style={{ fontSize: 11, color: colors.textSecondary, marginBottom: 2 }}>pt</AppText>
-                <AppText variant="body-bold" style={{ fontSize: 13, color: colors.primary }}>
+              <View style={[styles.statChip, { backgroundColor: statChipBg }]}>
+                <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>pt</AppText>
+                <AppText variant="body-bold" style={{ fontSize: 14, color: colors.primary }}>
                   +{activity.points}
                 </AppText>
               </View>
@@ -223,13 +231,24 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 14,
+  },
+  metaLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    marginRight: 8,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+  },
+  daysChip: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   footerRow: {
     flexDirection: 'row',
