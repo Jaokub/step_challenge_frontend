@@ -20,6 +20,15 @@ export default function TabsLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
+  const tabIcon =
+    (name: string) =>
+    ({ color, focused, size }: { color: string; focused: boolean; size: number }) => (
+      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name={(focused ? name : `${name}-outline`) as any} size={size} color={color} />
+        {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
+      </View>
+    );
+
   return (
     <Tabs
       screenListeners={{
@@ -48,12 +57,7 @@ export default function TabsLayout() {
         options={{
           title: t('dashboard.greeting'),
           tabBarLabel: t('tabs.home'),
-          tabBarIcon: ({ color, focused, size }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-            </View>
-          ),
+          tabBarIcon: tabIcon('home'),
         }}
       />
       <Tabs.Screen
@@ -61,12 +65,7 @@ export default function TabsLayout() {
         options={{
           title: t('activities.title'),
           tabBarLabel: t('tabs.activities'),
-          tabBarIcon: ({ color, focused, size }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? "barbell" : "barbell-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-            </View>
-          ),
+          tabBarIcon: tabIcon('barbell'),
         }}
       />
       <Tabs.Screen
@@ -74,12 +73,7 @@ export default function TabsLayout() {
         options={{
           title: t('scan.title'),
           tabBarLabel: t('tabs.scan'),
-          tabBarIcon: ({ color, focused, size }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? "qr-code" : "qr-code-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-            </View>
-          ),
+          tabBarIcon: tabIcon('qr-code'),
         }}
       />
       <Tabs.Screen
@@ -87,12 +81,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.friendsAndGroups'),
           tabBarLabel: t('tabs.friends'),
-          tabBarIcon: ({ color, focused, size }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-            </View>
-          ),
+          tabBarIcon: tabIcon('people'),
         }}
       />
       <Tabs.Screen
@@ -100,12 +89,7 @@ export default function TabsLayout() {
         options={{
           title: t('profile.title'),
           tabBarLabel: t('tabs.profile'),
-          tabBarIcon: ({ color, focused, size }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
-              {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-            </View>
-          ),
+          tabBarIcon: tabIcon('person'),
         }}
       />
     </Tabs>

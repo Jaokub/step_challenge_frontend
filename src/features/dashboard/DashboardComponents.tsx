@@ -7,7 +7,8 @@ import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 're
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { AppText, EmptyState, Skeleton, MonthYearPicker } from '../../components';
-import { gradients, layout } from '../../constants/theme';
+import { gradients, layout, dashboardAccents } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const GRAD_START = { x: 0, y: 0 };
@@ -26,10 +27,10 @@ const ActiveBg = ({ active, colors, style, children }: any) =>
     <View style={[style, { backgroundColor: colors.inputBackground }]}>{children}</View>
   );
 
-/** Renders text painted with the brand gradient. */
-const GradientText = ({ children, style }: any) => (
+/** Renders text painted with a gradient (defaults to the brand gradient). */
+const GradientText = ({ children, style, colors: gradColors = gradients.primary }: any) => (
   <MaskedView maskElement={<AppText variant="heading-extraBold" style={style}>{children}</AppText>}>
-    <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END}>
+    <LinearGradient colors={gradColors as any} start={GRAD_START} end={GRAD_END}>
       <AppText variant="heading-extraBold" style={[style, { opacity: 0 }]}>{children}</AppText>
     </LinearGradient>
   </MaskedView>
@@ -171,26 +172,37 @@ export const DashboardHeader = ({
 // ── DashboardStats ────────────────────────────────────────────
 export const DashboardStats = ({ stats, svgProps, colors, isLoading, timeframe }: any) => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps, goal } = svgProps;
+
+  const tone = isDark ? 'dark' : 'light';
+  const goalCardColors = isDark ? gradients.goalCard : gradients.goalCardLight;
+  const goalTextColors = isDark ? gradients.goalText : gradients.goalTextLight;
+  const goalLabelColor = dashboardAccents.goalLabel[tone];
+  const ringTrack = dashboardAccents.ringTrack[tone];
 
   const progressPercent = Math.min(100, Math.floor((currentSteps / goal) * 100));
   const goalLabel = timeframe === 'Weekly' ? t('dashboard.goalWeekly') : timeframe === 'Monthly' ? t('dashboard.goalMonthly') : t('dashboard.goalDaily');
   const goalDetail = t('dashboard.goalOf', { current: currentSteps.toLocaleString(), goal: goal.toLocaleString() });
 
+  const primaryTint = isDark ? 'rgba(52,224,192,0.14)' : 'rgba(13,148,136,0.14)';
+  const kcalTint = isDark ? 'rgba(255,169,77,0.14)' : 'rgba(255,169,77,0.16)';
+  const kmTint = isDark ? 'rgba(77,171,247,0.14)' : 'rgba(77,171,247,0.16)';
+
   return (
     <View style={{ paddingHorizontal: layout.screenPaddingX }}>
-      {/* Goal card (stays dark in both themes for contrast) */}
-      <LinearGradient colors={gradients.goalCard as any} start={{ x: 0.2, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: 22, borderWidth: 1, borderColor: 'rgba(56,232,198,0.18)', marginBottom: layout.sectionGap, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Goal card */}
+      <LinearGradient colors={goalCardColors as any} start={{ x: 0.2, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: 22, borderWidth: 1, borderColor: dashboardAccents.goalCardBorder[tone], marginBottom: layout.sectionGap, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1 }}>
-          <AppText style={{ color: '#9fc7bd', fontSize: 13, marginBottom: 8 }}>{goalLabel}</AppText>
+          <AppText style={{ color: goalLabelColor, fontSize: 13, marginBottom: 8 }}>{goalLabel}</AppText>
           <View style={{ height: 50, justifyContent: 'center' }}>
             {isLoading ? (
               <Skeleton width={96} height={46} borderRadius={8} />
             ) : (
-              <GradientText style={{ fontSize: 46, lineHeight: 50 }}>{progressPercent}%</GradientText>
+              <GradientText colors={goalTextColors} style={{ fontSize: 46, lineHeight: 50 }}>{progressPercent}%</GradientText>
             )}
           </View>
-          <AppText style={{ color: '#9fc7bd', fontSize: 13, marginTop: 8 }}>{goalDetail}</AppText>
+          <AppText style={{ color: goalLabelColor, fontSize: 13, marginTop: 8 }}>{goalDetail}</AppText>
         </View>
 
         <View style={{ width: 104, height: 104, marginLeft: 12 }}>
@@ -201,7 +213,7 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading, timeframe }
                 <Stop offset="1" stopColor={gradients.primary[1]} />
               </SvgLinearGradient>
             </Defs>
-            <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke="rgba(255,255,255,0.08)" strokeWidth={SV_STROKE} fill="none" />
+            <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={ringTrack} strokeWidth={SV_STROKE} fill="none" />
             {!isLoading && (
               <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke="url(#ringGrad)" strokeWidth={SV_STROKE} fill="none" strokeLinecap="round" strokeDasharray={SV_CIRCUMFERENCE} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${SV_SIZE / 2} ${SV_SIZE / 2})`} />
             )}
@@ -212,14 +224,14 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading, timeframe }
         </View>
       </LinearGradient>
 
-      {/* Stat cards */}
+      {/* Stat cards — recessed grey (colors.inputBackground) in both themes */}
       <View style={{ flexDirection: 'row', gap: layout.cardGap, marginBottom: layout.sectionGap }}>
         {[
-          { icon: 'footsteps', iconColor: colors.primary, bgColor: 'rgba(52,224,192,0.14)', value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
-          { icon: 'flame', iconColor: colors.warning, bgColor: 'rgba(255,169,77,0.14)', value: Number(stats.activeCalories || 0).toLocaleString(), label: t('dashboard.kcal') },
-          { icon: 'location', iconColor: '#4dabf7', bgColor: 'rgba(77,171,247,0.14)', value: Number(stats.distance || 0).toFixed(2), label: t('dashboard.km') },
+          { icon: 'footsteps', iconColor: colors.primary, bgColor: primaryTint, value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
+          { icon: 'flame', iconColor: dashboardAccents.kcalIcon[tone], bgColor: kcalTint, value: Number(stats.activeCalories || 0).toLocaleString(), label: t('dashboard.kcal') },
+          { icon: 'location', iconColor: dashboardAccents.kmIcon[tone], bgColor: kmTint, value: Number(stats.distance || 0).toFixed(2), label: t('dashboard.km') },
         ].map(({ icon, iconColor, bgColor, value, label }) => (
-          <View key={label} style={{ flex: 1, backgroundColor: colors.card, borderRadius: 22, padding: 16, gap: 10, minHeight: 108, borderWidth: 1, borderColor: colors.cardBorder }}>
+          <View key={label} style={{ flex: 1, backgroundColor: colors.inputBackground, borderRadius: 22, padding: 16, gap: 10, minHeight: 108 }}>
             <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: bgColor, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={icon as any} size={18} color={iconColor} />
             </View>
@@ -237,6 +249,11 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading, timeframe }
 // ── DashboardLeaderboard ──────────────────────────────────────
 export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelectedGroupId, userGroups, colors, isLoading }: any) => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
+  const tone = isDark ? 'dark' : 'light';
+  const rank1Fill = dashboardAccents.rank1Fill[tone];
+  const rank1Border = dashboardAccents.rank1Border[tone];
+  const avatarMuted = dashboardAccents.avatarMuted[tone];
 
   let displayList: any[] = [];
   if (leaderboard && leaderboard.length > 0) {
@@ -272,7 +289,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
       <View style={{ gap: 10 }}>
         {isLoading
           ? [1, 2, 3, 4].map((i) => (
-              <View key={`s-${i}`} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: colors.cardBorder }}>
+              <View key={`s-${i}`} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.inputBackground, borderRadius: 20, paddingHorizontal: 15 }}>
                 <Skeleton width={16} height={18} borderRadius={4} />
                 <Skeleton width={38} height={38} borderRadius={13} />
                 <View style={{ flex: 1, gap: 6 }}>
@@ -285,9 +302,9 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
           : displayList.map((u: any, idx: number) => {
               if (!u) {
                 return (
-                  <View key={`e-${idx}`} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: colors.cardBorder, opacity: 0.5 }}>
+                  <View key={`e-${idx}`} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.inputBackground, borderRadius: 20, paddingHorizontal: 15, opacity: 0.5 }}>
                     <AppText variant="body-bold" style={{ width: 16, fontSize: 16, lineHeight: 20, color: colors.textSecondary }}>{idx + 1}</AppText>
-                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: avatarMuted, alignItems: 'center', justifyContent: 'center' }}>
                       <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
                     </View>
                     <View style={{ flex: 1 }}><AppText style={{ fontSize: 14, lineHeight: 18, color: colors.textSecondary }}>—</AppText></View>
@@ -303,7 +320,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                       <AppText variant="body-bold" style={{ fontSize: 13, color: colors.onPrimary }}>{u.name.substring(0, 2).toUpperCase()}</AppText>
                     </LinearGradient>
                   ) : (
-                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: avatarMuted, alignItems: 'center', justifyContent: 'center' }}>
                       <AppText variant="body-bold" style={{ fontSize: 13, color: colors.textPrimary }}>{u.name.substring(0, 2).toUpperCase()}</AppText>
                     </View>
                   )}
@@ -315,11 +332,11 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                 </>
               );
               return isFirst ? (
-                <LinearGradient key={u.id} colors={['rgba(56,232,198,0.16)', 'rgba(182,242,74,0.07)'] as any} start={GRAD_START} end={GRAD_END} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: 'rgba(56,232,198,0.35)' }}>
+                <LinearGradient key={u.id} colors={rank1Fill as any} start={GRAD_START} end={GRAD_END} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: rank1Border }}>
                   {Row}
                 </LinearGradient>
               ) : (
-                <View key={u.id} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: colors.cardBorder }}>
+                <View key={u.id} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.inputBackground, borderRadius: 20, paddingHorizontal: 15 }}>
                   {Row}
                 </View>
               );
@@ -347,10 +364,10 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
         <View style={{ gap: layout.cardGap }}>
           {events.map((event: any) => (
             <TouchableOpacity key={event.id} activeOpacity={0.7} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-              style={{ backgroundColor: colors.card, borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.cardBorder }}>
+              style={{ backgroundColor: colors.inputBackground, borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-                  <View style={{ backgroundColor: 'rgba(52,224,192,0.14)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                  <View style={{ backgroundColor: `${colors.primary}24`, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
                     <AppText variant="body-semiBold" style={{ fontSize: 11, lineHeight: 15, color: colors.primary }}>{t('dashboard.upcoming')}</AppText>
                   </View>
                 </View>

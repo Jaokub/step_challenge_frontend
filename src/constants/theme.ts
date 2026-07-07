@@ -60,31 +60,31 @@ export const darkColors: ThemeColors = {
 };
 
 export const lightColors: ThemeColors = {
-  background: '#F8FAFC', // Off-white
-  surface: '#FFFFFF',
-  card: '#FFFFFF',
-  cardShadow: 'rgba(15, 23, 42, 0.05)',
-  cardBorder: 'rgba(15, 23, 42, 0.09)', // visible hairline so white cards separate from the off-white bg
-  primary: '#12b39c', // Teal accent that pairs with the teal→lime gradient
+  background: '#fbfdfc', // Near-white (Pulse light) — lets grey #eef2f0 cards pop
+  surface: '#ffffff',
+  card: '#ffffff',
+  cardShadow: 'rgba(20, 32, 29, 0.06)',
+  cardBorder: 'rgba(20, 32, 29, 0.08)',
+  primary: '#0d9488', // Teal accent
   primaryLight: '#38e8c6',
-  onPrimary: '#07201b', // Deep teal-black — readable on the light teal/lime gradient
-  accent: '#7bb800', // Lime, darkened for contrast on light backgrounds
-  success: '#12b39c',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  textPrimary: '#0F172A',
-  textSecondary: '#64748B',
-  textOnCard: '#0F172A',
-  textCardSecondary: '#64748B',
-  tabBar: '#FFFFFF',
-  tabActive: '#0D9488',
-  tabInactive: '#94A3B8',
-  inputBackground: '#F1F5F9',
-  inputBorder: '#E2E8F0',
-  inputText: '#0F172A',
-  inputPlaceholder: '#94A3B8',
-  divider: '#E2E8F0',
-  overlay: 'rgba(15, 23, 42, 0.4)',
+  onPrimary: '#07201b', // Deep teal-black — readable on the teal/lime gradient
+  accent: '#b6f24a', // Lime end of the gradient
+  success: '#0d9488',
+  warning: '#e8862b', // Orange (kcal), darkened for contrast on light
+  error: '#e5484d',
+  textPrimary: '#14201d',
+  textSecondary: '#6f7d78',
+  textOnCard: '#14201d',
+  textCardSecondary: '#6f7d78',
+  tabBar: '#fbfdfc',
+  tabActive: '#0d9488',
+  tabInactive: '#9aa5a0',
+  inputBackground: '#eef2f0', // Recessed groove / dashboard card grey
+  inputBorder: '#e2e8e5',
+  inputText: '#14201d',
+  inputPlaceholder: '#9aa5a0',
+  divider: 'rgba(20, 32, 29, 0.08)',
+  overlay: 'rgba(20, 32, 29, 0.4)',
 };
 
 export const spacing = {
@@ -165,15 +165,35 @@ export type ThemeFonts = typeof thaiFonts;
 // `primary` is the central teal→lime brand gradient (Pulse). Use it for CTAs,
 // active pills, avatars, progress rings, and highlighted text.
 export const gradients = {
-  primary: ['#38e8c6', '#b6f24a'] as const, // teal → lime
+  primary: ['#38e8c6', '#b6f24a'] as const, // teal → lime (brand)
   accent: ['#38e8c6', '#b6f24a'] as const,
   header: ['#0c1013', '#0f1416'] as const,
   headerLight: ['#38e8c6', '#b6f24a'] as const,
-  goalCard: ['#15332e', '#12201f'] as const, // subtle teal-tinted card
+  // Goal card surface — dark vs light theme
+  goalCard: ['#15332e', '#12201f'] as const,
+  goalCardLight: ['#e3f6ef', '#f0f8dd'] as const,
+  // Goal % text fill — bright teal→lime on dark, darker teal→olive on light for contrast
+  goalText: ['#38e8c6', '#b6f24a'] as const,
+  goalTextLight: ['#0d9488', '#84971f'] as const,
   success: ['#38e8c6', '#b6f24a'] as const,
   gold: ['#F59E0B', '#FCD34D'] as const,
   silver: ['#94A3B8', '#CBD5E1'] as const,
   bronze: ['#B45309', '#D97706'] as const,
+} as const;
+
+// Theme-aware accent sets consumed by dashboard cards. Index 0 = dark, 1 = light.
+export const dashboardAccents = {
+  ringTrack: { dark: 'rgba(255,255,255,0.08)', light: 'rgba(20,32,29,0.08)' },
+  goalCardBorder: { dark: 'rgba(56,232,198,0.18)', light: 'rgba(13,148,136,0.22)' },
+  goalLabel: { dark: '#9fc7bd', light: '#3f7268' },
+  rank1Fill: {
+    dark: ['rgba(56,232,198,0.16)', 'rgba(182,242,74,0.07)'] as const,
+    light: ['rgba(13,148,136,0.12)', 'rgba(182,242,74,0.10)'] as const,
+  },
+  rank1Border: { dark: 'rgba(56,232,198,0.35)', light: 'rgba(13,148,136,0.32)' },
+  avatarMuted: { dark: '#222b2e', light: '#e2e8e5' },
+  kcalIcon: { dark: '#ffa94d', light: '#e8862b' },
+  kmIcon: { dark: '#4dabf7', light: '#2b8ae8' },
 } as const;
 
 // Directional endpoints used when a component needs the raw gradient stops.
