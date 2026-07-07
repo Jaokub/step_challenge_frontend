@@ -179,6 +179,9 @@ export const gradients = {
   gold: ['#F59E0B', '#FCD34D'] as const,
   silver: ['#94A3B8', '#CBD5E1'] as const,
   bronze: ['#B45309', '#D97706'] as const,
+  // Featured activity card hero background — dark vs light theme
+  heroCard: ['#1b4d44', '#123f38'] as const,
+  heroCardLight: ['#dcf3ec', '#eef8dc'] as const,
 } as const;
 
 // Theme-aware accent sets consumed by dashboard cards. Index 0 = dark, 1 = light.
@@ -194,6 +197,21 @@ export const dashboardAccents = {
   avatarMuted: { dark: '#222b2e', light: '#e2e8e5' },
   kcalIcon: { dark: '#ffa94d', light: '#e8862b' },
   kmIcon: { dark: '#4dabf7', light: '#2b8ae8' },
+} as const;
+
+// Rotating accent set for activity list rows (date box + avatar stack dots).
+// Index by position so consecutive cards read as teal → blue → orange → teal…
+export const activityAccents = {
+  dateBoxBg: [
+    { dark: 'rgba(52,224,192,0.14)', light: 'rgba(13,148,136,0.14)' },
+    { dark: 'rgba(77,171,247,0.14)', light: 'rgba(77,171,247,0.18)' },
+    { dark: 'rgba(255,169,77,0.14)', light: 'rgba(255,169,77,0.20)' },
+  ],
+  dateBoxText: [
+    { dark: '#34e0c0', light: '#0d9488' },
+    { dark: '#4dabf7', light: '#2b8ae8' },
+    { dark: '#ffa94d', light: '#e8862b' },
+  ],
 } as const;
 
 // Directional endpoints used when a component needs the raw gradient stops.

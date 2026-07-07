@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { ScreenHeader, HeaderIconButton, AppText } from '../../src/components';
-import { spacing, borderRadius } from '../../src/constants/theme';
+import { spacing, gradients } from '../../src/constants/theme';
 import { useActivities } from '../../src/features/activity/useActivities';
 import { ActivityCard } from '../../src/features/activity/ActivityCard';
+
+const GRAD_START = { x: 0, y: 0 };
+const GRAD_END = { x: 1, y: 1 };
 
 export default function ActivitiesScreen() {
   const { t } = useTranslation();
@@ -56,13 +60,11 @@ export default function ActivitiesScreen() {
                   if (isSearching) setSearchQuery('');
                 }} 
               />
-              <HeaderIconButton 
-                icon="add" 
-                onPress={() => {}} 
-                backgroundColor={colors.primary}
-                borderColor={colors.primary}
-                iconColor="#FFFFFF"
-              />
+              <TouchableOpacity onPress={() => {}} activeOpacity={0.85}>
+                <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.addButton}>
+                  <Ionicons name="add" size={20} color={colors.onPrimary} />
+                </LinearGradient>
+              </TouchableOpacity>
             </>
           }
         />
@@ -87,21 +89,18 @@ export default function ActivitiesScreen() {
               const label = type === 'upcoming' ? t('dashboard.upcoming') : type === 'ongoing' ? t('dashboard.ongoingActivities') : t('dashboard.pastActivities');
               const isActive = filter === type;
               return (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterPill,
-                    isActive && { backgroundColor: colors.primary }
-                  ]}
-                  onPress={() => setFilter(type as any)}
-                >
-                  <AppText style={[
-                    styles.filterText,
-                    { color: isActive ? '#000000' : colors.textSecondary },
-                    isActive && { fontWeight: '600' }
-                  ]}>
-                    {label}
-                  </AppText>
+                <TouchableOpacity key={type} style={styles.filterPillWrap} activeOpacity={0.8} onPress={() => setFilter(type as any)}>
+                  {isActive ? (
+                    <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.filterPill}>
+                      <AppText variant="body-bold" style={[styles.filterText, { color: colors.onPrimary }]}>
+                        {label}
+                      </AppText>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.filterPill}>
+                      <AppText style={[styles.filterText, { color: colors.textSecondary }]}>{label}</AppText>
+                    </View>
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -123,6 +122,13 @@ export default function ActivitiesScreen() {
           onEndReachedThreshold={0.3}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={renderListEmpty}
+          ListHeaderComponent={
+            filter === 'upcoming' && filteredActivities.length > 0 ? (
+              <AppText variant="body-semiBold" style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+                {t('activities.thisWeek')}
+              </AppText>
+            ) : null
+          }
           renderItem={({ item }) => <ActivityCard activity={item} />}
           ListFooterComponent={
             loadingMore ? (
@@ -139,6 +145,13 @@ export default function ActivitiesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,18 +175,26 @@ const styles = StyleSheet.create({
   },
   filterPillContainer: {
     flexDirection: 'row',
-    borderRadius: borderRadius.lg,
-    padding: 4,
+    borderRadius: 999,
+    padding: 5,
+    gap: 4,
+  },
+  filterPillWrap: {
+    flex: 1,
+    borderRadius: 999,
+    overflow: 'hidden',
   },
   filterPill: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: borderRadius.md,
+    paddingVertical: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterText: {
     fontSize: 14,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    marginBottom: spacing.md,
   },
   listContent: {
     paddingHorizontal: spacing.xl,

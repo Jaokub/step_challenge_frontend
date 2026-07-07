@@ -311,10 +311,10 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                   </View>
                 );
               }
-              const isFirst = u.rank === 1;
+              const highlight = u.isMe;
               const Row = (
                 <>
-                  <AppText variant="body-bold" style={{ width: 16, fontSize: 16, lineHeight: 20, color: isFirst || u.isMe ? colors.primary : colors.textSecondary }}>{u.rank}</AppText>
+                  <AppText variant="body-bold" style={{ width: 16, fontSize: 16, lineHeight: 20, color: u.isMe ? colors.primary : colors.textSecondary }}>{u.rank}</AppText>
                   {u.isMe ? (
                     <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
                       <AppText variant="body-bold" style={{ fontSize: 13, color: colors.onPrimary }}>{u.name.substring(0, 2).toUpperCase()}</AppText>
@@ -331,7 +331,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                   <AppText variant="body-bold" style={{ fontSize: 15, lineHeight: 20, color: colors.textPrimary }}>{u.points} pt</AppText>
                 </>
               );
-              return isFirst ? (
+              return highlight ? (
                 <LinearGradient key={u.id} colors={rank1Fill as any} start={GRAD_START} end={GRAD_END} style={{ height: LB_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 20, paddingHorizontal: 15, borderWidth: 1, borderColor: rank1Border }}>
                   {Row}
                 </LinearGradient>

@@ -106,7 +106,14 @@
     "description": "Description",
     "myActivities": "My Activities",
     "noActivities": "No activities yet",
-    "searchActivities": "Search activities..."
+    "searchActivities": "Search activities...",
+    "thisWeek": "This week",
+    "join": "Join",
+    "mockNotice": "This is sample data — real activities will show up here once an admin creates one.",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "expectedSteps": "Expected steps",
+    "capacity": "Capacity"
   },
   "scan": {
     "title": "Scan QR",
@@ -321,7 +328,8 @@
     "noDescription": "No description for this activity",
     "creator": "Activity Creator",
     "search": "Search activities...",
-    "people": "people"
+    "people": "people",
+    "allDay": "All day"
   },
   "tabs": {
     "home": "Home",
