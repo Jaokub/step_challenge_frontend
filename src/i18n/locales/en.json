@@ -112,7 +112,7 @@
     "mockNotice": "This is sample data — real activities will show up here once an admin creates one.",
     "showMore": "Show more",
     "showLess": "Show less",
-    "expectedSteps": "Expected steps",
+    "expectedSteps": "Steps",
     "capacity": "Capacity",
     "daysLeft": "{{count}} days left",
     "today": "Today",
