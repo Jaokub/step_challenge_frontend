@@ -55,7 +55,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const heroColors = isDark ? gradients.heroCard : gradients.heroCardLight;
   const badgeLabel = activity.totalDistance
     ? `${activity.totalDistance} ${t('dashboard.km')}`
-    : `+${activity.points} pt`;
+    : `+${activity.points} ${t('activity.points')}`;
   const avatarColors = activityAccents.dateBoxText.map((c) => c[tone]);
   // `colors.card` and `colors.inputBackground` are the same value in dark mode, so the stat
   // chips need their own tone-aware background to actually stand out against the card.
@@ -71,8 +71,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
 
   const toggleExpand = () => setExpanded((prev) => !prev);
 
+  // Short form for the stat chip — the "people" label already sits above it, so no need to repeat the unit here.
   const capacityText = activity.maxParticipants
-    ? `${participantCount} / ${activity.maxParticipants} ${t('activity.people')}`
+    ? `${participantCount} / ${activity.maxParticipants}`
     : `${participantCount}${t('activity.participantsUncapped')}`;
 
   return (
@@ -174,7 +175,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
                 </View>
               )}
               <View style={[styles.statChip, { backgroundColor: statChipBg }]}>
-                <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>pt</AppText>
+                <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>
+                  {t('activity.points')}
+                </AppText>
                 <AppText variant="body-bold" style={{ fontSize: 14, color: colors.primary }}>
                   +{activity.points}
                 </AppText>
@@ -278,14 +281,12 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
   },
   statChip: {
-    flexGrow: 1,
-    minWidth: 90,
+    flex: 1,
     borderRadius: 14,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 10,
   },
   checkedInRow: {

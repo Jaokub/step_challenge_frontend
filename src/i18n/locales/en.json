@@ -327,12 +327,13 @@
     "notFound": "Activity not found",
     "start": "Start:",
     "end": "End:",
-    "participantsUncapped": " people (Unlimited)",
+    "participantsUncapped": " People (Unlimited)",
     "noDescription": "No description for this activity",
     "creator": "Activity Creator",
     "search": "Search activities...",
-    "people": "people",
-    "allDay": "All day"
+    "people": "People",
+    "allDay": "All day",
+    "points": "Points"
   },
   "tabs": {
     "home": "Home",
