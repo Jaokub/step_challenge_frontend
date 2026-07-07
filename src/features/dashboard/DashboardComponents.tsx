@@ -1,208 +1,230 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import Svg, { Circle } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
-import { AppText, EmptyState, Skeleton } from '../../components';
-import { ThemeColors } from '../../constants/theme';
-
-const MOCK_WEEKS = ['Last week', 'This week'];
-const MOCK_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const _today = new Date();
-const MOCK_DATES = Array.from(
-  { length: new Date(_today.getFullYear(), _today.getMonth() + 1, 0).getDate() },
-  (_, i) => (i + 1).toString()
-);
+import { AppText, EmptyState, Skeleton, MonthYearPicker } from '../../components';
+import { gradients } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
+const GRAD_START = { x: 0, y: 0 };
+const GRAD_END = { x: 1, y: 1 };
 
-// --- DashboardHeader ---
+// ── Shared helpers ────────────────────────────────────────────
+
+/** Fills its children with the brand gradient when `active`, else a flat card bg. */
+const ActiveBg = ({ active, colors, style, children }: any) =>
+  active ? (
+    <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={style}>
+      {children}
+    </LinearGradient>
+  ) : (
+    <View style={[style, { backgroundColor: colors.card }]}>{children}</View>
+  );
+
+/** Renders text painted with the brand gradient. */
+const GradientText = ({ children, style }: any) => (
+  <MaskedView maskElement={<AppText variant="heading-extraBold" style={style}>{children}</AppText>}>
+    <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END}>
+      <AppText variant="heading-extraBold" style={[style, { opacity: 0 }]}>{children}</AppText>
+    </LinearGradient>
+  </MaskedView>
+);
+
+const greetingKey = () => {
+  const h = new Date().getHours();
+  if (h < 12) return 'dashboard.goodMorning';
+  if (h < 17) return 'dashboard.goodAfternoon';
+  return 'dashboard.goodEvening';
+};
+
+// ── DashboardHeader ───────────────────────────────────────────
 export const DashboardHeader = ({
   timeframe, setTimeframe, selectedDate, setSelectedDate,
-  selectedWeek, setSelectedWeek, selectedMonth, setSelectedMonth, colors, username
+  selectedWeek, setSelectedWeek, refMonth, refYear, setRefMonthYear,
+  goToPrevMonth, goToNextMonth, dayTabs, colors, username,
 }: any) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
+  const monthsFull = t('months.full', { returnObjects: true }) as string[];
+  const weekdayMin = t('weekdays.min', { returnObjects: true }) as string[];
+  const displayYear = i18n.language === 'th' ? refYear + 543 : refYear;
+  const monthLabel = `${monthsFull[refMonth]} ${displayYear}`;
+  const initials = (username || 'U').substring(0, 2).toUpperCase();
+
+  // Auto-centre the selected day tab
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!scrollRef.current) return;
-      if (timeframe === 'Daily') {
-        const index = MOCK_DATES?.indexOf(selectedDate) ?? -1;
-        if (index > -1) {
-          const itemWidth = 54;
-          const offset = (index * itemWidth) - (width / 2) + (itemWidth / 2) + 20;
-          scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
-        }
-      } else if (timeframe === 'Monthly') {
-        const index = MOCK_MONTHS?.indexOf(selectedMonth) ?? -1;
-        if (index > -1) {
-          const itemWidth = 64;
-          const offset = (index * itemWidth) - (width / 2) + (itemWidth / 2) + 20;
-          scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
-        }
-      }
+      if (!scrollRef.current || timeframe !== 'Daily') return;
+      const index = parseInt(selectedDate, 10) - 1;
+      if (index < 0) return;
+      const itemWidth = 52;
+      const offset = index * itemWidth - width / 2 + itemWidth / 2 + 20;
+      scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
     }, 50);
     return () => clearTimeout(timer);
-  }, [timeframe]);
+  }, [timeframe, refMonth, refYear, selectedDate]);
 
   return (
     <View>
-      <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View>
-          <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 2 }}>{t('dashboard.hello')}</AppText>
-          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 24 }}>{t('dashboard.hello').replace(',', '')}{username ? `, ${username}` : ''} 👋</AppText>
+      {/* Greeting */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1 }}>
+          <AppText style={{ color: colors.textSecondary, fontSize: 13 }}>{t(greetingKey())} 👋</AppText>
+          <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 25, marginTop: 2 }} numberOfLines={1}>{username}</AppText>
         </View>
-        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }}>
-          <AppText variant="body-bold" style={{ color: '#fff', fontSize: 14 }}>AN</AppText>
-        </View>
+        <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+          <AppText variant="body-bold" style={{ color: colors.onPrimary, fontSize: 15 }}>{initials}</AppText>
+        </LinearGradient>
       </View>
 
-      <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
-        <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 16, padding: 4 }}>
-          {['Daily', 'Weekly', 'Monthly'].map((tf) => {
+      {/* Month navigation */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 14 }}>
+        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToPrevMonth(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="chevron-back" size={16} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setPickerOpen(true)} activeOpacity={0.7} style={{ minWidth: 150, alignItems: 'center' }}>
+          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{monthLabel}</AppText>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToNextMonth(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Timeframe toggle */}
+      <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, padding: 5, gap: 4 }}>
+          {(['Daily', 'Weekly', 'Monthly'] as const).map((tf) => {
             const isActive = timeframe === tf;
-            const tfLabel = tf === 'Daily' ? t('dashboard.daily', 'Daily') : tf === 'Weekly' ? t('dashboard.weekly', 'Weekly') : t('dashboard.monthly', 'Monthly');
+            const label = tf === 'Daily' ? t('dashboard.daily') : tf === 'Weekly' ? t('dashboard.weekly') : t('dashboard.monthly');
             return (
-              <TouchableOpacity
-                key={tf}
-                style={[{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 12 }, isActive && { backgroundColor: colors.primary }]}
-                onPress={() => {
-                  if (!isActive) Haptics.selectionAsync();
-                  setTimeframe(tf);
-                }}
-              >
-                <AppText variant={isActive ? "body-bold" : "body-regular"} style={{ fontSize: 14, color: isActive ? '#fff' : colors.textSecondary }}>{tfLabel}</AppText>
+              <TouchableOpacity key={tf} style={{ flex: 1, borderRadius: 999, overflow: 'hidden' }} activeOpacity={0.8}
+                onPress={() => { if (!isActive) Haptics.selectionAsync(); setTimeframe(tf); }}>
+                <ActiveBg active={isActive} colors={colors} style={{ paddingVertical: 9, alignItems: 'center' }}>
+                  <AppText variant="body-bold" style={{ fontSize: 14, color: isActive ? colors.onPrimary : colors.textSecondary }}>{label}</AppText>
+                </ActiveBg>
               </TouchableOpacity>
             );
           })}
         </View>
       </View>
 
+      {/* Sub-tabs */}
       <View style={{ marginBottom: 4, height: 60, justifyContent: 'center' }}>
-        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[{ paddingHorizontal: 20, gap: 10, alignItems: 'center' }, timeframe === 'Weekly' && { flexGrow: 1, justifyContent: 'center' }]}>
-          {timeframe === 'Daily' && MOCK_DATES?.map((dateStr) => {
-            const isActive = dateStr === selectedDate;
-            const isToday = dateStr === '24 May'; // Mock
-            const displayDate = dateStr.split(' ')[0];
-            return (
-              <TouchableOpacity
-                key={dateStr}
-                onPress={() => {
-                  if (!isActive) Haptics.selectionAsync();
-                  setSelectedDate(dateStr);
-                }}
-                style={{ alignItems: 'center', gap: 4 }}
-              >
-                <View style={[{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }, isActive ? { backgroundColor: colors.primary } : { backgroundColor: colors.card }]}>
-                  <AppText variant="body-bold" style={{ fontSize: 16, color: isActive ? '#fff' : (isToday ? colors.primary : colors.textSecondary) }}>{displayDate}</AppText>
-                </View>
-                {isToday && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />}
-              </TouchableOpacity>
-            );
-          })}
-          {timeframe === 'Weekly' && MOCK_WEEKS?.map((weekStr) => {
-            const isActive = weekStr === selectedWeek;
-            return (
-              <TouchableOpacity key={weekStr} style={[{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: isActive ? colors.primary : colors.card }]} onPress={() => setSelectedWeek(weekStr)}>
-                <AppText variant="body-bold" style={{ fontSize: 14, color: isActive ? '#fff' : colors.textSecondary }}>{weekStr}</AppText>
-              </TouchableOpacity>
-            );
-          })}
-          {timeframe === 'Monthly' && MOCK_MONTHS?.map((monthStr) => {
-            const isActive = monthStr === selectedMonth;
-            return (
-              <TouchableOpacity key={monthStr} style={[{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, backgroundColor: isActive ? colors.primary : colors.card }]} onPress={() => setSelectedMonth(monthStr)}>
-                <AppText variant="body-bold" style={{ fontSize: 14, color: isActive ? '#fff' : colors.textSecondary }}>{monthStr}</AppText>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        {timeframe === 'Daily' && (
+          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8, alignItems: 'center' }}>
+            {dayTabs.map((tab: any) => {
+              const isActive = tab.day.toString() === selectedDate;
+              return (
+                <TouchableOpacity key={tab.day} onPress={() => { if (!isActive) Haptics.selectionAsync(); setSelectedDate(tab.day.toString()); }} style={{ alignItems: 'center', gap: 3 }} activeOpacity={0.8}>
+                  <ActiveBg active={isActive} colors={colors} style={{ width: 44, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                    <AppText style={{ fontSize: 10, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textSecondary) }}>{weekdayMin[tab.weekdayIndex]}</AppText>
+                    <AppText variant="body-bold" style={{ fontSize: 16, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textPrimary) }}>{tab.day}</AppText>
+                  </ActiveBg>
+                  {tab.isToday && !isActive && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+        {timeframe === 'Weekly' && (
+          <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 8 }}>
+            {['Last week', 'This week'].map((wk) => {
+              const isActive = wk === selectedWeek;
+              const label = wk === 'This week' ? t('dashboard.thisWeek') : t('dashboard.lastWeek');
+              return (
+                <TouchableOpacity key={wk} style={{ flex: 1, borderRadius: 14, overflow: 'hidden' }} activeOpacity={0.8}
+                  onPress={() => { if (!isActive) Haptics.selectionAsync(); setSelectedWeek(wk); }}>
+                  <ActiveBg active={isActive} colors={colors} style={{ paddingVertical: 16, alignItems: 'center' }}>
+                    <AppText variant="body-bold" style={{ fontSize: 14, color: isActive ? colors.onPrimary : colors.textSecondary }}>{label}</AppText>
+                  </ActiveBg>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+        {timeframe === 'Monthly' && (
+          <View style={{ paddingHorizontal: 20 }}>
+            <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}>
+              <AppText variant="body-bold" style={{ fontSize: 14, color: colors.onPrimary }}>{monthsFull[refMonth]} {displayYear}</AppText>
+            </LinearGradient>
+          </View>
+        )}
       </View>
+
+      <MonthYearPicker
+        visible={pickerOpen}
+        initialMonth={refMonth}
+        initialYear={refYear}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(m, y) => setRefMonthYear(m, y)}
+      />
     </View>
   );
 };
 
-export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
-  const { t, i18n } = useTranslation();
-  const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps } = svgProps;
+// ── DashboardStats ────────────────────────────────────────────
+export const DashboardStats = ({ stats, svgProps, colors, isLoading, timeframe }: any) => {
+  const { t } = useTranslation();
+  const { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps, goal } = svgProps;
 
-  const stepGoal = 10000;
-  const progressPercent = Math.min(100, Math.floor((currentSteps / stepGoal) * 100));
-  const currentLang = i18n.language;
-  const fontFamily = currentLang === 'en' ? 'Poppins_700Bold' : 'Sarabun_700Bold';
+  const progressPercent = Math.min(100, Math.floor((currentSteps / goal) * 100));
+  const goalLabel = timeframe === 'Weekly' ? t('dashboard.goalWeekly') : timeframe === 'Monthly' ? t('dashboard.goalMonthly') : t('dashboard.goalDaily');
+  const goalDetail = t('dashboard.goalOf', { current: currentSteps.toLocaleString(), goal: goal.toLocaleString() });
 
   return (
     <View style={{ paddingHorizontal: 20 }}>
-      {/* Main Stats Card */}
-      <View style={{ backgroundColor: colors.card, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: colors.cardBorder, marginBottom: 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flex: 1 }}>
-            <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>{t('dashboard.todayGoal')}</AppText>
-
-            {/*
-              FIX #1: ล็อค minHeight ให้เท่ากับ content จริง
-              fontSize: 40 → lineHeight ประมาณ 48px
-              เพิ่ม minHeight: 48 เพื่อให้ skeleton กับ content สูงเท่ากัน
-            */}
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, minHeight: 48 }}>
-              {isLoading ? (
-                <Skeleton width={80} height={48} borderRadius={8} />
-              ) : (
-                <>
-                  <AppText variant="heading-bold" style={{ color: colors.primary, fontSize: 40, lineHeight: 48 }}>{progressPercent}%</AppText>
-                  <AppText style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 4 }}>{t('dashboard.achieved')}</AppText>
-                </>
-              )}
-            </View>
-
-            {/* FIX #2: ล็อค marginTop แทน marginBottom บน text ด้านบน เพื่อไม่ให้ progress bar กระตุก */}
-            <View style={{ marginTop: 12, height: 8, backgroundColor: colors.background, borderRadius: 4, overflow: 'hidden' }}>
-              <View style={{ height: '100%', backgroundColor: colors.primary, borderRadius: 4, width: `${progressPercent}%` }} />
-            </View>
-          </View>
-
-          {/* FIX #3: ล็อค width/height SVG container ไว้ตายตัว ให้ทั้ง skeleton และ SVG จริงใช้ขนาดเดียวกัน */}
-          <View style={{ width: 96, height: 96, marginLeft: 16 }}>
+      {/* Goal card */}
+      <LinearGradient colors={gradients.goalCard as any} start={{ x: 0.2, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: 22, borderWidth: 1, borderColor: 'rgba(56,232,198,0.18)', marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1 }}>
+          <AppText style={{ color: colors.primaryLight, fontSize: 13, marginBottom: 8 }}>{goalLabel}</AppText>
+          <View style={{ minHeight: 48, justifyContent: 'center' }}>
             {isLoading ? (
-              <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
-                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.cardBorder} strokeWidth={SV_STROKE} fill="none" />
-              </Svg>
+              <Skeleton width={90} height={46} borderRadius={8} />
             ) : (
-              <Svg width={96} height={96} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
-                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.background} strokeWidth={SV_STROKE} fill="none" />
-                <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke={colors.primary} strokeWidth={SV_STROKE} fill="none" strokeLinecap="round" strokeDasharray={SV_CIRCUMFERENCE} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${SV_SIZE / 2} ${SV_SIZE / 2})`} />
-              </Svg>
+              <GradientText style={{ fontSize: 46, lineHeight: 50 }}>{progressPercent}%</GradientText>
             )}
           </View>
+          <AppText style={{ color: colors.primaryLight, fontSize: 13, marginTop: 8 }}>{goalDetail}</AppText>
         </View>
-      </View>
 
-      {/* Stats Grid */}
+        <View style={{ width: 104, height: 104, marginLeft: 12 }}>
+          <Svg width={104} height={104} viewBox={`0 0 ${SV_SIZE} ${SV_SIZE}`}>
+            <Defs>
+              <SvgLinearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <Stop offset="0" stopColor={gradients.primary[0]} />
+                <Stop offset="1" stopColor={gradients.primary[1]} />
+              </SvgLinearGradient>
+            </Defs>
+            <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke="rgba(255,255,255,0.08)" strokeWidth={SV_STROKE} fill="none" />
+            {!isLoading && (
+              <Circle cx={SV_SIZE / 2} cy={SV_SIZE / 2} r={SV_RADIUS} stroke="url(#ringGrad)" strokeWidth={SV_STROKE} fill="none" strokeLinecap="round" strokeDasharray={SV_CIRCUMFERENCE} strokeDashoffset={strokeDashoffset} transform={`rotate(-90 ${SV_SIZE / 2} ${SV_SIZE / 2})`} />
+            )}
+          </Svg>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+            <AppText style={{ fontSize: 28 }}>🏃</AppText>
+          </View>
+        </View>
+      </LinearGradient>
+
+      {/* Stat cards */}
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
         {[
-          { icon: 'footsteps', iconColor: colors.primary, bgColor: `${colors.primary}20`, value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
-          { icon: 'flame', iconColor: colors.warning, bgColor: `${colors.warning}20`, value: Number(stats.activeCalories || 0).toFixed(2), label: 'kcal' },
-          { icon: 'location', iconColor: '#00e5ff', bgColor: '#00e5ff20', value: Number(stats.distance || 0).toFixed(2), label: t('dashboard.km') },
+          { icon: 'footsteps', iconColor: colors.primary, bgColor: 'rgba(52,224,192,0.14)', value: currentSteps.toLocaleString(), label: t('dashboard.steps') },
+          { icon: 'flame', iconColor: colors.warning, bgColor: 'rgba(255,169,77,0.14)', value: Number(stats.activeCalories || 0).toLocaleString(), label: t('dashboard.kcal') },
+          { icon: 'location', iconColor: '#4dabf7', bgColor: 'rgba(77,171,247,0.14)', value: Number(stats.distance || 0).toFixed(2), label: t('dashboard.km') },
         ].map(({ icon, iconColor, bgColor, value, label }) => (
-          /*
-            FIX #4: minHeight: 88 บน card แต่ละอัน ทำให้ขนาดไม่เปลี่ยนเมื่อ skeleton → content
-            คำนวณจาก: icon(32) + gap(8) + text(~24) + gap(~4) + label(~16) + padding(12*2) = ~108
-            ปรับให้พอดีกับ design จริงของคุณ
-          */
-          <View key={label} style={{ flex: 1, backgroundColor: colors.card, borderRadius: 20, padding: 12, borderWidth: 1, borderColor: colors.cardBorder, minHeight: 108 }}>
-            <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: bgColor, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+          <View key={label} style={{ flex: 1, backgroundColor: colors.card, borderRadius: 22, padding: 16, gap: 10, minHeight: 108 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: bgColor, alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={icon as any} size={18} color={iconColor} />
             </View>
-            {/* FIX #5: minHeight: 24 บน value container ให้ skeleton กับ text สูงเท่ากัน */}
-            <View style={{ minHeight: 24, justifyContent: 'center', marginBottom: 2 }}>
-              {isLoading ? (
-                <Skeleton width="80%" height={24} borderRadius={6} />
-              ) : (
-                <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary, lineHeight: 24 }}>{value}</AppText>
-              )}
+            <View style={{ minHeight: 24, justifyContent: 'center' }}>
+              {isLoading ? <Skeleton width="80%" height={22} borderRadius={6} /> : <AppText variant="heading-bold" style={{ fontSize: 19, color: colors.textPrimary, lineHeight: 24 }}>{value}</AppText>}
             </View>
             <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{label}</AppText>
           </View>
@@ -212,169 +234,106 @@ export const DashboardStats = ({ stats, svgProps, colors, isLoading }: any) => {
   );
 };
 
-// --- DashboardLeaderboard ---
+// ── DashboardLeaderboard ──────────────────────────────────────
 export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelectedGroupId, userGroups, colors, isLoading }: any) => {
   const { t } = useTranslation();
-
-  const rankColor = (rank: number) => rank === 1 ? "#FBBF24" : rank === 2 ? "#94A3B8" : rank === 3 ? "#D97706" : colors.textSecondary;
 
   let displayList: any[] = [];
   if (leaderboard && leaderboard.length > 0) {
     const myUser = leaderboard.find((u: any) => u.isMe);
     const top3 = leaderboard.slice(0, 3);
     const isMeInTop3 = top3.some((u: any) => u.isMe);
-
-    if (isMeInTop3 || !myUser) {
-      displayList = leaderboard.slice(0, 4);
-    } else {
-      displayList = [...top3, myUser];
-    }
+    displayList = isMeInTop3 || !myUser ? leaderboard.slice(0, 4) : [...top3, myUser];
   }
+  while (displayList.length < 3) displayList.push(null);
 
-  while (displayList.length < 4) {
-    displayList.push(null);
-  }
-
-  /*
-    FIX #6: กำหนด ROW_HEIGHT ตายตัวแทนการใช้ padding: 16 เฉยๆ
-    ทั้ง skeleton row และ content row จะสูงเท่ากันเสมอ
-    คำนวณจาก: avatar(40) + padding vertical(16*2) = 72
-  */
-  const ROW_HEIGHT = 72;
+  const chip = (active: boolean, key: string, label: string, onPress: () => void) => (
+    <TouchableOpacity key={key} onPress={onPress} activeOpacity={0.8} style={{ borderRadius: 999, overflow: 'hidden' }}>
+      <ActiveBg active={active} colors={colors} style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+        <AppText variant={active ? 'body-bold' : 'body-medium'} style={{ fontSize: 13, color: active ? colors.onPrimary : colors.textSecondary }}>{label}</AppText>
+      </ActiveBg>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="trophy" size={20} color={colors.primary} />
-          <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{t('dashboard.ranking')}</AppText>
-        </View>
-        <TouchableOpacity>
-          <AppText style={{ fontSize: 13, color: colors.primary }}>{t('dashboard.seeAll')}</AppText>
-        </TouchableOpacity>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <AppText variant="heading-bold" style={{ fontSize: 17, color: colors.textPrimary }}>{t('dashboard.ranking')}</AppText>
+        <TouchableOpacity><AppText variant="body-semiBold" style={{ fontSize: 13, color: colors.primary }}>{t('dashboard.seeAll')}</AppText></TouchableOpacity>
       </View>
 
-      {/* Group Tabs */}
-      <View style={{ flexDirection: 'row', marginBottom: 16 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          <TouchableOpacity
-            style={[{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 }, selectedGroupId === 'friends' ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-            onPress={() => {
-              if (selectedGroupId !== 'friends') Haptics.selectionAsync();
-              setSelectedGroupId('friends');
-            }}
-          >
-            <AppText style={{ fontSize: 13, color: selectedGroupId === 'friends' ? '#fff' : colors.textPrimary }}>{t('dashboard.friends')}</AppText>
-          </TouchableOpacity>
-          {userGroups?.map((group: any) => {
-            const isActive = group.id === selectedGroupId;
-            return (
-              <TouchableOpacity
-                key={group.id}
-                style={[{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1 }, isActive ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-                onPress={() => {
-                  if (!isActive) Haptics.selectionAsync();
-                  setSelectedGroupId(group.id);
-                }}
-              >
-                <AppText style={{ fontSize: 13, color: isActive ? '#fff' : colors.textPrimary }}>{group.name}</AppText>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
+      {/* Group chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 12 }}>
+        {chip(selectedGroupId === 'friends', 'friends', t('dashboard.friends'), () => { if (selectedGroupId !== 'friends') Haptics.selectionAsync(); setSelectedGroupId('friends'); })}
+        {userGroups?.map((g: any) => chip(g.id === selectedGroupId, g.id, g.name, () => { if (g.id !== selectedGroupId) Haptics.selectionAsync(); setSelectedGroupId(g.id); }))}
+      </ScrollView>
 
-      {/* Leaderboard List */}
-      <View style={{ backgroundColor: colors.card, borderRadius: 24, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' }}>
-        {isLoading ? (
-          [1, 2, 3, 4].map((item, idx) => (
-            <View
-              key={`skel-${item}`}
-              style={[
-                { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: ROW_HEIGHT },
-                idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }
-              ]}
-            >
-              <View style={{ width: 24, marginRight: 12, alignItems: 'center' }}>
-                <Skeleton width={16} height={20} borderRadius={4} />
+      {/* Rows */}
+      <View style={{ gap: 10 }}>
+        {isLoading
+          ? [1, 2, 3].map((i) => (
+              <View key={`s-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, padding: 13 }}>
+                <Skeleton width={16} height={18} borderRadius={4} />
+                <Skeleton width={38} height={38} borderRadius={13} />
+                <View style={{ flex: 1, gap: 6 }}><Skeleton width={110} height={14} borderRadius={4} /><Skeleton width={80} height={11} borderRadius={4} /></View>
+                <Skeleton width={36} height={16} borderRadius={4} />
               </View>
-              <Skeleton width={40} height={40} borderRadius={20} style={{ marginRight: 12 }} />
-              {/* FIX #7: ล็อค height ของ text group ให้เท่ากับ content จริง (lineHeight 20 + gap 6 + lineHeight 16 = 42) */}
-              <View style={{ flex: 1, height: 42, justifyContent: 'space-between' }}>
-                <Skeleton width={100} height={18} borderRadius={4} />
-                <Skeleton width={80} height={14} borderRadius={4} />
-              </View>
-              <View style={{ alignItems: 'flex-end', height: 42, justifyContent: 'space-between' }}>
-                <Skeleton width={32} height={18} borderRadius={4} />
-                <Skeleton width={48} height={14} borderRadius={4} />
-              </View>
-            </View>
-          ))
-        ) : (
-          displayList?.map((userObj: any, idx: number) => {
-            if (!userObj) {
-              return (
-                <View
-                  key={`empty-${idx}`}
-                  style={[
-                    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: ROW_HEIGHT },
-                    idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }
-                  ]}
-                >
-                  <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginRight: 12 }}>-</AppText>
-                  <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: colors.background }}>
-                    <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+            ))
+          : displayList.map((u: any, idx: number) => {
+              if (!u) {
+                return (
+                  <View key={`e-${idx}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, padding: 13, opacity: 0.5 }}>
+                    <AppText variant="body-bold" style={{ width: 16, fontSize: 16, color: colors.textSecondary }}>{idx + 1}</AppText>
+                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                    </View>
+                    <View style={{ flex: 1 }}><AppText style={{ fontSize: 14, color: colors.textSecondary }}>—</AppText></View>
                   </View>
+                );
+              }
+              const isFirst = u.rank === 1;
+              const Row = (
+                <>
+                  <AppText variant="body-bold" style={{ width: 16, fontSize: 16, color: isFirst || u.isMe ? colors.primary : colors.textSecondary }}>{u.rank}</AppText>
+                  {u.isMe ? (
+                    <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+                      <AppText variant="body-bold" style={{ fontSize: 13, color: colors.onPrimary }}>{u.name.substring(0, 2).toUpperCase()}</AppText>
+                    </LinearGradient>
+                  ) : (
+                    <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                      <AppText variant="body-bold" style={{ fontSize: 13, color: colors.textPrimary }}>{u.name.substring(0, 2).toUpperCase()}</AppText>
+                    </View>
+                  )}
                   <View style={{ flex: 1 }}>
-                    <AppText style={{ fontSize: 15, color: colors.textSecondary, marginBottom: 2 }}>---</AppText>
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- steps · - km.</AppText>
+                    <AppText variant="body-bold" style={{ fontSize: 14, color: u.isMe ? colors.primary : colors.textPrimary }}>{u.name}{u.isMe ? ` · ${t('dashboard.you')}` : ''}</AppText>
+                    <AppText style={{ fontSize: 11, color: colors.textSecondary }}>{Number(u.steps || 0).toLocaleString()} {t('dashboard.steps')} · {Number(u.distance || 0).toFixed(1)} {t('dashboard.km')}</AppText>
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textSecondary }}>-</AppText>
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>- kcal</AppText>
-                  </View>
+                  <AppText variant="heading-bold" style={{ fontSize: 15, color: colors.textPrimary }}>{u.points} pt</AppText>
+                </>
+              );
+              return isFirst ? (
+                <LinearGradient key={u.id} colors={['rgba(56,232,198,0.14)', 'rgba(182,242,74,0.06)'] as any} start={GRAD_START} end={GRAD_END} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 20, padding: 13, borderWidth: 1, borderColor: 'rgba(56,232,198,0.3)' }}>
+                  {Row}
+                </LinearGradient>
+              ) : (
+                <View key={u.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, borderRadius: 20, padding: 13 }}>
+                  {Row}
                 </View>
               );
-            }
-
-            return (
-              <View
-                key={userObj.id}
-                style={[
-                  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: ROW_HEIGHT },
-                  idx < 3 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }
-                ]}
-              >
-                <AppText variant="heading-bold" style={{ width: 24, fontSize: 16, color: rankColor(userObj.rank), textAlign: 'center', marginRight: 12 }}>{userObj.rank}</AppText>
-                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginRight: 12, backgroundColor: userObj.isMe ? colors.primary : colors.background }}>
-                  <AppText variant="body-bold" style={{ fontSize: 14, color: userObj.isMe ? '#fff' : colors.textPrimary }}>{userObj.name.substring(0, 2).toUpperCase()}</AppText>
-                </View>
-                <View style={{ flex: 1, height: 42, justifyContent: 'space-between' }}>
-                  <AppText variant={userObj.isMe ? "body-bold" : "body-regular"} style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, lineHeight: 20 }}>{userObj.name}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16 }}>{userObj.steps || 0} steps · {Number(userObj.distance || 0).toFixed(2)} km</AppText>
-                </View>
-                <View style={{ alignItems: 'flex-end', height: 42, justifyContent: 'space-between' }}>
-                  <AppText variant="body-bold" style={{ fontSize: 15, color: userObj.isMe ? colors.primary : colors.textPrimary, lineHeight: 20 }}>{userObj.points}</AppText>
-                  <AppText style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 16 }}>{Number(userObj.calories || 0).toFixed(2)} kcal</AppText>
-                </View>
-              </View>
-            );
-          })
-        )}
+            })}
       </View>
     </View>
   );
 };
 
-// --- DashboardEvents ---
+// ── DashboardEvents ───────────────────────────────────────────
 export const DashboardEvents = ({ events = [], colors }: any) => {
   const { t } = useTranslation();
   return (
     <View style={{ paddingHorizontal: 20, paddingBottom: 30 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <Ionicons name="flash" size={20} color={colors.warning} />
-        <AppText variant="heading-bold" style={{ fontSize: 18, color: colors.textPrimary }}>{t('dashboard.ongoingActivities')}</AppText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <Ionicons name="flash" size={18} color={colors.primary} />
+        <AppText variant="heading-bold" style={{ fontSize: 17, color: colors.textPrimary }}>{t('dashboard.ongoingActivities')}</AppText>
       </View>
 
       {events.length === 0 ? (
@@ -383,29 +342,19 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
         </View>
       ) : (
         <View style={{ gap: 12 }}>
-          {events?.map((event: any) => (
-            <TouchableOpacity
-              key={event.id}
-              activeOpacity={0.7}
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-              style={{ backgroundColor: colors.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: colors.cardBorder, flexDirection: 'row', alignItems: 'center' }}
-            >
+          {events.map((event: any) => (
+            <TouchableOpacity key={event.id} activeOpacity={0.7} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+              style={{ backgroundColor: colors.card, borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                  <View style={{ backgroundColor: `${colors.primary}20`, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
-                    <AppText style={{ fontSize: 11, color: colors.primary, fontWeight: '600' }}>{t('dashboard.upcoming')}</AppText>
+                <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                  <View style={{ backgroundColor: 'rgba(52,224,192,0.14)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                    <AppText variant="body-semiBold" style={{ fontSize: 11, color: colors.primary }}>{t('dashboard.upcoming')}</AppText>
                   </View>
                 </View>
                 <AppText variant="body-bold" style={{ fontSize: 15, color: colors.textPrimary, marginBottom: 6 }}>{event.title}</AppText>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{event.date}</AppText>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-                    <AppText style={{ fontSize: 12, color: colors.textSecondary }}>48 {t('activity.people')}</AppText>
-                  </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                  <AppText style={{ fontSize: 12, color: colors.textSecondary }}>{event.date}</AppText>
                 </View>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -417,13 +366,4 @@ export const DashboardEvents = ({ events = [], colors }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  timeframeContainer: { flexDirection: 'row', marginHorizontal: 20, marginTop: 4, marginBottom: 8, borderRadius: 24, padding: 4, borderWidth: 1 },
-  tfPill: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 20 },
-  dateCircle: { width: 38, height: 38, borderRadius: 19, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  pillSelector: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  badgePill: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  groupPill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, borderWidth: 1, marginRight: 8 },
-  addGroupBtn: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-});
+const styles = StyleSheet.create({});

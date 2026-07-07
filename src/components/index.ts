@@ -43,6 +43,7 @@ export { default as AdminGuard } from './AdminGuard';
 
 // Input
 export { default as SearchBar } from './SearchBar';
+export { default as MonthYearPicker } from './MonthYearPicker';
 
 // Settings & Preferences
 export { default as SettingsRow } from './SettingsRow';

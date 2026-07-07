@@ -32,31 +32,31 @@ export interface ThemeColors {
 }
 
 export const darkColors: ThemeColors = {
-  background: '#18181B', // Soft Charcoal
-  surface: '#27272A', // Lighter Charcoal
-  card: '#27272A',
-  cardShadow: 'rgba(0, 0, 0, 0.25)',
-  cardBorder: 'rgba(255, 255, 255, 0.05)',
-  primary: '#14B8A6', // Soft Teal
-  primaryLight: '#5EEAD4',
-  onPrimary: '#052E2B', // Dark teal-black — readable on the light teal primary
-  accent: '#FBBF24',
-  success: '#34D399',
-  warning: '#FBBF24',
-  error: '#F87171',
-  textPrimary: '#FAFAFA',
-  textSecondary: '#A1A1AA',
-  textOnCard: '#FAFAFA',
-  textCardSecondary: '#A1A1AA',
-  tabBar: '#18181B',
-  tabActive: '#14B8A6',
-  tabInactive: '#71717A',
-  inputBackground: '#27272A',
-  inputBorder: '#3F3F46',
-  inputText: '#FAFAFA',
-  inputPlaceholder: '#71717A',
-  divider: '#3F3F46',
-  overlay: 'rgba(24, 24, 27, 0.7)',
+  background: '#0c1013', // Deep ink (Pulse home)
+  surface: '#0f1416',
+  card: '#171d21', // Elevated surface
+  cardShadow: 'rgba(0, 0, 0, 0.5)',
+  cardBorder: 'rgba(255, 255, 255, 0.07)',
+  primary: '#34e0c0', // Teal accent (solid), pairs with the teal→lime gradient
+  primaryLight: '#5cf0d6',
+  onPrimary: '#07201b', // Deep teal-black — readable on the light teal/lime gradient
+  accent: '#b6f24a', // Lime end of the gradient
+  success: '#38e8c6',
+  warning: '#ffa94d',
+  error: '#ff6b6b',
+  textPrimary: '#f4f8f6',
+  textSecondary: '#8b9a97',
+  textOnCard: '#f4f8f6',
+  textCardSecondary: '#8b9a97',
+  tabBar: '#0f1416',
+  tabActive: '#34e0c0',
+  tabInactive: '#7c8a87',
+  inputBackground: '#171d21',
+  inputBorder: '#2a3237',
+  inputText: '#f4f8f6',
+  inputPlaceholder: '#7c8a87',
+  divider: 'rgba(255, 255, 255, 0.06)',
+  overlay: 'rgba(8, 11, 13, 0.7)',
 };
 
 export const lightColors: ThemeColors = {
@@ -65,11 +65,11 @@ export const lightColors: ThemeColors = {
   card: '#FFFFFF',
   cardShadow: 'rgba(15, 23, 42, 0.05)',
   cardBorder: 'rgba(15, 23, 42, 0.04)',
-  primary: '#0D9488', // Soft Teal
-  primaryLight: '#2DD4BF',
-  onPrimary: '#FFFFFF', // White — readable on the darker teal primary
-  accent: '#F59E0B',
-  success: '#10B981',
+  primary: '#12b39c', // Teal accent that pairs with the teal→lime gradient
+  primaryLight: '#38e8c6',
+  onPrimary: '#07201b', // Deep teal-black — readable on the light teal/lime gradient
+  accent: '#7bb800', // Lime, darkened for contrast on light backgrounds
+  success: '#12b39c',
   warning: '#F59E0B',
   error: '#EF4444',
   textPrimary: '#0F172A',
@@ -121,42 +121,53 @@ export const fontSize = {
 
 export const thaiFonts = {
   heading: {
-    medium: 'Kanit_500Medium',
-    bold: 'Kanit_700Bold',
+    medium: 'Anuphan_500Medium',
+    bold: 'Anuphan_700Bold',
+    extraBold: 'Anuphan_700Bold', // Anuphan tops out at 700 — reuse for the extra-bold slot
   },
   body: {
-    regular: 'Kanit_400Regular', // Using Kanit for regular
-    medium: 'Kanit_500Medium',
-    semiBold: 'Kanit_600SemiBold',
-    bold: 'Kanit_700Bold',
+    regular: 'Anuphan_400Regular',
+    medium: 'Anuphan_500Medium',
+    semiBold: 'Anuphan_600SemiBold',
+    bold: 'Anuphan_700Bold',
   },
 } as const;
 
 export const englishFonts = {
   heading: {
-    medium: 'DMSans_500Medium',
-    bold: 'DMSans_700Bold',
+    medium: 'Sora_500Medium',
+    bold: 'Sora_700Bold',
+    extraBold: 'Sora_800ExtraBold',
   },
   body: {
-    regular: 'DMSans_400Regular',
-    medium: 'DMSans_500Medium',
-    semiBold: 'DMSans_700Bold',
-    bold: 'DMSans_700Bold',
+    regular: 'Sora_400Regular',
+    medium: 'Sora_500Medium',
+    semiBold: 'Sora_600SemiBold',
+    bold: 'Sora_700Bold',
   },
 } as const;
 
 export type ThemeFonts = typeof thaiFonts;
 
 // Gradient presets
+// `primary` is the central teal→lime brand gradient (Pulse). Use it for CTAs,
+// active pills, avatars, progress rings, and highlighted text.
 export const gradients = {
-  primary: ['#0D9488', '#14B8A6'] as const,
-  accent: ['#F59E0B', '#FBBF24'] as const,
-  header: ['#18181B', '#27272A'] as const,
-  headerLight: ['#0D9488', '#2DD4BF'] as const,
-  success: ['#10B981', '#34D399'] as const,
+  primary: ['#38e8c6', '#b6f24a'] as const, // teal → lime
+  accent: ['#38e8c6', '#b6f24a'] as const,
+  header: ['#0c1013', '#0f1416'] as const,
+  headerLight: ['#38e8c6', '#b6f24a'] as const,
+  goalCard: ['#15332e', '#12201f'] as const, // subtle teal-tinted card
+  success: ['#38e8c6', '#b6f24a'] as const,
   gold: ['#F59E0B', '#FCD34D'] as const,
   silver: ['#94A3B8', '#CBD5E1'] as const,
   bronze: ['#B45309', '#D97706'] as const,
+} as const;
+
+// Directional endpoints used when a component needs the raw gradient stops.
+export const brandGradient = {
+  start: '#38e8c6',
+  end: '#b6f24a',
 } as const;
 
 // Shadow presets

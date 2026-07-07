@@ -21,25 +21,28 @@ interface DateRange {
  * @param timeframe - 'Daily' | 'Weekly' | 'Monthly'
  * @param selectedDate - Day-of-month string (for Daily)
  * @param selectedWeek - 'This week' | 'Last week' (for Weekly)
- * @param selectedMonth - Month abbreviation e.g. 'Jun' (for Monthly)
+ * @param refYear - Reference year the header is currently browsing
+ * @param refMonth - Reference month (0-11) the header is currently browsing
  * @returns { startDate, endDate } as ISO date strings, or undefined if not applicable
  */
 export const calculateDateRange = (
   timeframe: Timeframe,
   selectedDate: string,
   selectedWeek: string,
-  selectedMonth: string
+  refYear: number,
+  refMonth: number
 ): DateRange => {
-  const now = new Date();
-
   if (timeframe === 'Daily') {
     const day = parseInt(selectedDate, 10);
-    const date = new Date(now.getFullYear(), now.getMonth(), day);
-    const nextDate = new Date(now.getFullYear(), now.getMonth(), day + 1);
+    const date = new Date(refYear, refMonth, day);
+    const nextDate = new Date(refYear, refMonth, day + 1);
     return { startDate: formatDate(date), endDate: formatDate(nextDate) };
   }
 
   if (timeframe === 'Weekly') {
+    // Weekly is always relative to "now" (This week / Last week), independent of
+    // the month the header is browsing.
+    const now = new Date();
     const currentDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
     // Use Monday as week start to match backend getHealthSummary logic
     const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
@@ -55,22 +58,10 @@ export const calculateDateRange = (
   }
 
   if (timeframe === 'Monthly') {
-    const monthIndex = MOCK_MONTHS.indexOf(selectedMonth);
-    const targetYear = monthIndex > now.getMonth() ? now.getFullYear() - 1 : now.getFullYear();
-    const startOfMonth = new Date(targetYear, monthIndex, 1);
-    const endOfMonth = new Date(targetYear, monthIndex + 1, 1);
+    const startOfMonth = new Date(refYear, refMonth, 1);
+    const endOfMonth = new Date(refYear, refMonth + 1, 1);
     return { startDate: formatDate(startOfMonth), endDate: formatDate(endOfMonth) };
   }
 
   return { startDate: undefined, endDate: undefined };
-};
-
-/**
- * Convenience function to get the date range for the current timeframe (always current).
- */
-export const getCurrentDateRange = (timeframe: Timeframe): DateRange => {
-  const now = new Date();
-  const todayStr = now.getDate().toString();
-  const thisMonthStr = MOCK_MONTHS[now.getMonth()];
-  return calculateDateRange(timeframe, todayStr, 'This week', thisMonthStr);
 };

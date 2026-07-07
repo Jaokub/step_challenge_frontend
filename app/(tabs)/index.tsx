@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -21,7 +22,9 @@ export default function DashboardScreen() {
     timeframe, setTimeframe,
     selectedDate, setSelectedDate,
     selectedWeek, setSelectedWeek,
-    selectedMonth, setSelectedMonth,
+    refMonth, refYear, setRefMonthYear,
+    goToPrevMonth, goToNextMonth,
+    dayTabs,
     selectedGroupId, setSelectedGroupId,
     userGroups,
     stats,
@@ -55,13 +58,15 @@ export default function DashboardScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
-        <DashboardHeader 
+    <LinearGradient colors={[colors.surface, colors.background]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 0.5 }} style={styles.container}>
+      <SafeAreaView edges={['top']}>
+        <DashboardHeader
           timeframe={timeframe} setTimeframe={setTimeframe}
           selectedDate={selectedDate} setSelectedDate={setSelectedDate}
           selectedWeek={selectedWeek} setSelectedWeek={setSelectedWeek}
-          selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth}
+          refMonth={refMonth} refYear={refYear} setRefMonthYear={setRefMonthYear}
+          goToPrevMonth={goToPrevMonth} goToNextMonth={goToNextMonth}
+          dayTabs={dayTabs}
           colors={colors}
           username={user?.nickname || user?.fullName?.split(' ')[0] || 'User'}
         />
@@ -89,7 +94,7 @@ export default function DashboardScreen() {
           </View>
         ) : (
           <>
-            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isStatsLoading} />
+            <DashboardStats stats={stats} svgProps={svgProps} colors={colors} isLoading={isStatsLoading} timeframe={timeframe} />
             <DashboardLeaderboard 
               leaderboard={currentLeaderboard} 
               selectedGroupId={selectedGroupId}
@@ -102,7 +107,7 @@ export default function DashboardScreen() {
           </>
         )}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 

@@ -70,7 +70,25 @@
     "noActivitiesTitle": "No Activities",
     "noActivitiesSubtitle": "You do not have any upcoming activities right now",
     "upcoming": "Upcoming",
-    "pastActivities": "Past"
+    "pastActivities": "Past",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "you": "You",
+    "goalDaily": "Today's goal",
+    "goalWeekly": "This week's goal",
+    "goalMonthly": "This month's goal",
+    "goalOf": "{{current}} / {{goal}} steps",
+    "kcal": "kcal",
+    "thisWeek": "This week",
+    "lastWeek": "Last week",
+    "thisMonth": "This month",
+    "selectPeriod": "Select month & year",
+    "done": "Done",
+    "cancel": "Cancel"
   },
   "activities": {
     "title": "Activities",
@@ -312,5 +330,46 @@
     "friendsAndGroups": "Friends & Groups",
     "friends": "Friends",
     "profile": "Profile"
+  },
+  "months": {
+    "full": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+    "short": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ]
+  },
+  "weekdays": {
+    "min": [
+      "S",
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S"
+    ]
   }
 }

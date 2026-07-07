@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import dashboardService from './dashboardService';
@@ -6,7 +6,7 @@ import healthService from '../health/healthService';
 import { syncTodayHealthData } from '../health/syncHealthData';
 import leaderboardService from '../leaderboard/leaderboardService';
 import groupService from '../group/groupService';
-import { calculateDateRange, getCurrentDateRange, MOCK_MONTHS } from './dateRangeCalculator';
+import { calculateDateRange, MOCK_MONTHS } from './dateRangeCalculator';
 import { aggregateStats } from './statsAggregator';
 import { queryKeys } from '../../constants/queryKeys';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../types';
@@ -17,6 +17,12 @@ export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
 export const MOCK_WEEKS = ['Last week', 'This week'];
 export { MOCK_MONTHS };
+
+export interface DayTab {
+  day: number;
+  weekdayIndex: number; // 0=Sun ... 6=Sat
+  isToday: boolean;
+}
 
 interface DashboardBundle {
   dashboard: PersonalDashboard | null;
@@ -29,28 +35,78 @@ export function useDashboard(colors: any) {
   const { user } = useAuth();
   const { i18n } = useTranslation();
 
-  // Computed fresh inside the hook so they never go stale across midnight
   const today = new Date();
-  const daysInCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const MOCK_DATES = useMemo(
-    () => Array.from({ length: daysInCurrentMonth }, (_, i) => (i + 1).toString()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [] // คำนวณครั้งเดียวต่อ mount cycle; ถ้า app ข้ามเที่ยงคืนให้ remount component แทน
-  );
 
-  // ─── Timeframe state ──────────────────────────────────────
+  // ─── Timeframe + reference-period state ───────────────────
   const [timeframe, setTimeframe] = useState<Timeframe>('Daily');
   const [selectedDate, setSelectedDate] = useState(today.getDate().toString());
   const [selectedWeek, setSelectedWeek] = useState('This week');
-  const [selectedMonth, setSelectedMonth] = useState(MOCK_MONTHS[today.getMonth()]);
+  // Reference month/year the header is browsing. Default = current month.
+  const [refMonth, setRefMonth] = useState(today.getMonth());
+  const [refYear, setRefYear] = useState(today.getFullYear());
   const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
   const [isStatsLoading, setIsStatsLoading] = useState(false);
 
+  // Days in the currently-browsed month, plus per-day metadata for the tab strip.
+  const daysInRefMonth = new Date(refYear, refMonth + 1, 0).getDate();
+  const dayTabs: DayTab[] = useMemo(() => {
+    return Array.from({ length: daysInRefMonth }, (_, i) => {
+      const day = i + 1;
+      return {
+        day,
+        weekdayIndex: new Date(refYear, refMonth, day).getDay(),
+        isToday:
+          day === today.getDate() &&
+          refMonth === today.getMonth() &&
+          refYear === today.getFullYear(),
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refYear, refMonth, daysInRefMonth]);
+
+  // Clamp the selected day so it stays valid when the month shrinks.
+  const clampSelectedDay = useCallback(
+    (year: number, month: number) => {
+      const maxDay = new Date(year, month + 1, 0).getDate();
+      setSelectedDate((prev) => {
+        const d = parseInt(prev, 10);
+        return d > maxDay ? maxDay.toString() : prev;
+      });
+    },
+    []
+  );
+
+  const goToPrevMonth = useCallback(() => {
+    setRefMonth((m) => {
+      const nm = m === 0 ? 11 : m - 1;
+      const ny = m === 0 ? refYear - 1 : refYear;
+      if (m === 0) setRefYear(ny);
+      clampSelectedDay(ny, nm);
+      return nm;
+    });
+  }, [refYear, clampSelectedDay]);
+
+  const goToNextMonth = useCallback(() => {
+    setRefMonth((m) => {
+      const nm = m === 11 ? 0 : m + 1;
+      const ny = m === 11 ? refYear + 1 : refYear;
+      if (m === 11) setRefYear(ny);
+      clampSelectedDay(ny, nm);
+      return nm;
+    });
+  }, [refYear, clampSelectedDay]);
+
+  const setRefMonthYear = useCallback(
+    (month: number, year: number) => {
+      setRefMonth(month);
+      setRefYear(year);
+      clampSelectedDay(year, month);
+    },
+    [clampSelectedDay]
+  );
+
   // ─── Dashboard bundle (dashboard + health + groups) ───────
-  // Health sync runs first so the summary/history fetched below reflect the
-  // latest device reading. Sync errors are non-fatal — dashboard still loads
-  // with stale data.
   const dashboardQuery = useQuery({
     queryKey: queryKeys.dashboard.personal,
     queryFn: async (): Promise<DashboardBundle> => {
@@ -80,9 +136,14 @@ export function useDashboard(colors: any) {
   const userGroups = dashboardQuery.data?.groups ?? [];
 
   // ─── Leaderboard ──────────────────────────────────────────
-  // Query key carries group + date range, so TanStack Query caches each
-  // combination (replaces the old hand-rolled leaderboardCache ref).
-  const { startDate, endDate } = getCurrentDateRange(timeframe);
+  // Reflects the period the header is currently browsing.
+  const { startDate, endDate } = calculateDateRange(
+    timeframe,
+    selectedDate,
+    selectedWeek,
+    refYear,
+    refMonth
+  );
   const normalizeDate = (d: string | undefined) =>
     d ? new Date(d).toISOString().split('T')[0] : undefined;
 
@@ -113,7 +174,7 @@ export function useDashboard(colors: any) {
     return top5;
   }, [leaderboardQuery.data, user?.id]);
 
-  // ─── Skeleton animation timers (unchanged behavior) ───────
+  // ─── Skeleton animation timers ────────────────────────────
 
   useEffect(() => {
     // Big tab changes -> animate the stats section
@@ -123,17 +184,17 @@ export function useDashboard(colors: any) {
   }, [timeframe]);
 
   useEffect(() => {
-    // Small tab changes -> animate TOP ONLY
+    // Small selection changes -> animate TOP ONLY
     setIsStatsLoading(true);
     const timer = setTimeout(() => setIsStatsLoading(false), 400);
     return () => clearTimeout(timer);
-  }, [selectedDate, selectedWeek, selectedMonth]);
+  }, [selectedDate, selectedWeek, refMonth, refYear]);
 
   // ─── Derived stats ────────────────────────────────────────
 
   const { steps, distance, calories } = useMemo(() => {
     const raw = aggregateStats(
-      timeframe, selectedDate, selectedWeek, selectedMonth,
+      timeframe, selectedDate, selectedWeek, refYear, refMonth,
       healthSummary, healthHistory
     );
     return {
@@ -141,7 +202,7 @@ export function useDashboard(colors: any) {
       distance: parseFloat(raw.distance.toFixed(2)),
       calories: Math.round(raw.calories),
     };
-  }, [timeframe, selectedDate, selectedWeek, selectedMonth, healthSummary, healthHistory]);
+  }, [timeframe, selectedDate, selectedWeek, refYear, refMonth, healthSummary, healthHistory]);
 
   // ─── Display transforms ───────────────────────────────────
 
@@ -175,7 +236,7 @@ export function useDashboard(colors: any) {
   const SV_RADIUS = (SV_SIZE - SV_STROKE) / 2;
   const SV_CIRCUMFERENCE = 2 * Math.PI * SV_RADIUS;
   const dailyGoal = 12000;
-  const goal = timeframe === 'Monthly' ? dailyGoal * 30 : timeframe === 'Weekly' ? dailyGoal * 7 : dailyGoal;
+  const goal = timeframe === 'Monthly' ? dailyGoal * daysInRefMonth : timeframe === 'Weekly' ? dailyGoal * 7 : dailyGoal;
   const currentSteps = parseInt(stats.steps, 10);
   const progressRatio = Math.min(Math.max(currentSteps / goal, 0), 1);
   const strokeDashoffset = SV_CIRCUMFERENCE - progressRatio * SV_CIRCUMFERENCE;
@@ -184,14 +245,16 @@ export function useDashboard(colors: any) {
     timeframe, setTimeframe,
     selectedDate, setSelectedDate,
     selectedWeek, setSelectedWeek,
-    selectedMonth, setSelectedMonth,
+    refMonth, refYear, setRefMonthYear,
+    goToPrevMonth, goToNextMonth,
+    dayTabs,
+    goal,
     selectedGroupId, setSelectedGroupId,
-    mockDates: MOCK_DATES,
     userGroups,
     stats,
     currentLeaderboard,
     upcomingEvents,
-    svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps },
+    svgProps: { SV_SIZE, SV_STROKE, SV_RADIUS, SV_CIRCUMFERENCE, strokeDashoffset, currentSteps, goal },
     loading: dashboardQuery.isPending,
     error: dashboardQuery.isError,
     hasData: dashboardData !== null,

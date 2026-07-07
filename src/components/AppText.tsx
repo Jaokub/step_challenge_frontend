@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { thaiFonts, englishFonts } from '../constants/theme';
 
-export type TextVariant = 'heading-bold' | 'heading-medium' | 'heading-sm' | 'body-bold' | 'body-semiBold' | 'body-medium' | 'body-regular' | 'numeric';
+export type TextVariant = 'heading-extraBold' | 'heading-bold' | 'heading-medium' | 'heading-sm' | 'body-bold' | 'body-semiBold' | 'body-medium' | 'body-regular' | 'numeric';
 
 export interface AppTextProps extends TextProps {
   variant?: TextVariant;
@@ -21,6 +21,10 @@ const AppText: React.FC<AppTextProps> = ({ variant = 'body-regular', style, ...p
   let lineHeight: number = 22; // default
   
   switch (variant) {
+    case 'heading-extraBold':
+      fontFamily = fonts.heading.extraBold;
+      lineHeight = 44;
+      break;
     case 'heading-bold':
       fontFamily = fonts.heading.bold;
       lineHeight = 40;

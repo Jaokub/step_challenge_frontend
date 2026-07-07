@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: fontSize.md,
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: 'Sora_400Regular',
   },
   dateInput: {
     borderWidth: 1,
