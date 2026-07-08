@@ -170,37 +170,6 @@
     "siblingGroups": "Sibling Groups",
     "departmentGroups": "Department Groups"
   },
-  "events": {
-    "title": "Events",
-    "entrySubtitle": "Join a step challenge",
-    "emptyTitle": "No events yet",
-    "emptyMessage": "Step-count competitions will appear here.",
-    "participants": "{{count}} joined",
-    "status": {
-      "UPCOMING": "Upcoming",
-      "ONGOING": "Ongoing",
-      "COMPLETED": "Ended",
-      "CANCELLED": "Cancelled"
-    },
-    "totalSteps": "Total steps",
-    "groups": "{{count}} groups",
-    "join": "Join event",
-    "leave": "Leave event",
-    "joinTitle": "Join this event",
-    "joinAsIndividual": "Join individually",
-    "joinAsGroupHint": "Or enter as a group (admins only):",
-    "joinedIndividual": "You joined the event",
-    "joinedGroup": "Group enrolled — {{count}} added",
-    "left": "You left the event",
-    "joinFailed": "Something went wrong. Please try again.",
-    "scope": {
-      "individual": "Individuals",
-      "group": "Groups"
-    },
-    "steps": "steps",
-    "noParticipants": "No participants yet",
-    "memberCount": "{{count}} members"
-  },
   "profile": {
     "title": "Profile",
     "profile_setting": "Profile Setting",
@@ -354,3 +323,50 @@
     "requestSentSuccess": "Friend request sent successfully!",
     "failedToSendRequest": "Failed to send friend request.",
     "sendFriendRequest": "Send Friend Request",
+    "goBack": "Go Back",
+    "wantsToBeFriends": "Wants to be friends",
+    "yourRank": "Your Rank",
+    "stepsCount": "steps",
+    "kmCount": "km"
+  },
+  "activity": {
+    "run": "Run",
+    "bike": "Bike",
+    "yoga": "Yoga",
+    "swim": "Swim",
+    "hiit": "HIIT",
+    "notFound": "Activity not found",
+    "start": "Start:",
+    "end": "End:",
+    "participantsUncapped": " People (Unlimited)",
+    "noDescription": "No description for this activity",
+    "creator": "Activity Creator",
+    "search": "Search activities...",
+    "people": "People",
+    "allDay": "All day",
+    "points": "Points"
+  },
+  "tabs": {
+    "home": "Home",
+    "activities": "Activities",
+    "scan": "Scan",
+    "friendsAndGroups": "Friends & Groups",
+    "friends": "Friends",
+    "profile": "Profile"
+  },
+  "months": {
+    "full": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+ 

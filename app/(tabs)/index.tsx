@@ -14,6 +14,7 @@ import {
   DashboardEvents 
 } from '../../src/features/dashboard/DashboardComponents';
 import { googleHealthService } from '../../src/services/health/android/GoogleHealthService';
+import EventsEntryCard from '../../src/features/event/EventsEntryCard';
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -111,6 +112,7 @@ export default function DashboardScreen() {
               colors={colors}
               isLoading={isLeaderboardLoading}
             />
+            <EventsEntryCard colors={colors} />
             <DashboardEvents events={upcomingEvents} colors={colors} />
           </>
         )}

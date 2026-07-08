@@ -170,37 +170,6 @@
     "siblingGroups": "กลุ่มพี่น้อง",
     "departmentGroups": "กลุ่มภาควิชา"
   },
-  "events": {
-    "title": "อีเวนต์",
-    "entrySubtitle": "เข้าร่วมชาเลนจ์นับก้าว",
-    "emptyTitle": "ยังไม่มีอีเวนต์",
-    "emptyMessage": "การแข่งขันนับก้าวจะแสดงที่นี่",
-    "participants": "เข้าร่วม {{count}} คน",
-    "status": {
-      "UPCOMING": "กำลังจะเริ่ม",
-      "ONGOING": "กำลังดำเนินการ",
-      "COMPLETED": "สิ้นสุดแล้ว",
-      "CANCELLED": "ยกเลิก"
-    },
-    "totalSteps": "ก้าวรวมทั้งหมด",
-    "groups": "{{count}} กลุ่ม",
-    "join": "เข้าร่วมอีเวนต์",
-    "leave": "ออกจากอีเวนต์",
-    "joinTitle": "เข้าร่วมอีเวนต์นี้",
-    "joinAsIndividual": "เข้าร่วมแบบเดี่ยว",
-    "joinAsGroupHint": "หรือเข้าร่วมแบบกลุ่ม (เฉพาะแอดมิน):",
-    "joinedIndividual": "คุณเข้าร่วมอีเวนต์แล้ว",
-    "joinedGroup": "เพิ่มสมาชิกกลุ่มแล้ว {{count}} คน",
-    "left": "คุณออกจากอีเวนต์แล้ว",
-    "joinFailed": "เกิดข้อผิดพลาด กรุณาลองใหม่",
-    "scope": {
-      "individual": "รายบุคคล",
-      "group": "กลุ่ม"
-    },
-    "steps": "ก้าว",
-    "noParticipants": "ยังไม่มีผู้เข้าร่วม",
-    "memberCount": "{{count}} คน"
-  },
   "profile": {
     "title": "โปรไฟล์",
     "profile_setting": "การตั้งค่าโปรไฟล์",
@@ -351,4 +320,47 @@
     "invalidUserId": "ลิงก์ไม่ถูกต้อง ไม่มีรหัสผู้ใช้",
     "userNotFound": "ไม่พบผู้ใช้",
     "failedToFindUser": "ค้นหาผู้ใช้ล้มเหลว",
-    "reque
+    "requestSentSuccess": "ส่งคำขอเป็นเพื่อนสำเร็จ!",
+    "failedToSendRequest": "ส่งคำขอเป็นเพื่อนล้มเหลว",
+    "sendFriendRequest": "ส่งคำขอเป็นเพื่อน",
+    "goBack": "กลับ",
+    "wantsToBeFriends": "ต้องการเป็นเพื่อน",
+    "yourRank": "อันดับของคุณ",
+    "stepsCount": "ก้าว",
+    "kmCount": "กม."
+  },
+  "activity": {
+    "run": "วิ่ง",
+    "bike": "จักรยาน",
+    "yoga": "โยคะ",
+    "swim": "ว่ายน้ำ",
+    "hiit": "HIIT",
+    "notFound": "ไม่พบกิจกรรม",
+    "start": "เริ่ม:",
+    "end": "สิ้นสุด:",
+    "participantsUncapped": " คน (ไม่จำกัด)",
+    "noDescription": "ไม่มีคำอธิบายสำหรับกิจกรรมนี้",
+    "creator": "ผู้สร้างกิจกรรม",
+    "search": "ค้นหากิจกรรม...",
+    "people": "จำนวนคน",
+    "allDay": "ทั้งวัน",
+    "points": "คะแนน"
+  },
+  "tabs": {
+    "home": "หน้าแรก",
+    "activities": "กิจกรรม",
+    "scan": "สแกน",
+    "friendsAndGroups": "เพื่อนและกลุ่ม",
+    "friends": "เพื่อน",
+    "profile": "โปรไฟล์"
+  },
+  "months": {
+    "full": [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",

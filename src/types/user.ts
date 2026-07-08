@@ -7,7 +7,9 @@ export interface User {
   email: string;
   fullName: string;
   nickname?: string;
-  department: string;
+  // Nullable: Google-only users have no department until they fill it in
+  // via edit-profile (see AuthContext.signInWithGoogle / login.tsx).
+  department?: string | null;
   role: Role;
   avatarUrl?: string;
   totalPoints: number;

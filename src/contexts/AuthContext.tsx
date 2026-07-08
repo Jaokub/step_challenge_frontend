@@ -12,6 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (idToken: string) => Promise<User>;
   signUp: (email: string, password: string, fullName: string, nickname: string, department: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -25,6 +26,9 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isAdmin: false,
   signIn: async () => {},
+  signInWithGoogle: async () => {
+    throw new Error('AuthProvider not mounted');
+  },
   signUp: async () => {},
   signOut: async () => {},
   refreshUser: async () => {},
@@ -68,6 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const signInWithGoogle = useCallback(async (idToken: string) => {
+    const response = await authService.googleSignIn(idToken);
+    if (response.success) {
+      setUser(response.data.user);
+    }
+    return response.data.user;
+  }, []);
+
   const signUp = useCallback(async (
     email: string,
     password: string,
@@ -105,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isAdmin,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
         refreshUser,

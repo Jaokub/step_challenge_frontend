@@ -61,6 +61,23 @@ const authService = {
     }
   },
 
+  async googleSignIn(idToken: string): Promise<ApiResponse<AuthPayload>> {
+    try {
+      const { data } = await api.post<ApiResponse<AuthPayload>>('/auth/google', {
+        idToken,
+      });
+
+      if (data.success) {
+        await setAuthToken(data.data.accessToken);
+        await setToken(REFRESH_TOKEN_KEY, data.data.refreshToken);
+      }
+
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
   async refreshToken(
     token: string,
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {

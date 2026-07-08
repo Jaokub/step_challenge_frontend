@@ -32,11 +32,20 @@ export const queryKeys = {
     detail: (id: string) => ['groups', 'detail', id] as const,
     members: (id: string) => ['groups', 'members', id] as const,
     qrcode: (id: string) => ['groups', 'qrcode', id] as const,
+    overview: (id: string) => ['groups', 'overview', id] as const,
+    siblings: (id: string) => ['groups', 'siblings', id] as const,
   },
   friends: {
     all: ['friends'] as const,
     list: ['friends', 'list'] as const,
     requests: ['friends', 'requests'] as const,
+  },
+  events: {
+    all: ['events'] as const,
+    list: ['events', 'list'] as const,
+    detail: (id: string) => ['events', 'detail', id] as const,
+    leaderboard: (id: string, scope: string) => ['events', 'leaderboard', id, scope] as const,
+    stats: (id: string) => ['events', 'stats', id] as const,
   },
   users: {
     all: ['users'] as const,

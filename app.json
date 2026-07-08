@@ -54,7 +54,8 @@
         }
       ],
       "react-native-health-connect",
-      "expo-health-connect"
+      "expo-health-connect",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

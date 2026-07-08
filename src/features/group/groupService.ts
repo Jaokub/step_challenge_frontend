@@ -2,7 +2,7 @@
 // Step Challenge Mobile App — Group Service
 // ============================================================
 import api from '../../services/api';
-import type { ApiResponse, AppGroup, GroupMember } from '../../types';
+import type { ApiResponse, AppGroup, GroupMember, GroupOverview, SiblingGroupOverview } from '../../types';
 
 // ─── Service ────────────────────────────────────────────────
 
@@ -147,6 +147,35 @@ const groupService = {
     try {
       const { data } = await api.post<ApiResponse<null>>(
         `/groups/${id}/leave`,
+      );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /**
+   * Own overall stats + full ranking + top3/top5. Caller must be a member
+   * of the group, or a member of its parent group.
+   */
+  async getGroupOverview(id: string): Promise<ApiResponse<GroupOverview>> {
+    try {
+      const { data } = await api.get<ApiResponse<GroupOverview>>(
+        `/groups/${id}/overview`,
+      );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /**
+   * Sibling groups' overall stats only (never their member ranking).
+   */
+  async getGroupSiblings(id: string): Promise<ApiResponse<SiblingGroupOverview[]>> {
+    try {
+      const { data } = await api.get<ApiResponse<SiblingGroupOverview[]>>(
+        `/groups/${id}/siblings`,
       );
       return data;
     } catch (error: any) {

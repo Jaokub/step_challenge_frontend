@@ -6,11 +6,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { AppText, LoadingScreen, EmptyState, RoleBadge, PrimaryButton, OutlineButton } from '../../src/components';
+import { AppText, LoadingScreen, EmptyState, PrimaryButton, OutlineButton, LeaderboardItem } from '../../src/components';
 import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { useGroupDetail } from '../../src/features/group/useGroupDetail';
+import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { GroupQrModal } from '../../src/features/group/GroupQrModal';
-import { GroupMember } from '../../src/types';
+import { GroupOverviewSection } from '../../src/features/group/GroupOverviewSection';
+import { GroupSiblingsSection } from '../../src/features/group/GroupSiblingsSection';
+import { GroupDescendantsSection } from '../../src/features/group/GroupDescendantsSection';
+import { GroupRankingRow } from '../../src/types';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,22 +37,32 @@ export default function GroupDetailScreen() {
     handleDeleteGroup,
   } = useGroupDetail(id);
 
-  const renderMember = ({ item }: { item: GroupMember }) => (
-    <View style={[styles.memberCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-      <View style={[styles.memberAvatar, { backgroundColor: colors.primaryLight + '30' }]}>
-        <Ionicons name="person" size={20} color={colors.primary} />
-      </View>
-      <View style={styles.memberInfo}>
-        <AppText variant="body-bold" style={[styles.memberName, { color: colors.textPrimary }]}>
-          {item.user?.fullName || 'User'}
-          {item.userId === user?.id ? ` (${t('leaderboard.you')})` : ''}
-        </AppText>
-        <AppText style={[styles.memberDept, { color: colors.textSecondary }]}>
-          {item.user?.department || '-'}
-        </AppText>
-      </View>
-      <RoleBadge role={item.role} />
-    </View>
+  const hasParent = !!group?.parentGroup;
+  const hasChildren = (group?.childGroups?.length ?? 0) > 0;
+  const { overview, isOverviewLoading, siblings, isSiblingsLoading } = useGroupOverview(id, hasParent);
+
+  // Own full ranking; while it's loading, derive a same-shaped fallback from
+  // the already-fetched member list so the screen doesn't flash empty.
+  const fallbackRanking: GroupRankingRow[] = (group?.members ?? [])
+    .slice()
+    .sort((a, b) => (b.user?.totalPoints ?? 0) - (a.user?.totalPoints ?? 0))
+    .map((m, idx) => ({
+      id: m.user?.id ?? m.id,
+      fullName: m.user?.fullName ?? 'User',
+      department: m.user?.department ?? '-',
+      avatarUrl: m.user?.avatarUrl,
+      totalPoints: m.user?.totalPoints ?? 0,
+      points: m.user?.totalPoints ?? 0,
+      rank: idx + 1,
+    }));
+  const ranking = overview?.ranking ?? fallbackRanking;
+
+  const renderMember = ({ item }: { item: GroupRankingRow }) => (
+    <LeaderboardItem
+      rank={item.rank}
+      user={{ fullName: item.fullName, department: item.department, avatarUrl: item.avatarUrl ?? undefined, totalPoints: item.points }}
+      isCurrentUser={item.id === user?.id}
+    />
   );
 
   if (isLoading) return <LoadingScreen message={t('common.loading')} />;
@@ -77,42 +91,54 @@ export default function GroupDetailScreen() {
       </SafeAreaView>
 
       <FlatList
-        data={group.members || []}
+        data={ranking}
         keyExtractor={(item) => item.id}
         renderItem={renderMember}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <View style={[styles.groupInfoContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <View style={[styles.groupIconContainer, { backgroundColor: colors.primary + '15' }]}>
-              <Ionicons name="people" size={40} color={colors.primary} />
-            </View>
-            <AppText variant="heading-bold" style={[styles.groupName, { color: colors.textPrimary }]}>{group.name}</AppText>
-            {group.description && (
-              <AppText style={[styles.groupDesc, { color: colors.textSecondary }]}>{group.description}</AppText>
-            )}
-            <View style={styles.statsRow}>
-              <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
-              <AppText style={[styles.statsText, { color: colors.textSecondary }]}>
-                {group.members?.length || 0} {t('common.members')}
-              </AppText>
+          <>
+            <View style={[styles.groupInfoContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <View style={[styles.groupIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                <Ionicons name="people" size={40} color={colors.primary} />
+              </View>
+              <AppText variant="heading-bold" style={[styles.groupName, { color: colors.textPrimary }]}>{group.name}</AppText>
+              {group.description && (
+                <AppText style={[styles.groupDesc, { color: colors.textSecondary }]}>{group.description}</AppText>
+              )}
+              <View style={styles.statsRow}>
+                <Ionicons name="people-outline" size={16} color={colors.textSecondary} />
+                <AppText style={[styles.statsText, { color: colors.textSecondary }]}>
+                  {group.members?.length || 0} {t('common.members')}
+                </AppText>
+              </View>
+
+              <View style={styles.actionContainer}>
+                <PrimaryButton
+                  title={t('groups.qrInvite')}
+                  onPress={handleShowQrCode}
+                  disabled={isActionLoading}
+                  icon="qr-code-outline"
+                />
+                <View style={{height: spacing.sm}} />
+                <OutlineButton
+                  title={isOwner ? t('groups.deleteGroup') : t('groups.leaveGroup')}
+                  onPress={isOwner ? handleDeleteGroup : handleLeaveGroup}
+                  disabled={isActionLoading}
+                  color={colors.error}
+                />
+              </View>
             </View>
 
-            <View style={styles.actionContainer}>
-              <PrimaryButton 
-                title={t('groups.qrInvite')} 
-                onPress={handleShowQrCode} 
-                disabled={isActionLoading} 
-                icon="qr-code-outline"
-              />
-              <View style={{height: spacing.sm}} />
-              <OutlineButton 
-                title={isOwner ? t('groups.deleteGroup') : t('groups.leaveGroup')} 
-                onPress={isOwner ? handleDeleteGroup : handleLeaveGroup} 
-                disabled={isActionLoading}
-                color={colors.error}
-              />
-            </View>
-          </View>
+            {hasChildren && <GroupDescendantsSection childGroups={group.childGroups ?? []} />}
+            {hasParent && <GroupSiblingsSection siblings={siblings} isLoading={isSiblingsLoading} />}
+
+            <GroupOverviewSection
+              overallStats={overview?.overallStats ?? null}
+              top3={overview?.top3 ?? []}
+              isLoading={isOverviewLoading}
+              currentUserId={user?.id}
+            />
+          </>
         }
         ListEmptyComponent={<EmptyState icon="people-outline" title={t('common.noData')} subtitle="" />}
       />
@@ -160,22 +186,4 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
   statsText: { fontSize: 14, marginLeft: spacing.xs },
   actionContainer: { width: '100%' },
-  memberCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    marginBottom: spacing.sm,
-  },
-  memberAvatar: {
-    width: 40, height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  memberInfo: { flex: 1 },
-  memberName: { fontSize: 16, marginBottom: 2 },
-  memberDept: { fontSize: 13 },
 });

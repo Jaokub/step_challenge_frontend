@@ -7,18 +7,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
-import { PrimaryButton } from '../../src/components';
+import { PrimaryButton, OutlineButton } from '../../src/components';
 import { spacing, borderRadius, fontSize, shadows } from '../../src/constants/theme';
+import { getGoogleIdToken } from '../../src/services/googleSignIn';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const { colors } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
@@ -42,6 +44,21 @@ export default function LoginScreen() {
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      const idToken = await getGoogleIdToken();
+      const signedInUser = await signInWithGoogle(idToken);
+      router.replace(signedInUser.department ? '/' : '/edit-profile');
+    } catch (err: any) {
+      const msg = err?.message || err?.data?.message || t('auth.googleSignInFailed');
+      setError(msg);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -123,6 +140,21 @@ export default function LoginScreen() {
                 loading={loading}
                 disabled={loading}
                 style={styles.loginButton}
+              />
+
+              {/* Divider */}
+              <View style={styles.dividerRow}>
+                <View style={[styles.dividerLine, { backgroundColor: colors.cardBorder }]} />
+                <AppText style={[styles.dividerText, { color: colors.textSecondary }]}>{t('auth.orDivider')}</AppText>
+                <View style={[styles.dividerLine, { backgroundColor: colors.cardBorder }]} />
+              </View>
+
+              {/* Google Sign-In */}
+              <OutlineButton
+                title={t('auth.continueWithGoogle')}
+                onPress={handleGoogleSignIn}
+                loading={googleLoading}
+                disabled={googleLoading || loading}
               />
             </View>
 
@@ -214,6 +246,19 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: spacing.sm,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: fontSize.sm,
+    marginHorizontal: spacing.md,
   },
   registerRow: {
     flexDirection: 'row',

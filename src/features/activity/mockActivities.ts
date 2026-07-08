@@ -74,8 +74,8 @@ export function getMockActivities(status: ActivityStatus): Activity[] {
         {
           ...BASE,
           status: 'UPCOMING',
-          startDate: atTime(0, 6, 30),
-          endDate: atTime(0, 7, 30),
+          startDate: atTime(2, 6, 30),
+          endDate: atTime(2, 7, 30),
           isCheckedIn: false,
           createdAt: atTime(-3, 9, 0),
           updatedAt: atTime(-3, 9, 0),

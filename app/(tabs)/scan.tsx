@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Share, Animated } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
@@ -11,16 +12,23 @@ import { queryKeys } from '../../src/constants/queryKeys';
 import { AppText, ScreenHeader } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useToast } from '../../src/contexts/ToastContext';
 import checkinService from '../../src/features/activity/checkinService';
 import friendService from '../../src/features/friend/friendService';
-import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
+import { spacing, borderRadius, gradients } from '../../src/constants/theme';
 
 type Mode = "scan" | "myqr";
+
+const GRAD_START = { x: 0, y: 0 };
+const GRAD_END = { x: 1, y: 1 };
+const SCANLINE_GRAD_START = { x: 0, y: 0 };
+const SCANLINE_GRAD_END = { x: 1, y: 0 };
 
 export default function ScanScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
 
   const [permission, requestPermission] = useCameraPermissions();
@@ -59,6 +67,8 @@ export default function ScanScreen() {
   // The scanner below also accepts the legacy JSON/link formats for QR codes
   // that are already printed or screenshotted.
   const qrPayload = `sc:friend:${user?.id || 'guest'}`;
+  // Short, human-friendly ID shown under the name on the "My QR" card.
+  const shortId = user?.id ? user.id.slice(-8).toUpperCase() : '';
 
   const handleShareLink = async () => {
     try {
@@ -70,6 +80,12 @@ export default function ScanScreen() {
     } catch (error) {
       console.warn('Share error:', error);
     }
+  };
+
+  // TODO(save-to-gallery): wire up react-native-view-shot + expo-media-library
+  // once a new EAS build can ship the native deps — see PROGRESS.md.
+  const handleSaveImage = () => {
+    showToast(t('scan.saveImageComingSoon'), 'info');
   };
 
   /** Extract a friend userId from any supported QR payload, or null. */
@@ -164,36 +180,46 @@ export default function ScanScreen() {
 
   const renderHeader = () => (
     <>
-      <ScreenHeader 
-        title={t('scan.scanQrCode')} 
-        subtitle={t('scan.scanSubtitle')}
+      <ScreenHeader
+        title={t('scan.scanQrCode')}
+        subtitle={mode === "scan" ? t('scan.scanSubtitle') : t('scan.myQrSubtitle')}
       />
 
       <View style={styles.modeContainer}>
-        <View style={[styles.modeToggle, { backgroundColor: colors.card }]}>
-          <TouchableOpacity
-            onPress={() => setMode("scan")}
-            style={[
-              styles.modeBtn,
-              mode === "scan" ? { backgroundColor: colors.primary } : { backgroundColor: 'transparent' }
-            ]}
-          >
-            <Ionicons name="qr-code-outline" size={16} color={mode === "scan" ? colors.onPrimary : colors.textSecondary} />
-            <AppText style={[styles.modeText, { color: mode === "scan" ? colors.onPrimary : colors.textSecondary, fontWeight: mode === 'scan' ? 'bold' : 'normal' }]}>
-              {t('scan.scanBtn')}
-            </AppText>
+        <View style={[styles.modeToggle, { backgroundColor: colors.inputBackground }]}>
+          <TouchableOpacity onPress={() => setMode("scan")} style={styles.modeBtnWrap} activeOpacity={0.85}>
+            {mode === "scan" ? (
+              <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.modeBtn}>
+                <Ionicons name="qr-code-outline" size={16} color={colors.onPrimary} />
+                <AppText variant="body-bold" style={[styles.modeText, { color: colors.onPrimary }]}>
+                  {t('scan.scanBtn')}
+                </AppText>
+              </LinearGradient>
+            ) : (
+              <View style={styles.modeBtn}>
+                <Ionicons name="qr-code-outline" size={16} color={colors.textSecondary} />
+                <AppText style={[styles.modeText, { color: colors.textSecondary }]}>
+                  {t('scan.scanBtn')}
+                </AppText>
+              </View>
+            )}
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setMode("myqr")}
-            style={[
-              styles.modeBtn,
-              mode === "myqr" ? { backgroundColor: colors.primary } : { backgroundColor: 'transparent' }
-            ]}
-          >
-            <Ionicons name="person-add-outline" size={16} color={mode === "myqr" ? colors.onPrimary : colors.textSecondary} />
-            <AppText style={[styles.modeText, { color: mode === "myqr" ? colors.onPrimary : colors.textSecondary, fontWeight: mode === 'myqr' ? 'bold' : 'normal' }]}>
-              {t('scan.myQrTab')}
-            </AppText>
+          <TouchableOpacity onPress={() => setMode("myqr")} style={styles.modeBtnWrap} activeOpacity={0.85}>
+            {mode === "myqr" ? (
+              <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.modeBtn}>
+                <Ionicons name="person-add-outline" size={16} color={colors.onPrimary} />
+                <AppText variant="body-bold" style={[styles.modeText, { color: colors.onPrimary }]}>
+                  {t('scan.myQrTab')}
+                </AppText>
+              </LinearGradient>
+            ) : (
+              <View style={styles.modeBtn}>
+                <Ionicons name="person-add-outline" size={16} color={colors.textSecondary} />
+                <AppText style={[styles.modeText, { color: colors.textSecondary }]}>
+                  {t('scan.myQrTab')}
+                </AppText>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -217,15 +243,14 @@ export default function ScanScreen() {
               <View style={styles.overlay}>
                 <View style={styles.frame}>
                   <View style={[styles.corner, styles.topLeft, { borderColor: colors.primary }]} />
-                  <View style={[styles.corner, styles.topRight, { borderColor: colors.primary }]} />
+                  <View style={[styles.corner, styles.topRight, { borderColor: colors.accent }]} />
                   <View style={[styles.corner, styles.bottomLeft, { borderColor: colors.primary }]} />
-                  <View style={[styles.corner, styles.bottomRight, { borderColor: colors.primary }]} />
-                  
-                  <Animated.View 
+                  <View style={[styles.corner, styles.bottomRight, { borderColor: colors.accent }]} />
+
+                  <Animated.View
                     style={[
-                      styles.scanLine, 
-                      { 
-                        backgroundColor: colors.primary,
+                      styles.scanLine,
+                      {
                         shadowColor: colors.primary,
                         transform: [{
                           translateY: scanLineAnim.interpolate({
@@ -234,8 +259,15 @@ export default function ScanScreen() {
                           })
                         }]
                       }
-                    ]} 
-                  />
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={['transparent', colors.primary, 'transparent']}
+                      start={SCANLINE_GRAD_START}
+                      end={SCANLINE_GRAD_END}
+                      style={StyleSheet.absoluteFill}
+                    />
+                  </Animated.View>
                   <View style={styles.cameraCenterIcon}>
                      <Ionicons name="qr-code-outline" size={48} color="rgba(255,255,255,0.3)" />
                   </View>
@@ -247,35 +279,37 @@ export default function ScanScreen() {
             </View>
 
             <View style={styles.useCasesContainer}>
-              <View style={[styles.useCaseCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                <View style={[styles.useCaseIconBg, { backgroundColor: colors.success + '20' }]}>
-                  <Ionicons name="person-add" size={20} color={colors.success} />
+              <View style={[styles.useCaseCard, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+                <View style={[styles.useCaseIconBg, { backgroundColor: colors.primary + '24' }]}>
+                  <Ionicons name="person-add" size={22} color={colors.primary} />
                 </View>
-                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.addFriendTitle')}</AppText>
+                <AppText variant="body-bold" style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.addFriendTitle')}</AppText>
                 <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.addFriendDesc')}</AppText>
               </View>
-              <View style={[styles.useCaseCard, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-                <View style={[styles.useCaseIconBg, { backgroundColor: colors.primary + '20' }]}>
-                  <Ionicons name="ticket" size={20} color={colors.primary} />
+              <View style={[styles.useCaseCard, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+                <View style={[styles.useCaseIconBg, { backgroundColor: colors.accent + '2a' }]}>
+                  <Ionicons name="ticket" size={22} color={colors.accent} />
                 </View>
-                <AppText style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.registerEventTitle')}</AppText>
+                <AppText variant="body-bold" style={[styles.useCaseTitle, { color: colors.textPrimary }]}>{t('scan.registerEventTitle')}</AppText>
                 <AppText style={[styles.useCaseDesc, { color: colors.textSecondary }]}>{t('scan.registerEventDesc')}</AppText>
               </View>
             </View>
           </View>
         ) : (
           <View style={styles.contentPadding}>
-            <View style={[styles.myQrContainer, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-              <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-                <AppText style={[styles.avatarText, { color: colors.onPrimary }]}>
+            <View style={[styles.myQrContainer, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+              <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.avatar}>
+                <AppText variant="body-bold" style={[styles.avatarText, { color: colors.onPrimary }]}>
                   {user?.fullName?.substring(0,2).toUpperCase() || 'ME'}
                 </AppText>
-              </View>
-              <AppText style={[styles.myName, { color: colors.textPrimary }]}>{user?.fullName || t('scan.defaultUser')}</AppText>
-              {user?.nickname ? (
-                <AppText style={[styles.myHandle, { color: colors.textSecondary }]}>{user.nickname}</AppText>
-              ) : (
-                <View style={{ marginBottom: spacing.lg }} />
+              </LinearGradient>
+              <AppText variant="body-bold" style={[styles.myName, { color: colors.textPrimary }]}>
+                {user?.nickname || user?.fullName || t('scan.defaultUser')}
+              </AppText>
+              {!!shortId && (
+                <AppText style={[styles.myHandle, { color: colors.textSecondary }]}>
+                  {t('scan.idLabel', { id: shortId })}
+                </AppText>
               )}
 
               <View style={styles.qrWhiteBg}>
@@ -286,13 +320,28 @@ export default function ScanScreen() {
                   backgroundColor="#FFFFFF"
                 />
               </View>
-              <AppText style={[styles.qrFooterText, { color: colors.textSecondary }]}>{t('scan.shareQrFooter')}</AppText>
             </View>
 
-            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary, marginTop: 0 }]} onPress={handleShareLink}>
-              <Ionicons name="share-social" size={18} color={colors.onPrimary} style={{ marginRight: 8 }} />
-              <AppText style={[styles.buttonText, { color: colors.onPrimary }]}>{t('scan.shareLinkBtn')}</AppText>
-            </TouchableOpacity>
+            <View style={styles.myQrActionsRow}>
+              <TouchableOpacity
+                style={[styles.saveImageButton, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}
+                onPress={handleSaveImage}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="download-outline" size={18} color={colors.textPrimary} />
+                <AppText variant="body-bold" style={[styles.buttonText, { color: colors.textPrimary }]}>
+                  {t('scan.saveImage')}
+                </AppText>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.shareButtonWrap} onPress={handleShareLink} activeOpacity={0.85}>
+                <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.shareButton}>
+                  <Ionicons name="share-social" size={18} color={colors.onPrimary} />
+                  <AppText variant="body-bold" style={[styles.buttonText, { color: colors.onPrimary }]}>
+                    {t('scan.shareLinkBtn')}
+                  </AppText>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </SafeAreaView>
@@ -349,16 +398,19 @@ const styles = StyleSheet.create({
   },
   modeToggle: {
     flexDirection: 'row',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.full,
     padding: 4,
+    gap: 4,
+  },
+  modeBtnWrap: {
+    flex: 1,
   },
   modeBtn: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.full,
     gap: 8,
   },
   modeText: { fontSize: 14 },
@@ -408,6 +460,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
     top: 0,
+    overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
@@ -428,19 +481,19 @@ const styles = StyleSheet.create({
   },
   useCaseCard: {
     flex: 1,
-    padding: spacing.md,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
     gap: 8,
   },
   useCaseIconBg: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  useCaseTitle: { fontSize: 14, fontWeight: '600' },
+  useCaseTitle: { fontSize: 15 },
   useCaseDesc: { fontSize: 12 },
   myQrContainer: {
     alignItems: 'center',
@@ -452,21 +505,45 @@ const styles = StyleSheet.create({
   avatar: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
-  avatarText: { fontSize: 20, fontWeight: 'bold' },
-  myName: { fontSize: 16, fontWeight: '600' },
-  myHandle: { fontSize: 14, marginBottom: spacing.lg },
+  avatarText: { fontSize: 20 },
+  myName: { fontSize: 18 },
+  myHandle: { fontSize: 12, marginTop: 2, marginBottom: spacing.lg },
   qrWhiteBg: {
     backgroundColor: '#FFF',
     padding: 16,
-    borderRadius: 16,
-    marginBottom: spacing.lg,
+    borderRadius: 20,
   },
-  qrFooterText: { fontSize: 12, textAlign: 'center' },
+  myQrActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  saveImageButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  shareButtonWrap: {
+    flex: 1,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+  },
   resultOverlay: {
     position: 'absolute',
     top: 0,
