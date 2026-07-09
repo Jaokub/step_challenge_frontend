@@ -165,14 +165,73 @@ export default function ScanScreen() {
   if (!permission.granted && mode === 'scan') {
     return (
       <View style={[styles.permissionContainer, { backgroundColor: colors.background }]}>
-        <SafeAreaView style={styles.center}>
-          <Ionicons name="camera-outline" size={64} color={colors.textSecondary} />
-          <AppText style={[styles.permissionText, { color: colors.textPrimary }]}>
-            {t('scan.permissionRequired')}
-          </AppText>
-          <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.primary }]} onPress={requestPermission}>
-            <AppText style={[styles.buttonText, { color: colors.onPrimary }]}>{t('scan.grantPermission')}</AppText>
+        <SafeAreaView edges={['top', 'bottom']} style={styles.permissionSafeArea}>
+          <TouchableOpacity
+            onPress={() => setMode('myqr')}
+            style={styles.permissionBackBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="chevron-back" size={23} color={colors.textPrimary} />
           </TouchableOpacity>
+
+          <View style={styles.permissionCenter}>
+            <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={[styles.permissionIconBadge, { shadowColor: colors.primary }]}>
+              <Ionicons name="camera-outline" size={46} color={colors.onPrimary} />
+            </LinearGradient>
+
+            <View style={styles.permissionCopy}>
+              <AppText variant="heading-bold" style={[styles.permissionTitle, { color: colors.textPrimary }]}>
+                {t('scan.permissionTitle')}
+              </AppText>
+              <AppText style={[styles.permissionBody, { color: colors.textSecondary }]}>
+                {t('scan.permissionBody')}
+              </AppText>
+            </View>
+
+            <View style={styles.permissionFeatures}>
+              <View style={[styles.permissionFeatureRow, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+                <View style={[styles.permissionFeatureIconBg, { backgroundColor: colors.primary + '24' }]}>
+                  <Ionicons name="qr-code-outline" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.permissionFeatureText}>
+                  <AppText variant="body-bold" style={[styles.permissionFeatureTitle, { color: colors.textPrimary }]}>
+                    {t('scan.permissionFeature1Title')}
+                  </AppText>
+                  <AppText style={[styles.permissionFeatureDesc, { color: colors.textSecondary }]}>
+                    {t('scan.permissionFeature1Desc')}
+                  </AppText>
+                </View>
+              </View>
+              <View style={[styles.permissionFeatureRow, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+                <View style={[styles.permissionFeatureIconBg, { backgroundColor: colors.accent + '2a' }]}>
+                  <Ionicons name="lock-closed-outline" size={20} color={colors.accent} />
+                </View>
+                <View style={styles.permissionFeatureText}>
+                  <AppText variant="body-bold" style={[styles.permissionFeatureTitle, { color: colors.textPrimary }]}>
+                    {t('scan.permissionFeature2Title')}
+                  </AppText>
+                  <AppText style={[styles.permissionFeatureDesc, { color: colors.textSecondary }]}>
+                    {t('scan.permissionFeature2Desc')}
+                  </AppText>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.permissionActions}>
+            <TouchableOpacity onPress={requestPermission} activeOpacity={0.85}>
+              <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.permissionPrimaryButton}>
+                <AppText variant="body-bold" style={[styles.buttonText, { color: colors.onPrimary }]}>
+                  {t('scan.grantPermission')}
+                </AppText>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.permissionDenyBtn} onPress={() => setMode('myqr')} activeOpacity={0.7}>
+              <AppText variant="body-bold" style={[styles.buttonText, { color: colors.textSecondary }]}>
+                {t('scan.denyPermission')}
+              </AppText>
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
       </View>
     );
@@ -378,9 +437,56 @@ export default function ScanScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  permissionContainer: { flex: 1, justifyContent: 'center' },
-  center: { alignItems: 'center', padding: 24 },
-  permissionText: { fontSize: 18, textAlign: 'center', marginTop: 24 },
+  permissionContainer: { flex: 1 },
+  permissionSafeArea: { flex: 1, paddingHorizontal: 28, paddingBottom: 28 },
+  permissionBackBtn: { alignSelf: 'flex-start', paddingTop: 6 },
+  permissionCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 28 },
+  permissionIconBadge: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+  permissionCopy: { alignItems: 'center', gap: 10 },
+  permissionTitle: { fontSize: 24, textAlign: 'center' },
+  permissionBody: { fontSize: 14, lineHeight: 22, textAlign: 'center', maxWidth: 280 },
+  permissionFeatures: { width: '100%', gap: 12, marginTop: 8 },
+  permissionFeatureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+  },
+  permissionFeatureIconBg: {
+    width: 40,
+    height: 40,
+    flexShrink: 0,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  permissionFeatureText: { flex: 1 },
+  permissionFeatureTitle: { fontSize: 14 },
+  permissionFeatureDesc: { fontSize: 12, marginTop: 2 },
+  permissionActions: { gap: 10 },
+  permissionPrimaryButton: {
+    paddingVertical: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  permissionDenyBtn: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   primaryButton: {
     paddingVertical: 14,
     paddingHorizontal: 24,

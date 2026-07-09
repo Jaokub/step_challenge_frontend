@@ -129,8 +129,15 @@
     "alreadyCheckedIn": "คุณได้สแกนกิจกรรมนี้แล้ว",
     "invalidQR": "QR Code ไม่ถูกต้อง",
     "permissionRequired": "ต้องการสิทธิ์เข้าถึงกล้อง",
+    "permissionTitle": "ขออนุญาตเข้าถึงกล้อง",
+    "permissionBody": "Step Challenge ใช้กล้องเพื่อสแกน QR Code สำหรับเพิ่มเพื่อนและลงทะเบียนเข้าร่วมกิจกรรมเท่านั้น เราจะไม่บันทึกหรือแชร์ภาพจากกล้องของคุณ",
+    "permissionFeature1Title": "สแกน QR Code",
+    "permissionFeature1Desc": "เพิ่มเพื่อนและเข้าร่วมกิจกรรม",
+    "permissionFeature2Title": "ไม่มีการบันทึกภาพ",
+    "permissionFeature2Desc": "ใช้เพื่อสแกนแบบเรียลไทม์เท่านั้น",
+    "denyPermission": "ไม่อนุญาต",
     "torch": "ไฟฉาย",
-    "grantPermission": "อนุญาตให้เข้าถึง",
+    "grantPermission": "อนุญาตให้เข้าถึงกล้อง",
     "myQr": "QR ของฉัน",
     "myQrCode": "QR Code ของฉัน",
     "showCodeCheckIn": "แสดงรหัสนี้เพื่อเช็คอินหรือเพิ่มเพื่อน",
@@ -351,4 +358,79 @@
     "invalidUserId": "ลิงก์ไม่ถูกต้อง ไม่มีรหัสผู้ใช้",
     "userNotFound": "ไม่พบผู้ใช้",
     "failedToFindUser": "ค้นหาผู้ใช้ล้มเหลว",
-    "reque
+    "requestSentSuccess": "ส่งคำขอเป็นเพื่อนสำเร็จ!",
+    "failedToSendRequest": "ส่งคำขอเป็นเพื่อนล้มเหลว",
+    "sendFriendRequest": "ส่งคำขอเป็นเพื่อน",
+    "goBack": "กลับ",
+    "wantsToBeFriends": "ต้องการเป็นเพื่อน",
+    "yourRank": "อันดับของคุณ",
+    "stepsCount": "ก้าว",
+    "kmCount": "กม."
+  },
+  "activity": {
+    "run": "วิ่ง",
+    "bike": "จักรยาน",
+    "yoga": "โยคะ",
+    "swim": "ว่ายน้ำ",
+    "hiit": "HIIT",
+    "notFound": "ไม่พบกิจกรรม",
+    "start": "เริ่ม:",
+    "end": "สิ้นสุด:",
+    "participantsUncapped": " คน (ไม่จำกัด)",
+    "noDescription": "ไม่มีคำอธิบายสำหรับกิจกรรมนี้",
+    "creator": "ผู้สร้างกิจกรรม",
+    "search": "ค้นหากิจกรรม...",
+    "people": "จำนวนคน",
+    "allDay": "ทั้งวัน",
+    "points": "คะแนน"
+  },
+  "tabs": {
+    "home": "หน้าแรก",
+    "activities": "กิจกรรม",
+    "scan": "สแกน",
+    "friendsAndGroups": "เพื่อนและกลุ่ม",
+    "friends": "เพื่อน",
+    "profile": "โปรไฟล์"
+  },
+  "months": {
+    "full": [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม"
+    ],
+    "short": [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค."
+    ]
+  },
+  "weekdays": {
+    "min": [
+      "อา",
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส"
+    ]
+  }
+}

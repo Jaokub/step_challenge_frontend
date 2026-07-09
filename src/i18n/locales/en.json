@@ -129,8 +129,15 @@
     "alreadyCheckedIn": "You already scanned this QR Code",
     "invalidQR": "Invalid QR Code",
     "permissionRequired": "Camera permission required",
+    "permissionTitle": "Camera Permission",
+    "permissionBody": "Step Challenge only uses your camera to scan QR codes for adding friends and checking in to activities. We never save or share your camera footage.",
+    "permissionFeature1Title": "Scan QR Code",
+    "permissionFeature1Desc": "Add friends and join activities",
+    "permissionFeature2Title": "No Footage Saved",
+    "permissionFeature2Desc": "Used for real-time scanning only",
+    "denyPermission": "Don't Allow",
     "torch": "Torch",
-    "grantPermission": "Grant Permission",
+    "grantPermission": "Allow Camera Access",
     "myQr": "My QR",
     "myQrCode": "My QR Code",
     "showCodeCheckIn": "Show this code to check-in or add friend",
@@ -354,3 +361,76 @@
     "requestSentSuccess": "Friend request sent successfully!",
     "failedToSendRequest": "Failed to send friend request.",
     "sendFriendRequest": "Send Friend Request",
+    "goBack": "Go Back",
+    "wantsToBeFriends": "Wants to be friends",
+    "yourRank": "Your Rank",
+    "stepsCount": "steps",
+    "kmCount": "km"
+  },
+  "activity": {
+    "run": "Run",
+    "bike": "Bike",
+    "yoga": "Yoga",
+    "swim": "Swim",
+    "hiit": "HIIT",
+    "notFound": "Activity not found",
+    "start": "Start:",
+    "end": "End:",
+    "participantsUncapped": " People (Unlimited)",
+    "noDescription": "No description for this activity",
+    "creator": "Activity Creator",
+    "search": "Search activities...",
+    "people": "People",
+    "allDay": "All day",
+    "points": "Points"
+  },
+  "tabs": {
+    "home": "Home",
+    "activities": "Activities",
+    "scan": "Scan",
+    "friendsAndGroups": "Friends & Groups",
+    "friends": "Friends",
+    "profile": "Profile"
+  },
+  "months": {
+    "full": [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ],
+    "short": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ]
+  },
+  "weekdays": {
+    "min": [
+      "S",
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S"
+    ]
+  }
+}
