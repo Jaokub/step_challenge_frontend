@@ -11,10 +11,13 @@ import userService from '../../src/features/auth/userService';
 import { queryKeys } from '../../src/constants/queryKeys';
 import { spacing, fontSize } from '../../src/constants/theme';
 
+type RoleFilter = 'all' | 'admin' | 'noDept';
+
 export default function UsersManagementScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
 
   const { data, isPending: loading, error: queryError, refetch: fetchUsers } = useQuery({
     queryKey: queryKeys.users.list,
@@ -32,8 +35,14 @@ export default function UsersManagementScreen() {
     ? (queryError as any)?.response?.data?.message || (queryError as any)?.message || t('common.cannotLoadData')
     : null;
 
-  const filteredUsers = users.filter(user => 
-    user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const roleFiltered = users.filter((user) => {
+    if (roleFilter === 'admin') return user.role === 'ADMIN';
+    if (roleFilter === 'noDept') return !user.department;
+    return true;
+  });
+
+  const filteredUsers = roleFiltered.filter(user =>
+    user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.department?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -65,10 +74,15 @@ export default function UsersManagementScreen() {
             {item.department}
           </AppText>
         </View>
-        <View style={styles.pointsBadge}>
-          <Ionicons name="star" size={12} color={colors.warning} style={{ marginRight: 4 }} />
-          <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: fontSize.sm }}>
-            {item.totalPoints || item.points || 0}
+        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+          <View style={styles.pointsBadge}>
+            <Ionicons name="star" size={12} color={colors.warning} style={{ marginRight: 4 }} />
+            <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: fontSize.sm }}>
+              {item.totalPoints || item.points || 0}
+            </AppText>
+          </View>
+          <AppText style={{ fontSize: 10, color: colors.textSecondary }}>
+            {item.role === 'ADMIN' ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
           </AppText>
         </View>
       </View>
@@ -87,6 +101,30 @@ export default function UsersManagementScreen() {
           }
         />
       </SafeAreaView>
+
+      <View style={styles.filterRow}>
+        {(['all', 'admin', 'noDept'] as RoleFilter[]).map((f) => {
+          const active = f === roleFilter;
+          const label = f === 'all' ? t('admin.filterAll') : f === 'admin' ? t('admin.filterAdminRole') : t('admin.filterNoDept');
+          return (
+            <TouchableOpacity
+              key={f}
+              onPress={() => setRoleFilter(f)}
+              style={[styles.filterChip, { backgroundColor: active ? colors.textPrimary : colors.inputBackground }]}
+            >
+              <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: active ? colors.background : colors.textSecondary }}>
+                {label}
+              </AppText>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '1A' }]}>
+        <AppText style={{ fontSize: 10.5, color: colors.warning, fontWeight: '700' as any, textAlign: 'center' }}>
+          {t('admin.roleToggleNeedsEndpoint')}
+        </AppText>
+      </View>
 
       <View style={styles.searchContainer}>
         <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
@@ -135,6 +173,23 @@ export default function UsersManagementScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  filterRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm - 1,
+    borderRadius: 999,
+  },
+  needsEndpointPill: {
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: 12,
+  },
   searchContainer: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.md,
