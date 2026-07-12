@@ -4,62 +4,30 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useToast } from '../../src/contexts/ToastContext';
-import { AppText, Skeleton, PrimaryButton, CustomModal, GradientText, ScreenHeader } from '../../src/components';
+import { AppText, Skeleton, GradientText, ScreenHeader } from '../../src/components';
 import { spacing, borderRadius, layout, fontSize, gradients, dashboardAccents } from '../../src/constants/theme';
 import { useEventDetail, useEventLeaderboard } from '../../src/features/event/useEvents';
-import { useGroups } from '../../src/features/group/useGroups';
 import EventRankingList from '../../src/features/event/EventRankingList';
 import type { EventScope } from '../../src/types';
 
+// Mockup frame 5 has no join/leave affordance at all: reaching this screen
+// already implies membership (join happens elsewhere, e.g. the events list),
+// and an admin viewing it is staff overseeing the event, not a runner who'd
+// join. So this screen is read-only — stats + tabs + ranking, nothing else.
 export default function EventDetailScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
-  const { showToast } = useToast();
   const { id } = useLocalSearchParams<{ id: string }>();
   const eventId = String(id);
 
   const [scope, setScope] = useState<EventScope>('individual');
-  const [joinModal, setJoinModal] = useState(false);
 
-  const { event, stats, isLoading, isStatsLoading, joinIndividual, joinGroup, leave, isMutating } =
-    useEventDetail(eventId);
+  const { event, stats, isStatsLoading } = useEventDetail(eventId);
   const { leaderboard, isLoading: isBoardLoading } = useEventLeaderboard(eventId, scope);
-  const { groups } = useGroups(joinModal);
-
-  const handleIndividual = async () => {
-    setJoinModal(false);
-    try {
-      await joinIndividual.mutateAsync();
-      showToast(t('events.joinedIndividual'), 'success');
-    } catch (e: any) {
-      showToast(e?.message || t('events.joinFailed'), 'error');
-    }
-  };
-
-  const handleGroup = async (groupId: string) => {
-    setJoinModal(false);
-    try {
-      const res = await joinGroup.mutateAsync(groupId);
-      showToast(t('events.joinedGroup', { count: res.data?.added ?? 0 }), 'success');
-    } catch (e: any) {
-      showToast(e?.message || t('events.joinFailed'), 'error');
-    }
-  };
-
-  const handleLeave = async () => {
-    try {
-      await leave.mutateAsync();
-      showToast(t('events.left'), 'success');
-    } catch (e: any) {
-      showToast(e?.message || t('events.joinFailed'), 'error');
-    }
-  };
 
   const scopes: EventScope[] = ['individual', 'group'];
 
@@ -104,34 +72,31 @@ export default function EventDetailScreen() {
             </View>
           </LinearGradient>
 
-          {/* Join / Leave */}
-          {isLoading ? (
-            <Skeleton width="100%" height={52} borderRadius={borderRadius.lg} />
-          ) : event?.joined ? (
-            <TouchableOpacity
-              onPress={handleLeave}
-              disabled={isMutating}
-              style={[styles.leaveBtn, { borderColor: colors.cardBorder }]}
-            >
-              <AppText style={{ color: colors.textSecondary }}>{t('events.leave')}</AppText>
-            </TouchableOpacity>
-          ) : (
-            <PrimaryButton title={t('events.join')} icon="add" loading={isMutating} onPress={() => setJoinModal(true)} />
-          )}
-
-          {/* Scope toggle */}
+          {/* Scope toggle — mockup's activePill is the brand gradient, not a
+              flat card-color fill. */}
           <View style={[styles.tabs, { backgroundColor: colors.inputBackground }]}>
             {scopes.map((s) => {
               const active = scope === s;
               return (
-                <TouchableOpacity
-                  key={s}
-                  onPress={() => setScope(s)}
-                  style={[styles.tab, active && { backgroundColor: colors.card }]}
-                >
-                  <AppText style={{ color: active ? colors.textPrimary : colors.textSecondary, fontSize: fontSize.sm }}>
-                    {t(`events.scope.${s}`)}
-                  </AppText>
+                <TouchableOpacity key={s} onPress={() => setScope(s)} style={styles.tabTouchable}>
+                  {active ? (
+                    <LinearGradient
+                      colors={gradients.primary}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.tab}
+                    >
+                      <AppText style={{ color: colors.onPrimary, fontSize: fontSize.sm, fontWeight: '700' as any }}>
+                        {t(`events.scope.${s}`)}
+                      </AppText>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.tab}>
+                      <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: '700' as any }}>
+                        {t(`events.scope.${s}`)}
+                      </AppText>
+                    </View>
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -146,23 +111,6 @@ export default function EventDetailScreen() {
           />
         </ScrollView>
       </SafeAreaView>
-
-      <CustomModal visible={joinModal} onClose={() => setJoinModal(false)} title={t('events.joinTitle')}>
-        <TouchableOpacity style={[styles.option, { borderColor: colors.cardBorder }]} onPress={handleIndividual}>
-          <Ionicons name="person-outline" size={18} color={colors.primary} />
-          <AppText style={{ color: colors.textPrimary }}>{t('events.joinAsIndividual')}</AppText>
-        </TouchableOpacity>
-
-        {groups.length > 0 && (
-          <AppText style={[styles.optionHint, { color: colors.textSecondary }]}>{t('events.joinAsGroupHint')}</AppText>
-        )}
-        {groups.map((g) => (
-          <TouchableOpacity key={g.id} style={[styles.option, { borderColor: colors.cardBorder }]} onPress={() => handleGroup(g.id)}>
-            <Ionicons name="people-outline" size={18} color={colors.primary} />
-            <AppText numberOfLines={1} style={{ color: colors.textPrimary, flex: 1 }}>{g.name}</AppText>
-          </TouchableOpacity>
-        ))}
-      </CustomModal>
     </View>
   );
 }
@@ -176,17 +124,7 @@ const styles = StyleSheet.create({
   statValue: { fontSize: fontSize['3xl'] },
   statRow: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   statSub: { fontSize: fontSize.sm },
-  leaveBtn: { borderWidth: 1, borderRadius: borderRadius.lg, paddingVertical: spacing.md, alignItems: 'center' },
-  tabs: { flexDirection: 'row', borderRadius: borderRadius.full, padding: 5 }, // mockup frame 5 tab-track padding
-  tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: borderRadius.full },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-    padding: spacing.lg,
-    marginTop: spacing.sm,
-  },
-  optionHint: { fontSize: fontSize.xs, marginTop: spacing.lg },
+  tabs: { flexDirection: 'row', borderRadius: borderRadius.full, padding: 5, gap: 4 }, // mockup frame 5 tab-track
+  tabTouchable: { flex: 1 },
+  tab: { alignItems: 'center', paddingVertical: spacing.sm, borderRadius: borderRadius.full },
 });

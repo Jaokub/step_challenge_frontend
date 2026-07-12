@@ -10,7 +10,7 @@ import { useToast } from '../../../src/contexts/ToastContext';
 import { FormInput, FormDateField } from '../../../src/features/admin/ActivityFormComponents';
 import activityService from '../../../src/features/activity/activityService';
 import { queryKeys } from '../../../src/constants/queryKeys';
-import { PrimaryButton, OutlineButton, ScreenHeader, CustomModal, LoadingScreen, ErrorState, AppText } from '../../../src/components';
+import { PrimaryButton, OutlineButton, ScreenHeader, CustomModal, LoadingScreen, ErrorState, AppText, statusColors } from '../../../src/components';
 import { spacing, fontSize, gradients } from '../../../src/constants/theme';
 import type { ActivityStatus } from '../../../src/types';
 
@@ -223,16 +223,20 @@ export default function EditActivityScreen() {
           <View style={styles.statusRow}>
             {STATUS_OPTIONS.map((opt) => {
               const active = opt === status;
+              // Mockup's editActivityStatusOptions: active uses that status's own
+              // tint/color (teal for ongoing, orange for upcoming, red for
+              // cancelled, grey for completed) — never a flat teal for every status.
+              const { bg, text } = statusColors(opt, colors);
               return (
                 <TouchableOpacity
                   key={opt}
                   onPress={() => setStatus(opt)}
                   style={[
                     styles.statusChip,
-                    { backgroundColor: active ? colors.primary : colors.inputBackground },
+                    { backgroundColor: active ? bg : colors.inputBackground },
                   ]}
                 >
-                  <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: active ? colors.onPrimary : colors.textSecondary }}>
+                  <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: active ? text : colors.textSecondary }}>
                     {t(`status.${opt}`)}
                   </AppText>
                 </TouchableOpacity>

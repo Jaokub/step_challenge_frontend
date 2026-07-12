@@ -35,8 +35,11 @@ export default function AdminActivitiesListScreen() {
         </AppText>
         <StatusBadge status={item.status} />
       </View>
+      {/* Mockup frame 2: {{ a.location }} and {{ a.dateRange }} are two separate
+          lines, not joined with "·" on one line. */}
+      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{item.location}</AppText>
       <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {item.location} · {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
+        {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
       </AppText>
       {typeof item.participantCount === 'number' && (
         <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>

@@ -5,11 +5,12 @@ import { View, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-n
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen } from '../../src/components';
 import userService from '../../src/features/auth/userService';
 import { queryKeys } from '../../src/constants/queryKeys';
-import { spacing, fontSize, adminAccents } from '../../src/constants/theme';
+import { spacing, fontSize, adminAccents, gradients } from '../../src/constants/theme';
 
 type RoleFilter = 'all' | 'admin' | 'noDept';
 
@@ -48,6 +49,15 @@ export default function UsersManagementScreen() {
 
   const renderUserItem = ({ item }: { item: any }) => {
     const isAdmin = item.role === 'ADMIN';
+    // Mockup frame 8: every row gets a role pill showing the literal role
+    // enum (STAFF/ADMIN) — ADMIN is the brand gradient, STAFF is a plain grey
+    // pill. The old code only showed a pill for admins/archived users and
+    // hid it entirely for regular staff, which doesn't match.
+    const roleLabel = item.role || 'STAFF';
+    const deptLine = item.isArchived
+      ? `${item.department || t('admin.filterNoDept')} · ${t('admin.statusArchived')}`
+      : item.department || t('admin.filterNoDept');
+
     return (
       <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={[styles.avatar, { backgroundColor: adminAccents.avatarBg }]}>
@@ -60,15 +70,17 @@ export default function UsersManagementScreen() {
             {item.fullName}
           </AppText>
           <AppText style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
-            {item.department || t('admin.filterNoDept')}
+            {deptLine}
           </AppText>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 5 }}>
-          {(isAdmin || item.isArchived) && (
-            <View style={[styles.roleBadge, { backgroundColor: isAdmin ? colors.warning : colors.textSecondary }]}>
-              <AppText style={{ color: adminAccents.onDark, fontSize: 10, fontWeight: '700' as any }}>
-                {isAdmin ? t('admin.roleAdmin') : t('admin.statusArchived')}
-              </AppText>
+          {isAdmin ? (
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.roleBadge}>
+              <AppText style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' as any }}>{roleLabel}</AppText>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.roleBadge, { backgroundColor: colors.inputBackground }]}>
+              <AppText style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '700' as any }}>{roleLabel}</AppText>
             </View>
           )}
           <AppText style={{ fontSize: 10, color: colors.primary, fontWeight: '700' as any }}>

@@ -20,7 +20,7 @@ export { default as CircularProgress } from './CircularProgress';
 export { default as ProgressBar } from './ProgressBar';
 
 // Badges
-export { default as StatusBadge } from './StatusBadge';
+export { default as StatusBadge, statusColors } from './StatusBadge';
 export { default as RoleBadge } from './RoleBadge';
 export { default as PointsBadge } from './PointsBadge';
 

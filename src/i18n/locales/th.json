@@ -409,9 +409,9 @@
     "adminManagement": "การจัดการแอดมิน"
   },
   "status": {
-    "UPCOMING": "กำลังจะมา",
-    "ONGOING": "กำลังดำเนินการ",
-    "COMPLETED": "เสร็จสิ้น",
+    "UPCOMING": "กำลังจะถึง",
+    "ONGOING": "กำลังดำเนิน",
+    "COMPLETED": "จบแล้ว",
     "CANCELLED": "ยกเลิก"
   },
   "friend": {
