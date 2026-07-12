@@ -1,9 +1,24 @@
 import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { AppText, AppCard } from '../../components';
-import { spacing, borderRadius, fontSize } from '../../constants/theme';
+import { AppText } from '../../components';
+import { spacing, fontSize } from '../../constants/theme';
+
+// Frame 1 exact spec (Admin and Group Coor Console Mockups_2.dc.html):
+// white cards radius 22 + soft shadow, KPI icon chips in four distinct accents,
+// faculty-steps card on the mint teal→lime tint. Values below are mockup-literal
+// where they aren't brand tokens (kept in one place, documented).
+const CARD_RADIUS = 22;
+const STEPS_TINT = ['#e8fbf6', '#f3fbe9'] as const; // mockup linear-gradient(150deg)
+const cardShadow = {
+  shadowColor: 'rgba(20,32,29,0.25)',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 1,
+  shadowRadius: 12,
+  elevation: 3,
+} as const;
 
 // Frame 1 — orange banner: coordinators don't see this admin console at all,
 // they use the "My Groups" tab instead. Purely informational copy.
@@ -23,41 +38,59 @@ interface KpiItem {
   value: number;
   label: string;
   icon: string;
+  color: string; // accent for the icon chip (mockup: teal / blue / lime / orange)
+  round?: boolean; // round chip vs squircle (mockup iconShape 50% vs 4px)
 }
 
 export const AdminKpiGrid = ({ items, colors }: { items: KpiItem[]; colors: any }) => (
   <View style={styles.kpiGrid}>
     {items.map((kpi) => (
-      <AppCard key={kpi.key} style={styles.kpiCard}>
-        <View style={[styles.kpiIcon, { backgroundColor: colors.primary + '1A' }]}>
-          <MaterialCommunityIcons name={kpi.icon as any} size={16} color={colors.primary} />
+      <View
+        key={kpi.key}
+        style={[styles.kpiCard, cardShadow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+      >
+        <View
+          style={[
+            styles.kpiIcon,
+            { backgroundColor: kpi.color + '1F', borderRadius: kpi.round ? 16 : 9 },
+          ]}
+        >
+          <MaterialCommunityIcons name={kpi.icon as any} size={17} color={kpi.color} />
         </View>
         <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>
           {kpi.value.toLocaleString()}
         </AppText>
         <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 15 }}>{kpi.label}</AppText>
-      </AppCard>
+      </View>
     ))}
   </View>
 );
 
 // Frame 1 — "ก้าวรวมทั้งคณะ (เดือนนี้)" has no backend aggregate today
 // (no endpoint sums HealthRecord.steps across every user). Stub + flag
-// instead of computing a misleading number client-side.
+// instead of computing a misleading number client-side. The mint gradient
+// surface still matches the mockup.
 export const AdminFacultyStepsCard = ({ colors }: any) => {
   const { t } = useTranslation();
   return (
-    <View style={[styles.stepsCard, { backgroundColor: colors.inputBackground, borderColor: colors.primary + '30' }]}>
-      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.facultyStepsLabel')}</AppText>
-      <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textSecondary, marginTop: 4 }}>
+    <LinearGradient
+      colors={STEPS_TINT}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.stepsCard, { borderColor: colors.primary + '2E' }]}
+    >
+      <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
+        {t('admin.facultyStepsLabel')}
+      </AppText>
+      <AppText variant="heading-bold" style={{ fontSize: fontSize['3xl'], color: colors.primary, marginTop: 4 }}>
         —
       </AppText>
-      <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '1A' }]}>
+      <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '22' }]}>
         <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any }}>
           {t('admin.facultyStepsNeedsEndpoint')}
         </AppText>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -78,13 +111,17 @@ export const AdminNavGrid = ({ items, colors }: { items: NavCard[]; colors: any 
         <TouchableOpacity
           key={nav.key}
           disabled={disabled}
+          activeOpacity={0.85}
           onPress={nav.onPress}
-          style={[styles.navCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: disabled ? 0.6 : 1 }]}
+          style={[styles.navCard, cardShadow, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: disabled ? 0.55 : 1 }]}
         >
-          <View style={[styles.navIcon, { backgroundColor: colors.inputBackground }]}>
-            <Ionicons name={nav.icon as any} size={16} color={colors.primary} />
+          <View style={styles.navTop}>
+            <View style={[styles.navIcon, { backgroundColor: colors.inputBackground }]}>
+              <Ionicons name={nav.icon as any} size={16} color={colors.primary} />
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </View>
-          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>{nav.title}</AppText>
+          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginTop: spacing.sm }}>{nav.title}</AppText>
           <AppText style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 14 }}>{nav.desc}</AppText>
           {disabled && nav.disabledNote && (
             <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any, marginTop: 2 }}>
@@ -101,7 +138,7 @@ const styles = StyleSheet.create({
   banner: {
     marginHorizontal: spacing.xl,
     padding: spacing.md,
-    borderRadius: borderRadius.lg,
+    borderRadius: 16,
     borderWidth: 1,
   },
   kpiGrid: {
@@ -113,18 +150,19 @@ const styles = StyleSheet.create({
   kpiCard: {
     width: '47%',
     padding: spacing.lg,
+    borderRadius: CARD_RADIUS,
+    borderWidth: 1,
   },
   kpiIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepsCard: {
     marginHorizontal: spacing.xl,
-    padding: spacing.lg,
-    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    borderRadius: 24,
     borderWidth: 1,
   },
   needsEndpointPill: {
@@ -132,7 +170,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    borderRadius: borderRadius.sm,
+    borderRadius: 8,
   },
   navGrid: {
     flexDirection: 'row',
@@ -143,16 +181,19 @@ const styles = StyleSheet.create({
   navCard: {
     width: '47%',
     padding: spacing.lg,
-    borderRadius: borderRadius.xl,
+    borderRadius: CARD_RADIUS,
     borderWidth: 1,
-    gap: spacing.xs,
+  },
+  navTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   navIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 2,
   },
 });
