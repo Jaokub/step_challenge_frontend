@@ -3,7 +3,8 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppText, Skeleton } from '../../components';
-import { spacing, borderRadius, gradients, dashboardAccents } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { spacing, gradients, dashboardAccents } from '../../constants/theme';
 import type { GroupOverallStats } from '../../types';
 
 // Mockup frame 10's group-tab stat card shows today/week/month steps, which
@@ -17,6 +18,7 @@ interface GroupOverallStatCardProps {
 
 export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallStatCardProps) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   if (isLoading) {
     return (
@@ -48,7 +50,7 @@ export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallS
           <React.Fragment key={col.label}>
             <View style={styles.col}>
               <AppText style={[styles.label, { color: dashboardAccents.mintCardLabel }]}>{col.label}</AppText>
-              <AppText variant="body-bold" style={[styles.value, { color: dashboardAccents.mintCardLabel }]}>{col.value}</AppText>
+              <AppText variant="heading-extraBold" style={[styles.value, { color: colors.primary }]}>{col.value}</AppText>
             </View>
             {i < columns.length - 1 && <View style={styles.divider} />}
           </React.Fragment>
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
-    borderRadius: borderRadius.xl,
+    borderRadius: 20, // mockup literal — no existing token matches
   },
   col: {
     flex: 1,

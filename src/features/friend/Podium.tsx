@@ -17,28 +17,46 @@ export interface LeaderboardMember {
   steps?: number;
   distanceKm?: number;
   isMe: boolean;
+  /** Rank slot has no real member (group has fewer than this many people). */
+  isEmpty?: boolean;
 }
 
+// Mockup's `podiumBaseSpec` — literal px sizes, not scaled.
 const RANK_GRADIENT: Record<number, readonly [string, string]> = {
   1: gradients.gold,
   2: gradients.silver,
   3: gradients.bronze,
 };
-
-const RANK_HEIGHT: Record<number, number> = { 1: 120, 2: 90, 3: 70 };
+const RANK_HEIGHT: Record<number, number> = { 1: 68, 2: 50, 3: 42 };
 const RANK_AVATAR: Record<number, number> = { 1: 56, 2: 46, 3: 44 };
 
 interface PodiumProps {
+  /** Real members only — need not have all 3 ranks. Missing ranks (1/2/3)
+   * are filled in as grey placeholders, matching the mockup's `buildPodium`
+   * fallback ("ยังไม่มีสมาชิก" / '–' stats) rather than just omitting them. */
   topThree: LeaderboardMember[];
   isLoading?: boolean;
 }
 
+const EMPTY_SLOT = (rank: number): LeaderboardMember => ({
+  id: `empty-${rank}`,
+  rank,
+  name: '',
+  avatar: '–',
+  points: 0,
+  isMe: false,
+  isEmpty: true,
+});
+
+const fillSlots = (topThree: LeaderboardMember[]): LeaderboardMember[] =>
+  [1, 2, 3].map((rank) => topThree.find((m) => m.rank === rank) ?? EMPTY_SLOT(rank));
+
 const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
   const { colors } = useTheme();
-  const height = RANK_HEIGHT[member.rank] ?? 70;
+  const height = RANK_HEIGHT[member.rank] ?? 42;
   const avatarSize = RANK_AVATAR[member.rank] ?? 44;
-  const rankGradient = RANK_GRADIENT[member.rank];
-  const statLine = member.steps != null
+  const rankGradient = member.isEmpty ? null : RANK_GRADIENT[member.rank];
+  const statLine = !member.isEmpty && member.steps != null
     ? `${member.steps.toLocaleString()}${member.distanceKm != null ? ` · ${member.distanceKm.toFixed(1)} km` : ''}`
     : null;
 
@@ -71,7 +89,7 @@ const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
         style={[styles.name, { color: member.isMe ? colors.primary : colors.textPrimary }]}
         numberOfLines={1}
       >
-        {member.name}
+        {member.isEmpty ? '–' : member.name}
       </AppText>
       {statLine && (
         <AppText style={[styles.statLine, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -92,7 +110,7 @@ const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
       ) : (
         <View style={[styles.bar, { height, backgroundColor: colors.inputBackground }]}>
           <AppText variant="heading-bold" style={{ color: colors.textSecondary, fontSize: 15 }}>{member.rank}</AppText>
-          <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>{member.points.toLocaleString()} pt</AppText>
+          <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>{member.isEmpty ? '–' : `${member.points.toLocaleString()} pt`}</AppText>
         </View>
       )}
     </View>
@@ -104,7 +122,7 @@ export const Podium = ({ topThree, isLoading = false }: PodiumProps) => {
     return (
       <View style={styles.container}>
         <View style={styles.podiumRow}>
-          {[90, 120, 70].map((h, i) => (
+          {[50, 68, 42].map((h, i) => (
             <View key={i} style={styles.podiumItemContainer}>
               <Skeleton width={48} height={48} borderRadius={24} />
               <Skeleton width={50} height={14} borderRadius={4} style={{ marginTop: spacing.xs }} />
@@ -118,12 +136,14 @@ export const Podium = ({ topThree, isLoading = false }: PodiumProps) => {
 
   if (topThree.length === 0) return null;
 
+  const slots = fillSlots(topThree);
+
   return (
     <View style={styles.container}>
       <View style={styles.podiumRow}>
-        {topThree[1] && <PodiumItem member={topThree[1]} />}
-        {topThree[0] && <PodiumItem member={topThree[0]} />}
-        {topThree[2] && <PodiumItem member={topThree[2]} />}
+        <PodiumItem member={slots[1]} />
+        <PodiumItem member={slots[0]} />
+        <PodiumItem member={slots[2]} />
       </View>
     </View>
   );
@@ -138,7 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: 10,
   },
   podiumItemContainer: {
     flex: 1,

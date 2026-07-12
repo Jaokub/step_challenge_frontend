@@ -56,16 +56,16 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
               style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
               accessibilityLabel={t('groups.myGroups')}
             >
-              <Ionicons name="grid-outline" size={16} color={colors.textPrimary} />
+              <Ionicons name="grid-outline" size={15} color={colors.textPrimary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onOpenRequests}
               style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
               accessibilityLabel={t('groups.friendRequests')}
             >
-              <Ionicons name="notifications-outline" size={16} color={colors.textPrimary} />
+              <Ionicons name="notifications-outline" size={15} color={colors.textPrimary} />
               {requestsCount > 0 && (
-                <View style={styles.badge}>
+                <View style={[styles.badge, { backgroundColor: colors.error }]}>
                   <AppText style={styles.badgeText}>{requestsCount}</AppText>
                 </View>
               )}
@@ -75,7 +75,7 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
               style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
               accessibilityLabel={t('friend.addFriend')}
             >
-              <Ionicons name="person-add-outline" size={16} color={colors.textPrimary} />
+              <Ionicons name="person-add-outline" size={15} color={colors.textPrimary} />
             </TouchableOpacity>
           </>
         }
@@ -123,18 +123,19 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
 
 const styles = StyleSheet.create({
   iconBtn: {
+    // No marginLeft here — ScreenHeader's headerActions row already applies
+    // gap: spacing.sm between children; adding it here doubled the gap.
     width: 34,
     height: 34,
     borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: spacing.sm,
   },
   badge: {
     position: 'absolute',
     top: -2,
     right: -2,
-    backgroundColor: '#EF4444',
+    // color supplied inline from colors.error (theme token)
     width: 16,
     height: 16,
     borderRadius: 8,

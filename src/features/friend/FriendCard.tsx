@@ -1,9 +1,27 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppText, Skeleton } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, adminAccents } from '../../constants/theme';
 import { LeaderboardMember } from './Podium';
+
+// Group has fewer than 4 real members — no rank-4 row exists yet, but we
+// still show one greyed-out slot for it (per user reference screenshot)
+// instead of just cutting the list short.
+export const EmptyMemberSlot = ({ rank = 4 }: { rank?: number }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      <AppText variant="body-bold" style={[styles.rank, { color: colors.textSecondary }]}>{rank}</AppText>
+      <View style={[styles.emptyAvatar, { backgroundColor: colors.inputBackground }]}>
+        <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+      </View>
+      <View style={styles.info} />
+      <AppText variant="body-bold" style={[styles.points, { color: colors.textSecondary }]}>—</AppText>
+    </View>
+  );
+};
 
 interface FriendCardProps {
   member?: LeaderboardMember;
@@ -92,6 +110,13 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 11,
     color: '#fff',
+  },
+  emptyAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   info: {
     flex: 1,

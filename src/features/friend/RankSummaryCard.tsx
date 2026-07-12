@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppText, GradientText, Skeleton } from '../../components';
-import { spacing, borderRadius, gradients, dashboardAccents } from '../../constants/theme';
+import { AppText, Skeleton } from '../../components';
+import { useTheme } from '../../contexts/ThemeContext';
+import { spacing, gradients, dashboardAccents } from '../../constants/theme';
 
 // Mockup frame 10 "friends" tab rank card — mint gradient, label + a real
 // stat line, big #rank on the right. Friends have no steps source yet, so
@@ -17,6 +18,7 @@ interface RankSummaryCardProps {
 
 export const RankSummaryCard = ({ rank, totalPoints, isLoading = false }: RankSummaryCardProps) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   if (isLoading) {
     return (
@@ -45,9 +47,9 @@ export const RankSummaryCard = ({ rank, totalPoints, isLoading = false }: RankSu
             {t('groups.totalPointsStat', { points: (totalPoints ?? 0).toLocaleString() })}
           </AppText>
         </View>
-        <GradientText colors={gradients.statValue} variant="heading-extraBold" style={styles.rankNumber}>
+        <AppText variant="heading-extraBold" style={[styles.rankNumber, { color: colors.onPrimary }]}>
           {`#${rank}`}
-        </GradientText>
+        </AppText>
       </LinearGradient>
     </View>
   );
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: spacing.lg,
-    borderRadius: borderRadius.xl,
+    borderRadius: 20, // mockup literal — no existing token matches
   },
   label: {
     fontSize: 11.5,

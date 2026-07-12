@@ -11,7 +11,7 @@ import { spacing, borderRadius } from '../../src/constants/theme';
 import { useFriends } from '../../src/features/friend/useFriends';
 import { useGroups } from '../../src/features/group/useGroups';
 import { useGroupOverview } from '../../src/features/group/useGroupOverview';
-import { FriendCard } from '../../src/features/friend/FriendCard';
+import { FriendCard, EmptyMemberSlot } from '../../src/features/friend/FriendCard';
 import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
 import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
 import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
@@ -104,17 +104,28 @@ export default function GroupsScreen() {
     </>
   );
 
+  // Group has real members but fewer than 4 — no rank-4 row exists, so show
+  // one greyed-out placeholder slot instead of just cutting the list short.
+  const showEmptySlot = isGroupTab && !isLoadingData && leaderboard.length > 0 && leaderboard.length < 4;
+
   const renderFooter = () => {
     if (!isGroupTab || isLoadingData) return null;
     return (
-      <TouchableOpacity
-        style={[styles.viewGroupBtn, { backgroundColor: colors.textPrimary }]}
-        onPress={() => router.push(`/group/${activeTab}`)}
-      >
-        <AppText style={{ color: colors.background, fontWeight: '700' as any, fontSize: 13.5 }}>
-          {t('groups.viewGroupDetail')}
-        </AppText>
-      </TouchableOpacity>
+      <>
+        {showEmptySlot && (
+          <View style={styles.cardContainer}>
+            <EmptyMemberSlot rank={4} />
+          </View>
+        )}
+        <TouchableOpacity
+          style={[styles.viewGroupBtn, { backgroundColor: colors.textPrimary }]}
+          onPress={() => router.push(`/group/${activeTab}`)}
+        >
+          <AppText style={{ color: colors.background, fontWeight: '700' as any, fontSize: 13.5 }}>
+            {t('groups.viewGroupDetail')}
+          </AppText>
+        </TouchableOpacity>
+      </>
     );
   };
 
