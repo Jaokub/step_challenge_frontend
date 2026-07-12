@@ -104,12 +104,12 @@ const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
           end={{ x: 1, y: 1 }}
           style={[styles.bar, { height }]}
         >
-          <AppText variant="heading-bold" style={{ color: colors.onPrimary, fontSize: 15 }}>{member.rank}</AppText>
+          <AppText variant="heading-bold" style={[styles.rankDigit, { color: colors.onPrimary }]}>{member.rank}</AppText>
           <AppText style={[styles.pointsText, { color: colors.onPrimary }]}>{member.points.toLocaleString()} pt</AppText>
         </LinearGradient>
       ) : (
         <View style={[styles.bar, { height, backgroundColor: colors.inputBackground }]}>
-          <AppText variant="heading-bold" style={{ color: colors.textSecondary, fontSize: 15 }}>{member.rank}</AppText>
+          <AppText variant="heading-bold" style={[styles.rankDigit, { color: colors.textSecondary }]}>{member.rank}</AppText>
           <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>{member.isEmpty ? '–' : `${member.points.toLocaleString()} pt`}</AppText>
         </View>
       )}
@@ -174,15 +174,26 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 12,
+    lineHeight: 14,
     fontWeight: 'bold',
   },
   name: {
     fontSize: 11.5,
+    lineHeight: 14,
     textAlign: 'center',
     maxWidth: 70,
   },
   statLine: {
     fontSize: 10,
+    lineHeight: 12,
+  },
+  // AppText's heading-bold variant defaults to a 40px lineHeight (tuned for
+  // real headings) — inside these 42-68px-tall bars that overflowed and
+  // clipped the "pt" line below it. Override tightly to the digit's actual
+  // size.
+  rankDigit: {
+    fontSize: 15,
+    lineHeight: 17,
   },
   bar: {
     width: '100%',
@@ -196,6 +207,7 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     fontSize: 10.5,
+    lineHeight: 13,
     fontWeight: '700',
   },
 });

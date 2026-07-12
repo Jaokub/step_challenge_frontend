@@ -193,6 +193,7 @@
     "memberCountLabel": "{{count}} members",
     "friendRequests": "Friend requests",
     "rankAmongFriends": "Your rank among friends",
+    "rankInGroup": "Your rank in the group",
     "totalPointsStat": "{{points}} pts total",
     "viewGroupDetail": "View group detail"
   },

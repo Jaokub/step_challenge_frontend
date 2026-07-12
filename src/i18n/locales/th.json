@@ -193,6 +193,7 @@
     "memberCountLabel": "{{count}} คน",
     "friendRequests": "คำขอเป็นเพื่อน",
     "rankAmongFriends": "อันดับของคุณในหมู่เพื่อน",
+    "rankInGroup": "อันดับของคุณในกลุ่ม",
     "totalPointsStat": "{{points}} แต้มสะสม",
     "viewGroupDetail": "ดูรายละเอียดกลุ่ม"
   },

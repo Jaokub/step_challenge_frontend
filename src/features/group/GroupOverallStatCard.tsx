@@ -18,12 +18,15 @@ interface GroupOverallStatCardProps {
 
 export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallStatCardProps) => {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
+  const labelColor = dashboardAccents.goalLabel[isDark ? 'dark' : 'light'];
+  const dividerColor = dashboardAccents.goalCardBorder[isDark ? 'dark' : 'light'];
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <View style={[styles.card, { backgroundColor: gradients.mint[0] }]}>
+        <View style={[styles.card, { backgroundColor: cardGradient[0] }]}>
           {[0, 1, 2].map((i) => (
             <View key={i} style={styles.col}>
               <Skeleton width={40} height={11} borderRadius={4} style={{ marginBottom: 6 }} />
@@ -45,14 +48,14 @@ export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallS
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={gradients.mint} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.card}>
+      <LinearGradient colors={cardGradient} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.card}>
         {columns.map((col, i) => (
           <React.Fragment key={col.label}>
             <View style={styles.col}>
-              <AppText style={[styles.label, { color: dashboardAccents.mintCardLabel }]}>{col.label}</AppText>
+              <AppText style={[styles.label, { color: labelColor }]}>{col.label}</AppText>
               <AppText variant="heading-extraBold" style={[styles.value, { color: colors.primary }]}>{col.value}</AppText>
             </View>
-            {i < columns.length - 1 && <View style={styles.divider} />}
+            {i < columns.length - 1 && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
           </React.Fragment>
         ))}
       </LinearGradient>
@@ -78,14 +81,15 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 32,
-    backgroundColor: 'rgba(13,148,136,0.18)',
   },
   label: {
     fontSize: 11,
+    lineHeight: 13,
     fontWeight: '600',
     marginBottom: 4,
   },
   value: {
     fontSize: 16,
+    lineHeight: 19,
   },
 });

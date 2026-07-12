@@ -14,7 +14,6 @@ import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { FriendCard, EmptyMemberSlot } from '../../src/features/friend/FriendCard';
 import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
 import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
-import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
 import { GroupHeaderSection } from '../../src/features/group/GroupHeaderSection';
 import { RequestCard } from '../../src/features/friend/RequestCard';
 
@@ -95,21 +94,23 @@ export default function GroupsScreen() {
         requestsCount={requests.length}
         onOpenRequests={() => setShowRequests(true)}
       />
-      {isGroupTab ? (
-        <GroupOverallStatCard stats={overview?.overallStats ?? null} isLoading={isOverviewLoading} />
-      ) : (
-        <RankSummaryCard rank={myEntry?.rank} totalPoints={myEntry?.points} isLoading={isLoadingFriends} />
-      )}
+      <RankSummaryCard
+        rank={myEntry?.rank}
+        totalPoints={myEntry?.points}
+        isLoading={isLoadingData}
+        label={isGroupTab ? t('groups.rankInGroup') : undefined}
+      />
       <Podium topThree={topThree} isLoading={isLoadingData} />
     </>
   );
 
-  // Group has real members but fewer than 4 — no rank-4 row exists, so show
-  // one greyed-out placeholder slot instead of just cutting the list short.
-  const showEmptySlot = isGroupTab && !isLoadingData && leaderboard.length > 0 && leaderboard.length < 4;
+  // Fewer than 4 real members/friends — no rank-4 row exists, so show one
+  // greyed-out placeholder slot instead of just cutting the list short.
+  // Applies to both tabs, not just groups.
+  const showEmptySlot = !isLoadingData && leaderboard.length > 0 && leaderboard.length < 4;
 
   const renderFooter = () => {
-    if (!isGroupTab || isLoadingData) return null;
+    if (isLoadingData) return null;
     return (
       <>
         {showEmptySlot && (
@@ -117,14 +118,16 @@ export default function GroupsScreen() {
             <EmptyMemberSlot rank={4} />
           </View>
         )}
-        <TouchableOpacity
-          style={[styles.viewGroupBtn, { backgroundColor: colors.textPrimary }]}
-          onPress={() => router.push(`/group/${activeTab}`)}
-        >
-          <AppText style={{ color: colors.background, fontWeight: '700' as any, fontSize: 13.5 }}>
-            {t('groups.viewGroupDetail')}
-          </AppText>
-        </TouchableOpacity>
+        {isGroupTab && (
+          <TouchableOpacity
+            style={[styles.viewGroupBtn, { backgroundColor: colors.textPrimary }]}
+            onPress={() => router.push(`/group/${activeTab}`)}
+          >
+            <AppText style={{ color: colors.background, fontWeight: '700' as any, fontSize: 13.5 }}>
+              {t('groups.viewGroupDetail')}
+            </AppText>
+          </TouchableOpacity>
+        )}
       </>
     );
   };

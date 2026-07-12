@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Skeleton } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { spacing, adminAccents } from '../../constants/theme';
+import { spacing, dashboardAccents } from '../../constants/theme';
 import { LeaderboardMember } from './Podium';
 
 // Group has fewer than 4 real members — no rank-4 row exists yet, but we
@@ -32,7 +32,13 @@ interface FriendCardProps {
 // rank number, dark initials chip, name (+ steps·km if the caller has real
 // health data for this row), points right-aligned.
 export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  // Mockup's avatar chip is a fixed dark square (#222b2e) — fine on the
+  // mockup's light-only surface, but low-contrast against an already-dark
+  // card in dark theme. Use the theme-paired token instead so it reads in
+  // both themes (dark: same near-black chip; light: a light-grey chip).
+  const avatarBg = dashboardAccents.avatarMuted[isDark ? 'dark' : 'light'];
+  const avatarFg = isDark ? '#fff' : colors.textPrimary;
 
   if (isLoading) {
     return (
@@ -58,8 +64,8 @@ export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <AppText variant="body-bold" style={[styles.rank, { color: colors.textSecondary }]}>{member.rank}</AppText>
 
-      <View style={[styles.avatar, { backgroundColor: adminAccents.avatarBg }]}>
-        <AppText variant="body-bold" style={[styles.avatarText, { color: adminAccents.onDark }]}>{member.avatar}</AppText>
+      <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
+        <AppText variant="body-bold" style={[styles.avatarText, { color: avatarFg }]}>{member.avatar}</AppText>
       </View>
 
       <View style={styles.info}>
@@ -99,6 +105,7 @@ const styles = StyleSheet.create({
     width: 14,
     textAlign: 'center',
     fontSize: 13,
+    lineHeight: 15,
   },
   avatar: {
     width: 32,
@@ -109,7 +116,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 11,
-    color: '#fff',
+    lineHeight: 13,
   },
   emptyAvatar: {
     width: 32,
@@ -124,12 +131,15 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 13,
+    lineHeight: 15,
   },
   stats: {
     fontSize: 10.5,
+    lineHeight: 13,
     marginTop: 2,
   },
   points: {
     fontSize: 13,
+    lineHeight: 15,
   },
 });
