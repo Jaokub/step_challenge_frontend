@@ -2,11 +2,12 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppText, Skeleton } from '../../components';
-import { spacing, borderRadius, gradients } from '../../constants/theme';
+import { AppText, GradientText, Skeleton } from '../../components';
+import { spacing, gradients } from '../../constants/theme';
 import type { EventIndividualRow, EventGroupRow, EventScope } from '../../types';
 
 const ROW_HEIGHT = 64;
+const ROW_RADIUS = 20; // mockup frame 5 ranking-row radius (not borderRadius.lg)
 
 const initialsOf = (name: string) => {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -23,11 +24,14 @@ interface Props {
   currentUserId?: string;
 }
 
-const rankColor = (rank: number, colors: any) => {
-  if (rank === 1) return '#f5c451';
-  if (rank === 2) return '#c4cdd5';
-  if (rank === 3) return '#d79a6a';
-  return colors.textSecondary;
+// Top-3 medal tint — pulled from the central gold/silver/bronze gradient
+// tokens (theme.ts) instead of one-off hardcoded hex, so a brand update to
+// those tokens propagates here automatically.
+const medalGradient = (rank: number) => {
+  if (rank === 1) return gradients.gold;
+  if (rank === 2) return gradients.silver;
+  if (rank === 3) return gradients.bronze;
+  return null;
 };
 
 /** Shared ranking list for both the individual and group-sum event boards. */
@@ -38,7 +42,7 @@ const EventRankingList: React.FC<Props> = ({ scope, ranking, isLoading, colors, 
     return (
       <View style={{ gap: 10 }}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} width="100%" height={ROW_HEIGHT} borderRadius={borderRadius.lg} />
+          <Skeleton key={i} width="100%" height={ROW_HEIGHT} borderRadius={ROW_RADIUS} />
         ))}
       </View>
     );
@@ -77,9 +81,15 @@ const EventRankingList: React.FC<Props> = ({ scope, ranking, isLoading, colors, 
               },
             ]}
           >
-            <AppText variant="heading-bold" style={[styles.rank, { color: rankColor(row.rank, colors) }]}>
-              {row.rank}
-            </AppText>
+            {medalGradient(row.rank) ? (
+              <GradientText colors={medalGradient(row.rank)!} variant="heading-bold" style={styles.rank}>
+                {row.rank}
+              </GradientText>
+            ) : (
+              <AppText variant="heading-bold" style={[styles.rank, { color: colors.textSecondary }]}>
+                {row.rank}
+              </AppText>
+            )}
             {/* Mockup frame 5: individual rows get a brand-gradient initials chip;
                 group rows don't (no single person to represent). */}
             {!isGroup && (
@@ -118,7 +128,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: ROW_RADIUS,
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },

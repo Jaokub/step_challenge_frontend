@@ -204,6 +204,10 @@ export const dashboardAccents = {
   avatarMuted: { dark: '#222b2e', light: '#e2e8e5' },
   kcalIcon: { dark: '#ffa94d', light: '#e8862b' },
   kmIcon: { dark: '#4dabf7', light: '#2b8ae8' },
+  // Muted label text sitting on the mint gradient hero cards (faculty steps,
+  // event total steps) — mockup: color:#4b7d73. The mint surface itself is a
+  // fixed light pastel in both themes, so this label tone doesn't split by theme.
+  mintCardLabel: '#4b7d73',
 } as const;
 
 // Rotating accent set for activity list rows (date box + avatar stack dots).

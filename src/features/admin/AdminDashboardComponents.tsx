@@ -4,7 +4,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppText, GradientText } from '../../components';
-import { spacing, fontSize, gradients } from '../../constants/theme';
+import { spacing, fontSize, gradients, dashboardAccents } from '../../constants/theme';
 
 // Frame 1 exact spec (Admin and Group Coor Console Mockups_2.dc.html):
 // white cards radius 22 + soft shadow, KPI icon chips in four distinct accents,
@@ -93,7 +93,7 @@ export const AdminFacultyStepsCard = ({ colors }: any) => {
       end={{ x: 1, y: 1 }}
       style={[styles.stepsCard, { borderColor: colors.primary + '2E' }]}
     >
-      <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
+      <AppText style={{ fontSize: fontSize.sm, color: dashboardAccents.mintCardLabel, fontWeight: '600' as any }}>
         {t('admin.facultyStepsLabel')}
       </AppText>
       {/* Mockup renders this figure as a gradient-filled number (teal→green), never

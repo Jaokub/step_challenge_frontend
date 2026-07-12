@@ -8,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useToast } from '../../src/contexts/ToastContext';
-import { AppText, Skeleton, PrimaryButton, CustomModal, GradientText } from '../../src/components';
-import { spacing, borderRadius, layout, fontSize, gradients } from '../../src/constants/theme';
+import { AppText, Skeleton, PrimaryButton, CustomModal, GradientText, ScreenHeader } from '../../src/components';
+import { spacing, borderRadius, layout, fontSize, gradients, dashboardAccents } from '../../src/constants/theme';
 import { useEventDetail, useEventLeaderboard } from '../../src/features/event/useEvents';
 import { useGroups } from '../../src/features/group/useGroups';
 import EventRankingList from '../../src/features/event/EventRankingList';
@@ -66,15 +66,16 @@ export default function EventDetailScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={26} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <AppText numberOfLines={1} variant="heading-bold" style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {event?.title ?? t('events.title')}
-          </AppText>
-          <View style={{ width: 26 }} />
-        </View>
+        {/* Mockup frame 5 header: left-aligned back chip + title + monospace
+            path caption underneath — same pattern as the admin screens, not
+            the centered-title/bare-chevron header this used to have. */}
+        <ScreenHeader
+          title={event?.title ?? t('events.title')}
+          titleSize={16}
+          pathSubtitle={`/events/${eventId}`}
+          backChip
+          onBack={() => (router.canGoBack() ? router.back() : router.push('/events'))}
+        />
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* Event-wide stats — mockup frame 5: mint gradient hero card with a
@@ -85,7 +86,7 @@ export default function EventDetailScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.statCard, { borderColor: colors.primary + '2E' }]}
           >
-            <AppText style={[styles.statLabel, { color: colors.primary }]}>{t('events.totalSteps')}</AppText>
+            <AppText style={[styles.statLabel, { color: dashboardAccents.mintCardLabel }]}>{t('events.totalSteps')}</AppText>
             {isStatsLoading ? (
               <Skeleton width={140} height={34} borderRadius={borderRadius.sm} />
             ) : (
@@ -94,10 +95,10 @@ export default function EventDetailScreen() {
               </GradientText>
             )}
             <View style={styles.statRow}>
-              <AppText style={[styles.statSub, { color: colors.primary }]}>
+              <AppText style={[styles.statSub, { color: dashboardAccents.mintCardLabel }]}>
                 {t('events.participants', { count: stats?.participantCount ?? 0 })}
               </AppText>
-              <AppText style={[styles.statSub, { color: colors.primary }]}>
+              <AppText style={[styles.statSub, { color: dashboardAccents.mintCardLabel }]}>
                 {t('events.groups', { count: stats?.groupCount ?? 0 })}
               </AppText>
             </View>
@@ -169,15 +170,6 @@ export default function EventDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingX,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: fontSize.lg },
   content: { paddingHorizontal: layout.screenPaddingX, paddingBottom: spacing['4xl'], gap: layout.sectionGap },
   statCard: { borderRadius: borderRadius.lg, borderWidth: 1, padding: spacing.xl, gap: spacing.xs },
   statLabel: { fontSize: fontSize.sm },
@@ -185,7 +177,7 @@ const styles = StyleSheet.create({
   statRow: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   statSub: { fontSize: fontSize.sm },
   leaveBtn: { borderWidth: 1, borderRadius: borderRadius.lg, paddingVertical: spacing.md, alignItems: 'center' },
-  tabs: { flexDirection: 'row', borderRadius: borderRadius.full, padding: 4 },
+  tabs: { flexDirection: 'row', borderRadius: borderRadius.full, padding: 5 }, // mockup frame 5 tab-track padding
   tab: { flex: 1, alignItems: 'center', paddingVertical: spacing.sm, borderRadius: borderRadius.full },
   option: {
     flexDirection: 'row',
