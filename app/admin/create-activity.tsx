@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -9,9 +9,9 @@ import { useToast } from '../../src/contexts/ToastContext';
 import { FormInput, FormDateField } from '../../src/features/admin/ActivityFormComponents';
 import activityService from '../../src/features/activity/activityService';
 import { queryKeys } from '../../src/constants/queryKeys';
-import { PrimaryButton, ScreenHeader } from '../../src/components';
-import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
+import { AppText, ScreenHeader } from '../../src/components';
+import { LinearGradient } from 'expo-linear-gradient';
+import { spacing, fontSize, gradients } from '../../src/constants/theme';
 
 export default function CreateActivityScreen() {
   const { t } = useTranslation();
@@ -83,6 +83,9 @@ export default function CreateActivityScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.createActivity')}
+          titleSize={17}
+          pathSubtitle="/admin/create-activity"
+          backChip
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/dashboard'))}
         />
       </SafeAreaView>
@@ -113,23 +116,28 @@ export default function CreateActivityScreen() {
           colors={colors}
         />
 
-        <FormInput
-          label={t('admin.expectedStepsLabel')}
-          value={expectedSteps}
-          onChangeText={setExpectedSteps}
-          placeholder={t('admin.egSteps')}
-          keyboardType="numeric"
-          colors={colors}
-        />
-
-        <FormInput
-          label={t('admin.totalDistanceLabel')}
-          value={totalDistance}
-          onChangeText={setTotalDistance}
-          placeholder={t('admin.egDistance')}
-          keyboardType="numeric"
-          colors={colors}
-        />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <FormInput
+              label={t('admin.expectedStepsLabel')}
+              value={expectedSteps}
+              onChangeText={setExpectedSteps}
+              placeholder={t('admin.egSteps')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <FormInput
+              label={t('admin.totalDistanceLabel')}
+              value={totalDistance}
+              onChangeText={setTotalDistance}
+              placeholder={t('admin.egDistance')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          </View>
+        </View>
 
         <FormInput
           label={t('admin.activityPoints')}
@@ -140,27 +148,45 @@ export default function CreateActivityScreen() {
           colors={colors}
         />
 
-        <FormDateField
-          label={t('admin.startDate') + ' *'}
-          value={startDate}
-          onChange={setStartDate}
-          colors={colors}
-        />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <FormDateField
+              label={t('admin.startDate') + ' *'}
+              value={startDate}
+              onChange={setStartDate}
+              colors={colors}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <FormDateField
+              label={t('admin.endDate') + ' *'}
+              value={endDate}
+              onChange={setEndDate}
+              minimumDate={startDate ? new Date(startDate) : undefined}
+              colors={colors}
+            />
+          </View>
+        </View>
 
-        <FormDateField
-          label={t('admin.endDate') + ' *'}
-          value={endDate}
-          onChange={setEndDate}
-          minimumDate={startDate ? new Date(startDate) : undefined}
-          colors={colors}
-        />
-
-        <PrimaryButton
-          title={isSubmitting ? t('admin.creating') : t('admin.createActivity')}
-          onPress={handleCreate}
-          disabled={isSubmitting}
-          style={{ marginTop: 24 }}
-        />
+        {/* Bottom actions — mockup frame 3: [ยกเลิก | สร้างกิจกรรม] side by side */}
+        <View style={styles.btnRow}>
+          <TouchableOpacity
+            style={[styles.cancelBtn, { backgroundColor: colors.inputBackground }]}
+            onPress={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
+            disabled={isSubmitting}
+          >
+            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.textPrimary }}>
+              {t('common.cancel')}
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={handleCreate} disabled={isSubmitting}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createBtn}>
+              <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
+                {isSubmitting ? t('admin.creating') : t('admin.createActivity')}
+              </AppText>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -169,4 +195,20 @@ export default function CreateActivityScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
+  row: { flexDirection: 'row', gap: spacing.md },
+  btnRow: { flexDirection: 'row', gap: spacing.md, marginTop: 24 },
+  cancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 16,
+  },
+  createBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 16,
+  },
 });

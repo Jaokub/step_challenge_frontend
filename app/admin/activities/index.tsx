@@ -13,6 +13,7 @@ import { formatDate } from '../../../src/utils/formatDate';
 import type { Activity } from '../../../src/types';
 
 const FILTERS: AdminActivityFilter[] = ['all', 'ongoing', 'ended'];
+const CARD_RADIUS = 22; // mockup frame 2 card radius (not borderRadius.xl)
 
 export default function AdminActivitiesListScreen() {
   const { t, i18n } = useTranslation();
@@ -31,10 +32,7 @@ export default function AdminActivitiesListScreen() {
         <StatusBadge status={item.status} />
       </View>
       <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {item.location}
-      </AppText>
-      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
+        {item.location} · {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
       </AppText>
       {typeof item.participantCount === 'number' && (
         <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
@@ -75,6 +73,8 @@ export default function AdminActivitiesListScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.activitiesListTitle')}
+          titleSize={20}
+          pathSubtitle="/admin/activities"
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/dashboard'))}
           rightActions={
             <TouchableOpacity onPress={() => router.push('/admin/create-activity')}>
@@ -172,10 +172,15 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   card: {
-    borderRadius: borderRadius.xl,
+    borderRadius: CARD_RADIUS,
     borderWidth: 1,
     padding: spacing.lg,
-    gap: spacing.xs,
+    gap: spacing.sm, // mockup frame 2 card gap:8
+    shadowColor: '#14201d',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 3,
   },
   cardTop: {
     flexDirection: 'row',
@@ -191,6 +196,7 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1,
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
   },

@@ -182,6 +182,9 @@ export const gradients = {
   // Featured activity card hero background — dark vs light theme
   heroCard: ['#1b4d44', '#123f38'] as const,
   heroCardLight: ['#dcf3ec', '#eef8dc'] as const,
+  // Mint teal→lime tint used by admin mockup stat cards (faculty steps, event
+  // steps, check-in progress, live QR count) — mockup: linear-gradient(150deg,#e8fbf6,#f3fbe9)
+  mint: ['#e8fbf6', '#f3fbe9'] as const,
 } as const;
 
 // Theme-aware accent sets consumed by dashboard cards. Index 0 = dark, 1 = light.

@@ -47,42 +47,32 @@ export default function UsersManagementScreen() {
   );
 
   const renderUserItem = ({ item }: { item: any }) => {
+    const isAdmin = item.role === 'ADMIN';
     return (
-      <View style={[styles.userCard, { backgroundColor: colors.card, borderBottomColor: colors.cardBorder }]}>
-        <View style={[styles.avatar, { backgroundColor: item.role === 'ADMIN' ? colors.warning + '20' : colors.primary + '20' }]}>
-          <AppText variant="heading-bold" style={{ color: item.role === 'ADMIN' ? colors.warning : colors.primary, fontSize: fontSize.md }}>
+      <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={[styles.avatar, { backgroundColor: '#222b2e' }]}>
+          <AppText variant="heading-bold" style={{ color: '#FFFFFF', fontSize: fontSize.xs }}>
             {item.fullName.charAt(0)}
           </AppText>
         </View>
         <View style={styles.userInfo}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: fontSize.md, marginRight: spacing.xs }}>
-              {item.fullName}
-            </AppText>
-            {item.role === 'ADMIN' && (
-              <View style={[styles.roleBadge, { backgroundColor: colors.warning }]}>
-                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>{t('admin.roleAdmin')}</AppText>
-              </View>
-            )}
-            {item.isArchived && (
-              <View style={[styles.roleBadge, { backgroundColor: colors.textSecondary }]}>
-                <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>{t('admin.statusArchived')}</AppText>
-              </View>
-            )}
-          </View>
-          <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
+          <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: 13.5 }} numberOfLines={1}>
+            {item.fullName}
+          </AppText>
+          <AppText style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
             {item.department || t('admin.filterNoDept')}
           </AppText>
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <View style={styles.pointsBadge}>
-            <Ionicons name="star" size={12} color={colors.warning} style={{ marginRight: 4 }} />
-            <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: fontSize.sm }}>
-              {item.totalPoints || item.points || 0}
-            </AppText>
-          </View>
-          <AppText style={{ fontSize: 10, color: colors.textSecondary }}>
-            {item.role === 'ADMIN' ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
+        <View style={{ alignItems: 'flex-end', gap: 5 }}>
+          {(isAdmin || item.isArchived) && (
+            <View style={[styles.roleBadge, { backgroundColor: isAdmin ? colors.warning : colors.textSecondary }]}>
+              <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' as any }}>
+                {isAdmin ? t('admin.roleAdmin') : t('admin.statusArchived')}
+              </AppText>
+            </View>
+          )}
+          <AppText style={{ fontSize: 10, color: colors.primary, fontWeight: '700' as any }}>
+            {isAdmin ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
           </AppText>
         </View>
       </View>
@@ -94,9 +84,29 @@ export default function UsersManagementScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.navUsersTitle')}
+          titleSize={20}
+          pathSubtitle="/admin/users"
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/dashboard'))}
         />
       </SafeAreaView>
+
+      <View style={styles.searchContainer}>
+        <View style={[styles.searchBar, { backgroundColor: colors.inputBackground, borderColor: colors.inputBackground }]}>
+          <Ionicons name="search" size={18} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.textPrimary }]}
+            placeholder={t('admin.searchUsers')}
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       <View style={styles.filterRow}>
         {(['all', 'admin', 'noDept'] as RoleFilter[]).map((f) => {
@@ -120,24 +130,6 @@ export default function UsersManagementScreen() {
         <AppText style={{ fontSize: 10.5, color: colors.warning, fontWeight: '700' as any, textAlign: 'center' }}>
           {t('admin.roleToggleNeedsEndpoint')}
         </AppText>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <Ionicons name="search" size={20} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.textPrimary }]}
-            placeholder={t('admin.searchUsers')}
-            placeholderTextColor={colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
       </View>
 
       {loading ? (
@@ -193,8 +185,8 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 48,
-    borderRadius: 24,
+    height: 46,
+    borderRadius: 14,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
   },
@@ -210,32 +202,24 @@ const styles = StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: 16,
-    marginBottom: spacing.md,
-    borderBottomWidth: 1,
+    gap: spacing.md,
+    padding: 12,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 38,
+    height: 38,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
   },
-  userInfo: { flex: 1 },
+  userInfo: { flex: 1, minWidth: 0 },
   roleBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: spacing.xs,
-  },
-  pointsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
   },
 });

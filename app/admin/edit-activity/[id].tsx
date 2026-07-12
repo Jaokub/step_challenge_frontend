@@ -4,14 +4,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { useToast } from '../../../src/contexts/ToastContext';
 import { FormInput, FormDateField } from '../../../src/features/admin/ActivityFormComponents';
 import activityService from '../../../src/features/activity/activityService';
 import { queryKeys } from '../../../src/constants/queryKeys';
 import { PrimaryButton, OutlineButton, ScreenHeader, CustomModal, LoadingScreen, ErrorState, AppText } from '../../../src/components';
-import { spacing, fontSize } from '../../../src/constants/theme';
+import { spacing, fontSize, gradients } from '../../../src/constants/theme';
 import type { ActivityStatus } from '../../../src/types';
 
 const STATUS_OPTIONS: ActivityStatus[] = ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'];
@@ -136,6 +136,9 @@ export default function EditActivityScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.editActivity')}
+          titleSize={17}
+          pathSubtitle={`/admin/edit-activity/${id}`}
+          backChip
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
         />
       </SafeAreaView>
@@ -166,23 +169,28 @@ export default function EditActivityScreen() {
           colors={colors}
         />
 
-        <FormInput
-          label={t('admin.expectedStepsLabel')}
-          value={expectedSteps}
-          onChangeText={setExpectedSteps}
-          placeholder={t('admin.egSteps')}
-          keyboardType="numeric"
-          colors={colors}
-        />
-
-        <FormInput
-          label={t('admin.totalDistanceLabel')}
-          value={totalDistance}
-          onChangeText={setTotalDistance}
-          placeholder={t('admin.egDistance')}
-          keyboardType="numeric"
-          colors={colors}
-        />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <FormInput
+              label={t('admin.expectedStepsLabel')}
+              value={expectedSteps}
+              onChangeText={setExpectedSteps}
+              placeholder={t('admin.egSteps')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <FormInput
+              label={t('admin.totalDistanceLabel')}
+              value={totalDistance}
+              onChangeText={setTotalDistance}
+              placeholder={t('admin.egDistance')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          </View>
+        </View>
 
         <FormInput
           label={t('admin.activityPoints')}
@@ -193,14 +201,20 @@ export default function EditActivityScreen() {
           colors={colors}
         />
 
-        <FormDateField label={t('admin.startDate') + ' *'} value={startDate} onChange={setStartDate} colors={colors} />
-        <FormDateField
-          label={t('admin.endDate') + ' *'}
-          value={endDate}
-          onChange={setEndDate}
-          minimumDate={startDate ? new Date(startDate) : undefined}
-          colors={colors}
-        />
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <FormDateField label={t('admin.startDate') + ' *'} value={startDate} onChange={setStartDate} colors={colors} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <FormDateField
+              label={t('admin.endDate') + ' *'}
+              value={endDate}
+              onChange={setEndDate}
+              minimumDate={startDate ? new Date(startDate) : undefined}
+              colors={colors}
+            />
+          </View>
+        </View>
 
         <View style={{ marginTop: spacing.sm }}>
           <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>
@@ -238,14 +252,12 @@ export default function EditActivityScreen() {
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.saveBtn, { backgroundColor: colors.primary, opacity: isSubmitting ? 0.6 : 1 }]}
-            onPress={handleUpdate}
-            disabled={isSubmitting}
-          >
-            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
-              {isSubmitting ? t('common.loading') : t('common.save')}
-            </AppText>
+          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={handleUpdate} disabled={isSubmitting}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtn}>
+              <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
+                {isSubmitting ? t('common.loading') : t('common.save')}
+              </AppText>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -287,6 +299,7 @@ export default function EditActivityScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
+  row: { flexDirection: 'row', gap: spacing.md },
   statusRow: { flexDirection: 'row', gap: spacing.sm },
   statusChip: {
     flex: 1,

@@ -6,9 +6,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../../src/contexts/ThemeContext';
-import { AppText, ScreenHeader, LoadingScreen, ErrorState, PrimaryButton } from '../../../../src/components';
-import { spacing, fontSize, borderRadius, gradients } from '../../../../src/constants/theme';
+import { AppText, ScreenHeader, LoadingScreen, ErrorState } from '../../../../src/components';
+import { spacing, fontSize, gradients } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
 import checkinService from '../../../../src/features/activity/checkinService';
 import { queryKeys } from '../../../../src/constants/queryKeys';
@@ -63,14 +64,15 @@ export default function ActivityQrScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={activity.title}
-          subtitle={t('admin.qrTitle')}
+          pathSubtitle={`/admin/activities/${id}/qr`}
+          backChip
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
         />
       </SafeAreaView>
 
       <View style={styles.body}>
-        <View style={[styles.qrCard, { backgroundColor: '#FFFFFF' }]}>
-          <QRCode value={activity.qrCode} size={200} color="#000000" backgroundColor="#FFFFFF" />
+        <View style={[styles.qrCard, { backgroundColor: '#FFFFFF', borderColor: colors.cardBorder }]}>
+          <QRCode value={activity.qrCode} size={220} color="#000000" backgroundColor="#FFFFFF" />
         </View>
 
         <View style={{ alignItems: 'center' }}>
@@ -79,17 +81,29 @@ export default function ActivityQrScreen() {
           </AppText>
         </View>
 
-        <View style={[styles.liveCard, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+        <LinearGradient
+          colors={gradients.mint}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.liveCard, { borderColor: colors.primary + '2E' }]}
+        >
           <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary }}>
-            {liveCount}
+            {t('admin.qrLiveCount', { count: liveCount })}
           </AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, marginTop: 2 }}>
+          <AppText style={{ fontSize: fontSize.sm, color: colors.primary, marginTop: 2 }}>
             {t('admin.qrLiveLabel')}
           </AppText>
-        </View>
+        </LinearGradient>
 
         <View style={{ width: '100%', gap: spacing.sm }}>
-          <PrimaryButton title={t('admin.qrViewAttendees')} onPress={() => router.push(`/admin/activities/${id}/attendees`)} />
+          <TouchableOpacity
+            style={[styles.viewAttendeesBtn, { backgroundColor: colors.textPrimary }]}
+            onPress={() => router.push(`/admin/activities/${id}/attendees`)}
+          >
+            <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: colors.background }}>
+              {t('admin.qrViewAttendees')}
+            </AppText>
+          </TouchableOpacity>
           <TouchableOpacity onPress={handleShare} style={styles.shareBtn}>
             <Ionicons name="share-outline" size={16} color={colors.textSecondary} />
             <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.qrShare')}</AppText>
@@ -110,15 +124,27 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   qrCard: {
-    padding: spacing.lg,
-    borderRadius: borderRadius.xl,
+    padding: 18,
+    borderRadius: 24,
+    borderWidth: 1,
+    shadowColor: 'rgba(20,32,29,0.35)',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 6,
   },
   liveCard: {
     alignItems: 'center',
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing['2xl'],
-    borderRadius: borderRadius.lg,
+    borderRadius: 20,
     borderWidth: 1,
+  },
+  viewAttendeesBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 16,
   },
   shareBtn: {
     flexDirection: 'row',

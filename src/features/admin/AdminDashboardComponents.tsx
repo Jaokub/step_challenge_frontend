@@ -4,14 +4,14 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppText } from '../../components';
-import { spacing, fontSize } from '../../constants/theme';
+import { spacing, fontSize, gradients } from '../../constants/theme';
 
 // Frame 1 exact spec (Admin and Group Coor Console Mockups_2.dc.html):
 // white cards radius 22 + soft shadow, KPI icon chips in four distinct accents,
 // faculty-steps card on the mint teal→lime tint. Values below are mockup-literal
 // where they aren't brand tokens (kept in one place, documented).
 const CARD_RADIUS = 22;
-const STEPS_TINT = ['#e8fbf6', '#f3fbe9'] as const; // mockup linear-gradient(150deg)
+const STEPS_TINT = gradients.mint; // mockup linear-gradient(150deg,#e8fbf6,#f3fbe9)
 const cardShadow = {
   shadowColor: 'rgba(20,32,29,0.25)',
   shadowOffset: { width: 0, height: 8 },

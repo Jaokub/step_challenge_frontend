@@ -4,10 +4,11 @@ import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../../../src/contexts/ThemeContext';
-import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen, SearchBar, ProgressBar } from '../../../../src/components';
-import { spacing, fontSize, borderRadius } from '../../../../src/constants/theme';
+import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen, SearchBar } from '../../../../src/components';
+import { spacing, fontSize, borderRadius, gradients } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
 import checkinService from '../../../../src/features/activity/checkinService';
 import userService from '../../../../src/features/auth/userService';
@@ -127,23 +128,49 @@ export default function AdminAttendeesScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.attendeesTitle')}
-          subtitle={activity?.title}
+          pathSubtitle={`/admin/activities/${id}/attendees`}
+          backChip
           onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
         />
       </SafeAreaView>
 
-      <View style={styles.summaryBlock}>
-        <View style={styles.summaryTop}>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.totalCheckedIn')}</AppText>
-          <AppText variant="body-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }}>
-            {activity?.maxParticipants
-              ? t('admin.checkedInProgress', { checked: totalCheckedIn, total: activity.maxParticipants })
-              : t('admin.checkedInCount', { count: totalCheckedIn })}
-          </AppText>
+      {!!activity?.title && (
+        <View style={styles.activitySelectorWrap}>
+          <View style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}>
+            <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+              {t('admin.attendeesActivityLabel', { title: activity.title })}
+            </AppText>
+            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+          </View>
         </View>
-        {!!activity?.maxParticipants && (
-          <ProgressBar progress={Math.min(1, totalCheckedIn / activity.maxParticipants)} />
-        )}
+      )}
+
+      <View style={styles.summaryWrap}>
+        <LinearGradient
+          colors={gradients.mint}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.summaryBlock, { borderColor: colors.primary + '2E' }]}
+        >
+          <View style={styles.summaryTop}>
+            <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>{t('admin.totalCheckedIn')}</AppText>
+            <AppText variant="heading-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }}>
+              {activity?.maxParticipants
+                ? t('admin.checkedInProgress', { checked: totalCheckedIn, total: activity.maxParticipants })
+                : t('admin.checkedInCount', { count: totalCheckedIn })}
+            </AppText>
+          </View>
+          {!!activity?.maxParticipants && (
+            <View style={[styles.gradientBarTrack, { backgroundColor: colors.primary + '26' }]}>
+              <LinearGradient
+                colors={gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.gradientBarFill, { width: `${Math.min(1, totalCheckedIn / activity.maxParticipants) * 100}%` }]}
+              />
+            </View>
+          )}
+        </LinearGradient>
       </View>
 
       <View style={styles.filterRow}>
@@ -209,8 +236,21 @@ export default function AdminAttendeesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  summaryBlock: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md, gap: spacing.sm },
+  activitySelectorWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  activitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    gap: spacing.sm,
+  },
+  summaryWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  summaryBlock: { borderRadius: 18, borderWidth: 1, padding: 14, paddingHorizontal: 16, gap: spacing.sm },
   summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  gradientBarTrack: { width: '100%', height: 8, borderRadius: 99, overflow: 'hidden' },
+  gradientBarFill: { height: '100%', borderRadius: 99 },
   filterRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
   filterChip: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm - 1, borderRadius: borderRadius.full },
   searchWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
@@ -220,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.md,
-    borderRadius: borderRadius.lg,
+    borderRadius: 18, // mockup frame 7 attendee-row radius
     borderWidth: 1,
     marginBottom: spacing.sm,
   },
