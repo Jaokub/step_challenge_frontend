@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import groupService from './groupService';
 import { queryKeys } from '../../constants/queryKeys';
@@ -55,19 +54,17 @@ export function useGroups(active: boolean) {
   const createMutation = useMutation({
     mutationFn: ({ name, description }: { name: string; description: string }) =>
       groupService.createGroup(name, description),
-    onError: (error: any) => Alert.alert('Error', error.message),
   });
 
   const joinMutation = useMutation({
     mutationFn: (inviteCode: string) => groupService.joinGroup(inviteCode),
-    onError: (error: any) => Alert.alert('Error', error.message),
   });
 
+  // Both let the error propagate (no Alert.alert — ToastContext is the
+  // project-wide feedback convention) so callers can show it their own way.
   const handleCreateGroup = async (groupName: string, groupDesc: string, onSuccess: () => void) => {
     if (!groupName.trim()) return;
-    const res = await createMutation
-      .mutateAsync({ name: groupName.trim(), description: groupDesc.trim() })
-      .catch(() => null);
+    const res = await createMutation.mutateAsync({ name: groupName.trim(), description: groupDesc.trim() });
     if (res?.success) {
       onSuccess();
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
@@ -76,7 +73,7 @@ export function useGroups(active: boolean) {
 
   const handleJoinGroup = async (inviteCode: string, onSuccess: () => void) => {
     if (!inviteCode.trim()) return;
-    const res = await joinMutation.mutateAsync(inviteCode.trim()).catch(() => null);
+    const res = await joinMutation.mutateAsync(inviteCode.trim());
     if (res?.success) {
       onSuccess();
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });

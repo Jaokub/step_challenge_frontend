@@ -25,6 +25,11 @@ export interface AppGroup {
   parentGroupId?: string | null;
   parentGroup?: GroupTreeRef | null;
   childGroups?: ChildGroupRef[];
+  // Present on GET /groups (list) responses — the caller's own membership
+  // role in this group and its member count. Runtime always sends these on
+  // that endpoint; declared optional since other endpoints omit them.
+  myRole?: GroupMemberRole;
+  memberCount?: number;
 }
 
 export interface GroupMember {

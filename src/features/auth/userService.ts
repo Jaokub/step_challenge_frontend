@@ -80,6 +80,18 @@ const userService = {
       throw error.response?.data ?? error;
     }
   },
+
+  /**
+   * Admin only — grant or revoke ADMIN (gap #5, BUILD_PLAN.md Phase 2).
+   */
+  async updateUserRole(id: string, role: 'ADMIN' | 'STAFF'): Promise<ApiResponse<{ user: User }>> {
+    try {
+      const { data } = await api.patch<ApiResponse<{ user: User }>>(`/users/${id}/role`, { role });
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
 };
 
 export default userService;

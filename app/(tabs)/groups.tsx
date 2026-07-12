@@ -1,55 +1,38 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity, ScrollView, Share } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { EmptyState, AppText, Skeleton, ScreenHeader } from '../../src/components';
+import { EmptyState, AppText, CustomModal } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
-import { User } from '../../src/types';
 
 import { useFriends } from '../../src/features/friend/useFriends';
 import { useGroups } from '../../src/features/group/useGroups';
+import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { FriendCard } from '../../src/features/friend/FriendCard';
 import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
 import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
-import { GroupActionModals, ModalType } from '../../src/features/group/GroupActionModals';
+import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
 import { GroupHeaderSection } from '../../src/features/group/GroupHeaderSection';
-import { GroupQrModal } from '../../src/features/group/GroupQrModal';
-import groupService from '../../src/features/group/groupService';
+import { RequestCard } from '../../src/features/friend/RequestCard';
 
-// helper: deterministic number from string id
-const hashId = (id: string, mod: number) =>
-  Math.abs(id.split('').reduce((acc, c) => acc * 31 + c.charCodeAt(0), 0)) % mod;
+const getInitials = (name: string): string =>
+  name.split(' ').map((p) => p.charAt(0)).join('').toUpperCase().slice(0, 2);
 
-// Helper to convert User to LeaderboardMember for demo purposes
-const mapUserToLeaderboardMember = (u: User, index: number, isMe: boolean, t: any): LeaderboardMember => ({
-  id: u.id,
-  rank: index + 1,
-  name: u.nickname || u.fullName,
-  avatar: u.avatarUrl ? 'IMG' : (u.nickname || u.fullName).substring(0, 2).toUpperCase(),
-  steps: u.stats?.totalActivities ? u.stats.totalActivities * 1000 : hashId(u.id, 10000),
-  calories: hashId(u.id + 'cal', 1000),
-  distance: Number((hashId(u.id + 'dist', 100) / 10).toFixed(1)),
-  points: u.totalPoints,
-  isMe,
-  lastActive: t('groups.yesterday')
-});
-
+// Mockup frame 10 "Friends & Groups". Rebuilt on real data only: friends
+// rank by real totalPoints (no steps source for friends yet, so those
+// fields are simply omitted rather than faked); group tabs pull the real
+// group-overview endpoint (steps/calories/distance/points + full ranking).
 export default function GroupsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState<string>('friends');
-  const [modalType, setModalType] = useState<ModalType>('NONE');
-  const [qrGroupId, setQrGroupId] = useState<string | null>(null);
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [qrInviteCode, setQrInviteCode] = useState<string | null>(null);
-  const [qrImage, setQrImage] = useState<string | null>(null);
+  const [showRequests, setShowRequests] = useState(false);
 
   const {
     friends,
@@ -61,149 +44,120 @@ export default function GroupsScreen() {
     handleRejectRequest,
   } = useFriends(true);
 
-  const {
-    groups,
-    groupMembers,
-    isLoading: isLoadingGroups,
-    isRefreshing: isRefreshingGroups,
-    isSubmitting,
-    handleRefresh: handleRefreshGroups,
-    handleCreateGroup,
-    handleJoinGroup,
-    fetchGroupMembers
-  } = useGroups(true);
-
-  const handleShowGroupInvite = async (groupId: string) => {
-    setQrGroupId(groupId);
-    setShowQrModal(true);
-    try {
-      const res = await groupService.getGroupQRCode(groupId);
-      if (res.success) {
-        setQrInviteCode(res.data.inviteCode);
-        setQrImage(res.data.qrCode);
-      }
-    } catch (e) {
-      console.warn('Failed to fetch QR code', e);
-    }
-  };
-
-  const handleShareInvite = async () => {
-    if (!qrInviteCode) return;
-    try {
-      await Share.share({
-        message: qrInviteCode,
-      });
-    } catch (e) {
-      console.warn('Share failed', e);
-    }
-  };
+  const { groups, isRefreshing: isRefreshingGroups, handleRefresh: handleRefreshGroups } = useGroups(true);
 
   const isGroupTab = activeTab !== 'friends';
-  const isLoadingData = isGroupTab
-    ? (isLoadingGroups || !groupMembers[activeTab])
-    : isLoadingFriends;
+  const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '', false);
 
-  React.useEffect(() => {
-    if (isGroupTab) {
-      fetchGroupMembers(activeTab);
-    }
-  }, [activeTab, isGroupTab, fetchGroupMembers]);
+  const friendsLeaderboard: LeaderboardMember[] = useMemo(() => {
+    const rows = [...friends, user].filter(Boolean) as typeof friends;
+    return rows
+      .slice()
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .map((u, i) => ({
+        id: u.id,
+        rank: i + 1,
+        name: u.nickname || u.fullName,
+        avatar: getInitials(u.nickname || u.fullName),
+        points: u.totalPoints,
+        isMe: u.id === user?.id,
+      }));
+  }, [friends, user]);
 
-  const currentGroup = isGroupTab ? groups.find(g => g.id === activeTab) : null;
-  const accentColor = isGroupTab ? '#00e5ff' : '#b0f237';
+  const groupLeaderboard: LeaderboardMember[] = useMemo(
+    () =>
+      (overview?.ranking ?? []).map((row) => ({
+        id: row.id,
+        rank: row.rank,
+        name: row.fullName,
+        avatar: getInitials(row.fullName),
+        points: row.points,
+        steps: row.steps,
+        distanceKm: row.distance,
+        isMe: row.id === user?.id,
+      })),
+    [overview, user]
+  );
 
-  // Prepare leaderboard data
-  const rawList = isGroupTab
-    ? (groupMembers[activeTab] || []).map(m => m.user).filter(Boolean) as User[]
-    : [...friends, user].filter(Boolean) as User[];
-  
-  const leaderboard: LeaderboardMember[] = rawList.map((u, i) => mapUserToLeaderboardMember(u, i, u.id === user?.id, t))
-    .sort((a, b) => b.points - a.points)
-    .map((m, i) => ({ ...m, rank: i + 1 }));
+  const leaderboard = isGroupTab ? groupLeaderboard : friendsLeaderboard;
+  const isLoadingData = isGroupTab ? isOverviewLoading : isLoadingFriends;
 
-  const myEntry = leaderboard.find(m => m.isMe);
-  const totalCount = leaderboard.length;
-  const topThree = leaderboard.slice(0, Math.min(3, totalCount));
-  const rest = totalCount > 3 ? leaderboard.slice(3) : [];
+  const myEntry = leaderboard.find((m) => m.isMe);
+  const topThree = leaderboard.slice(0, 3);
+  const rest = leaderboard.slice(3);
 
   const renderHeader = () => (
-    <GroupHeaderSection
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      groups={groups}
-      requestsCount={requests.length}
-      setModalType={setModalType}
-      handleShowGroupInvite={handleShowGroupInvite}
-      isLoadingData={isLoadingData}
-      myEntry={myEntry}
-      topThree={topThree}
-      isGroupTab={isGroupTab}
-      accentColor={accentColor}
-    />
+    <>
+      <GroupHeaderSection
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        groups={groups}
+        requestsCount={requests.length}
+        onOpenRequests={() => setShowRequests(true)}
+      />
+      {isGroupTab ? (
+        <GroupOverallStatCard stats={overview?.overallStats ?? null} isLoading={isOverviewLoading} />
+      ) : (
+        <RankSummaryCard rank={myEntry?.rank} totalPoints={myEntry?.points} isLoading={isLoadingFriends} />
+      )}
+      <Podium topThree={topThree} isLoading={isLoadingData} />
+    </>
   );
+
+  const renderFooter = () => {
+    if (!isGroupTab || isLoadingData) return null;
+    return (
+      <TouchableOpacity
+        style={[styles.viewGroupBtn, { backgroundColor: colors.textPrimary }]}
+        onPress={() => router.push(`/group/${activeTab}`)}
+      >
+        <AppText style={{ color: colors.background, fontWeight: '700' as any, fontSize: 13.5 }}>
+          {t('groups.viewGroupDetail')}
+        </AppText>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <FlatList
           data={isLoadingData ? ([1, 2, 3, 4] as any) : rest}
-          keyExtractor={(item, index) => isLoadingData ? index.toString() : item.id}
+          keyExtractor={(item, index) => (isLoadingData ? index.toString() : item.id)}
           ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl 
-              refreshing={isGroupTab ? isRefreshingGroups : isRefreshingFriends} 
-              onRefresh={async () => {
-                if (isGroupTab) {
-                  handleRefreshGroups();
-                  await fetchGroupMembers(activeTab, true);
-                } else {
-                  handleRefreshFriends();
-                }
-              }}
-              tintColor={colors.primary} 
+            <RefreshControl
+              refreshing={isGroupTab ? isRefreshingGroups : isRefreshingFriends}
+              onRefresh={() => (isGroupTab ? handleRefreshGroups() : handleRefreshFriends())}
+              tintColor={colors.primary}
             />
           }
           ListEmptyComponent={
-            (!isLoadingData && !isRefreshingGroups && !isRefreshingFriends && leaderboard.length === 0) ? (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
-                <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
-                <AppText style={{ color: colors.textSecondary, marginTop: 16 }}>{t('groups.noData')}</AppText>
-              </View>
+            !isLoadingData && leaderboard.length === 0 ? (
+              <EmptyState icon="people-outline" title={t('groups.noData')} />
             ) : null
           }
           renderItem={({ item, index }) => (
             <View style={styles.cardContainer}>
-              <FriendCard 
-                isLoading={isLoadingData}
-                member={isLoadingData ? undefined : item} 
-                accentColor={accentColor} 
-                isLast={isLoadingData ? index === 3 : index === rest.length - 1} 
-              />
+              <FriendCard isLoading={isLoadingData} member={isLoadingData ? undefined : item} />
             </View>
           )}
         />
       </SafeAreaView>
 
-      <GroupActionModals 
-        modalType={modalType}
-        onClose={() => setModalType('NONE')}
-        isSubmitting={isSubmitting}
-        onCreateGroup={handleCreateGroup}
-        onJoinGroup={handleJoinGroup}
-        requests={requests}
-        onAcceptRequest={handleAcceptRequest}
-        onRejectRequest={handleRejectRequest}
-      />
-
-      <GroupQrModal
-        visible={showQrModal}
-        onClose={() => { setShowQrModal(false); setQrInviteCode(null); setQrImage(null); }}
-        qrImage={qrImage}
-        qrInviteCode={qrInviteCode}
-        onShare={handleShareInvite} 
-        colors={colors as any}
-      />
+      <CustomModal visible={showRequests} onClose={() => setShowRequests(false)} title={t('groups.friendRequests')}>
+        {requests.length === 0 ? (
+          <AppText style={{ color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg }}>
+            {t('groups.noData')}
+          </AppText>
+        ) : (
+          requests.map((req) => (
+            <RequestCard key={req.id} request={req} onAccept={handleAcceptRequest} onReject={handleRejectRequest} />
+          ))
+        )}
+      </CustomModal>
     </View>
   );
 }
@@ -216,5 +170,12 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     paddingHorizontal: spacing.xl,
-  }
+  },
+  viewGroupBtn: {
+    marginHorizontal: spacing.xl,
+    marginTop: spacing.sm,
+    paddingVertical: 13,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+  },
 });

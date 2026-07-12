@@ -14,12 +14,10 @@ const toPodiumMember = (row: GroupRankingRow, currentUserId?: string): Leaderboa
   rank: row.rank,
   name: row.fullName,
   avatar: getInitials(row.fullName),
-  steps: row.steps ?? 0,
-  calories: row.calories ?? 0,
-  distance: row.distance ?? 0,
+  steps: row.steps,
+  distanceKm: row.distance,
   points: row.points,
   isMe: row.id === currentUserId,
-  lastActive: '',
 });
 
 interface GroupOverviewSectionProps {

@@ -2,65 +2,80 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AppText, Skeleton, ScreenHeader } from '../../components';
-import { spacing } from '../../constants/theme';
+import { AppText, ScreenHeader } from '../../components';
+import { spacing, gradients } from '../../constants/theme';
 import { AppGroup } from '../../types';
-import { LeaderboardMember, Podium } from '../friend/Podium';
-import { RankSummaryCard } from '../friend/RankSummaryCard';
-import { ModalType } from './GroupActionModals';
+
+interface Pill {
+  key: string;
+  label: string;
+}
 
 interface GroupHeaderSectionProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   groups: AppGroup[];
   requestsCount: number;
-  setModalType: (type: ModalType) => void;
-  handleShowGroupInvite: (groupId: string) => void;
-  isLoadingData: boolean;
-  myEntry?: LeaderboardMember;
-  topThree: LeaderboardMember[];
-  isGroupTab: boolean;
-  accentColor: string;
+  onOpenRequests: () => void;
 }
 
+// Mockup frame 10 header: 3 icons only — my groups (new in v4, links to
+// frame 11), notifications, add-friend. The pre-existing "join by invite
+// code" icon has no home in this mockup (joining is via shared invite link
+// elsewhere); it's dropped here rather than kept as an unrequested 4th icon
+// — see PROGRESS.md for the flagged gap. The JOIN modal/hook code itself is
+// untouched so it can be wired to a real entry point later.
 export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
   activeTab,
   setActiveTab,
   groups,
   requestsCount,
-  setModalType,
-  handleShowGroupInvite,
-  isLoadingData,
-  myEntry,
-  topThree,
-  isGroupTab,
-  accentColor,
+  onOpenRequests,
 }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const router = useRouter();
 
+  const pills: Pill[] = [
+    { key: 'friends', label: t('groups.friends') },
+    ...groups.map((g) => ({ key: g.id, label: g.name })),
+  ];
+
   return (
     <>
       <ScreenHeader
         title={t('groups.friendsAndGroups')}
+        titleSize={20}
         rightActions={
           <>
-            <TouchableOpacity onPress={() => setModalType('REQUESTS')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+            <TouchableOpacity
+              onPress={() => router.push('/group/my-groups')}
+              style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
+              accessibilityLabel={t('groups.myGroups')}
+            >
+              <Ionicons name="grid-outline" size={16} color={colors.textPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onOpenRequests}
+              style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
+              accessibilityLabel={t('groups.friendRequests')}
+            >
+              <Ionicons name="notifications-outline" size={16} color={colors.textPrimary} />
               {requestsCount > 0 && (
                 <View style={styles.badge}>
                   <AppText style={styles.badgeText}>{requestsCount}</AppText>
                 </View>
               )}
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalType('JOIN')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="people-outline" size={20} color={colors.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/add-friend')} style={[styles.iconBtn, { backgroundColor: colors.card }]}>
-              <Ionicons name="person-add-outline" size={20} color={colors.textPrimary} />
+            <TouchableOpacity
+              onPress={() => router.push('/add-friend')}
+              style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
+              accessibilityLabel={t('friend.addFriend')}
+            >
+              <Ionicons name="person-add-outline" size={16} color={colors.textPrimary} />
             </TouchableOpacity>
           </>
         }
@@ -68,61 +83,52 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
 
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-          <TouchableOpacity
-            style={[
-              styles.tabPill,
-              activeTab === 'friends' ? { backgroundColor: colors.primary, borderColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.divider }
-            ]}
-            onPress={() => setActiveTab('friends')}
-          >
-            <AppText style={[styles.tabText, activeTab === 'friends' ? { color: '#fff' } : { color: colors.textPrimary }]}>
-              {t('groups.friends')}
-            </AppText>
-          </TouchableOpacity>
-
-
-          {groups.map(g => (
-            <TouchableOpacity
-              key={g.id}
-              style={[
-                styles.tabPill,
-                activeTab === g.id ? { backgroundColor: accentColor, borderColor: accentColor } : { backgroundColor: colors.card, borderColor: colors.divider }
-              ]}
-              onPress={() => setActiveTab(g.id)}
-              onLongPress={() => handleShowGroupInvite(g.id)}
-            >
-              <AppText style={[styles.tabText, activeTab === g.id ? { color: '#1A1A2E' } : { color: colors.textPrimary }]}>
-                {g.name}
-              </AppText>
-              {activeTab === g.id && (
-                <Ionicons name="qr-code-outline" size={12} color="#1A1A2E" style={{ marginLeft: 4 }} />
-              )}
-            </TouchableOpacity>
-          ))}
+          {pills.map((pill) => {
+            const active = activeTab === pill.key;
+            return active ? (
+              <LinearGradient
+                key={pill.key}
+                colors={gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.tabPill}
+              >
+                <TouchableOpacity onPress={() => setActiveTab(pill.key)}>
+                  <AppText style={[styles.tabText, { color: colors.onPrimary }]}>{pill.label}</AppText>
+                </TouchableOpacity>
+              </LinearGradient>
+            ) : (
+              <TouchableOpacity
+                key={pill.key}
+                style={[styles.tabPill, { backgroundColor: colors.inputBackground }]}
+                onPress={() => setActiveTab(pill.key)}
+              >
+                <AppText style={[styles.tabText, { color: colors.textSecondary }]}>{pill.label}</AppText>
+              </TouchableOpacity>
+            );
+          })}
 
           <TouchableOpacity
-            style={[styles.tabPill, { backgroundColor: colors.card, borderColor: colors.divider, paddingHorizontal: 12 }]}
-            onPress={() => setModalType('CREATE')}
+            style={[styles.addPill, { backgroundColor: colors.inputBackground }]}
+            onPress={() => router.push('/group/create')}
+            accessibilityLabel={t('groups.createGroupTitle')}
           >
             <Ionicons name="add" size={18} color={colors.textPrimary} />
           </TouchableOpacity>
         </ScrollView>
       </View>
-
-      <RankSummaryCard isLoading={isLoadingData} member={myEntry} accentColor={accentColor} isGroupTab={isGroupTab} />
-      <Podium isLoading={isLoadingData} topThree={topThree} accentColor={accentColor} />
     </>
   );
 };
 
 const styles = StyleSheet.create({
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    marginLeft: spacing.sm,
   },
   badge: {
     position: 'absolute',
@@ -151,14 +157,20 @@ const styles = StyleSheet.create({
   },
   tabPill: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingVertical: 9,
+    borderRadius: 999,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  addPill: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

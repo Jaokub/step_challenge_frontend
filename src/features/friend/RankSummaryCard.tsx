@@ -1,83 +1,54 @@
 import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { AppText, Skeleton } from '../../components';
-import { spacing, borderRadius } from '../../constants/theme';
-import { LeaderboardMember } from './Podium';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AppText, GradientText, Skeleton } from '../../components';
+import { spacing, borderRadius, gradients, dashboardAccents } from '../../constants/theme';
 
+// Mockup frame 10 "friends" tab rank card — mint gradient, label + a real
+// stat line, big #rank on the right. Friends have no steps source yet, so
+// the stat line shows total points (real) instead of the mockup's fake
+// "ก้าวเดือนนี้" placeholder.
 interface RankSummaryCardProps {
-  member?: LeaderboardMember;
-  accentColor?: string;
-  isGroupTab?: boolean;
+  rank?: number;
+  totalPoints?: number;
   isLoading?: boolean;
 }
 
-export const RankSummaryCard = ({ member, accentColor = '#b0f237', isGroupTab = false, isLoading = false }: RankSummaryCardProps) => {
+export const RankSummaryCard = ({ rank, totalPoints, isLoading = false }: RankSummaryCardProps) => {
   const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <View 
-          style={[
-            styles.card, 
-            { 
-              backgroundColor: `${accentColor}05`,
-              borderColor: `${accentColor}20`,
-            }
-          ]}
-        >
-          <Skeleton width={44} height={44} borderRadius={22} style={{ marginRight: spacing.sm }} />
-          
-          <View style={styles.infoContainer}>
-            <Skeleton width="30%" height={14} borderRadius={4} style={{ marginBottom: 6 }} />
-            <View style={styles.statsRow}>
-              <Skeleton width={50} height={12} borderRadius={4} />
-              <Skeleton width={40} height={12} borderRadius={4} />
-              <Skeleton width={45} height={12} borderRadius={4} />
-            </View>
+        <View style={[styles.card, { backgroundColor: gradients.mint[0] }]}>
+          <View style={{ flex: 1, gap: 6 }}>
+            <Skeleton width="60%" height={12} borderRadius={4} />
+            <Skeleton width="45%" height={12} borderRadius={4} />
           </View>
-          
-          <View style={styles.rankContainer}>
-            <Skeleton width={40} height={24} borderRadius={4} style={{ marginBottom: 4 }} />
-            <Skeleton width={50} height={12} borderRadius={4} />
-          </View>
+          <Skeleton width={40} height={26} borderRadius={4} />
         </View>
       </View>
     );
   }
 
-  if (!member) return null;
+  if (rank == null) return null;
 
   return (
     <View style={styles.container}>
-      <View 
-        style={[
-          styles.card, 
-          { 
-            backgroundColor: `${accentColor}10`,
-            borderColor: `${accentColor}40`
-          }
-        ]}
-      >
-        <View style={[styles.avatar, { backgroundColor: accentColor }]}>
-          <AppText style={styles.avatarText}>{member.avatar}</AppText>
+      <LinearGradient colors={gradients.mint} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.card}>
+        <View style={{ flex: 1 }}>
+          <AppText style={[styles.label, { color: dashboardAccents.mintCardLabel }]}>
+            {t('groups.rankAmongFriends')}
+          </AppText>
+          <AppText style={[styles.stat, { color: dashboardAccents.mintCardLabel }]}>
+            {t('groups.totalPointsStat', { points: (totalPoints ?? 0).toLocaleString() })}
+          </AppText>
         </View>
-        
-        <View style={styles.infoContainer}>
-          <AppText style={styles.title}>{t('friend.yourRank')}</AppText>
-          <View style={styles.statsRow}>
-            <AppText style={styles.statText}>{member.steps.toLocaleString()} {t('friend.stepsCount')}</AppText>
-            <AppText style={styles.statText}>{member.distance} {t('friend.kmCount')}</AppText>
-            <AppText style={styles.statText}>{member.calories} kcal</AppText>
-          </View>
-        </View>
-        
-        <View style={styles.rankContainer}>
-          <AppText style={[styles.rankNumber, { color: accentColor }]}>#{member.rank}</AppText>
-          <AppText style={styles.pointsText}>{member.points.toLocaleString()} pt</AppText>
-        </View>
-      </View>
+        <GradientText colors={gradients.statValue} variant="heading-extraBold" style={styles.rankNumber}>
+          {`#${rank}`}
+        </GradientText>
+      </LinearGradient>
     </View>
   );
 };
@@ -90,50 +61,19 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    height: 78,
+    justifyContent: 'space-between',
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
-  avatarText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#0d0f14',
-  },
-  infoContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 14,
+  label: {
+    fontSize: 11.5,
     fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statText: {
+  stat: {
     fontSize: 12,
-    color: '#7a8099',
-  },
-  rankContainer: {
-    alignItems: 'flex-end',
   },
   rankNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
   },
-  pointsText: {
-    fontSize: 12,
-    color: '#7a8099',
-  }
 });

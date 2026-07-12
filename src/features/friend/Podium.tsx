@@ -1,84 +1,116 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppText, Skeleton } from '../../components';
-import { spacing } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import { spacing, gradients } from '../../constants/theme';
 
+// steps/distanceKm are only known when the caller has real per-row health
+// data (group overview). Friends podium has no steps source yet, so those
+// fields are optional — never backfilled with fake numbers.
 export interface LeaderboardMember {
   id: string;
   rank: number;
   name: string;
   avatar: string;
-  steps: number;
-  calories: number;
-  distance: number;
   points: number;
+  steps?: number;
+  distanceKm?: number;
   isMe: boolean;
-  lastActive: string;
 }
+
+const RANK_GRADIENT: Record<number, readonly [string, string]> = {
+  1: gradients.gold,
+  2: gradients.silver,
+  3: gradients.bronze,
+};
+
+const RANK_HEIGHT: Record<number, number> = { 1: 120, 2: 90, 3: 70 };
+const RANK_AVATAR: Record<number, number> = { 1: 56, 2: 46, 3: 44 };
 
 interface PodiumProps {
   topThree: LeaderboardMember[];
-  accentColor?: string;
   isLoading?: boolean;
 }
 
-const PodiumItem = ({ member, height, accentColor, isFirst }: { member: LeaderboardMember, height: number, accentColor: string, isFirst?: boolean }) => {
-  const avatarBg = member.isMe ? accentColor : '#1e2330';
-  const avatarColor = member.isMe ? '#0d0f14' : '#f0f2f5';
-  const avatarBorder = member.isMe ? accentColor : `${accentColor}40`;
+const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
+  const { colors } = useTheme();
+  const height = RANK_HEIGHT[member.rank] ?? 70;
+  const avatarSize = RANK_AVATAR[member.rank] ?? 44;
+  const rankGradient = RANK_GRADIENT[member.rank];
+  const statLine = member.steps != null
+    ? `${member.steps.toLocaleString()}${member.distanceKm != null ? ` · ${member.distanceKm.toFixed(1)} km` : ''}`
+    : null;
 
   return (
-    <View style={styles.podiumItemContainer}>
-      <View style={styles.avatarWrapper}>
-        {isFirst && <AppText style={styles.crown}>👑</AppText>}
-        <View style={[styles.avatar, { backgroundColor: avatarBg, borderColor: avatarBorder }]}>
-          <AppText style={[styles.avatarText, { color: avatarColor }]}>{member.avatar}</AppText>
+    <View style={[styles.podiumItemContainer, member.isMe && { transform: [{ translateY: -4 }] }]}>
+      <View
+        style={[
+          styles.avatarWrapper,
+          member.isMe && { borderColor: colors.primary, borderWidth: 3, borderRadius: avatarSize / 2 + 3, padding: 3 },
+        ]}
+      >
+        {rankGradient ? (
+          <LinearGradient
+            colors={rankGradient as any}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.avatar, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]}
+          >
+            <AppText style={[styles.avatarText, { color: colors.onPrimary }]}>{member.avatar}</AppText>
+          </LinearGradient>
+        ) : (
+          <View style={[styles.avatar, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, backgroundColor: colors.inputBackground }]}>
+            <AppText style={[styles.avatarText, { color: colors.textSecondary }]}>{member.avatar}</AppText>
+          </View>
+        )}
+      </View>
+
+      <AppText
+        variant="body-bold"
+        style={[styles.name, { color: member.isMe ? colors.primary : colors.textPrimary }]}
+        numberOfLines={1}
+      >
+        {member.name}
+      </AppText>
+      {statLine && (
+        <AppText style={[styles.statLine, { color: colors.textSecondary }]} numberOfLines={1}>
+          {statLine}
+        </AppText>
+      )}
+
+      {rankGradient ? (
+        <LinearGradient
+          colors={rankGradient as any}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.bar, { height }]}
+        >
+          <AppText variant="heading-bold" style={{ color: colors.onPrimary, fontSize: 15 }}>{member.rank}</AppText>
+          <AppText style={[styles.pointsText, { color: colors.onPrimary }]}>{member.points.toLocaleString()} pt</AppText>
+        </LinearGradient>
+      ) : (
+        <View style={[styles.bar, { height, backgroundColor: colors.inputBackground }]}>
+          <AppText variant="heading-bold" style={{ color: colors.textSecondary, fontSize: 15 }}>{member.rank}</AppText>
+          <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>{member.points.toLocaleString()} pt</AppText>
         </View>
-      </View>
-      <AppText style={styles.name} numberOfLines={1}>{member.name.split(" ")[0]}</AppText>
-      <AppText style={[styles.points, { color: accentColor }]}>{member.points.toLocaleString()}</AppText>
-      
-      <View style={[styles.bar, { height, backgroundColor: `${accentColor}15`, borderTopColor: `${accentColor}40` }]}>
-        <AppText style={[styles.rankLabel, { color: accentColor }]}>#{member.rank}</AppText>
-      </View>
+      )}
     </View>
   );
 };
 
-export const Podium = ({ topThree, accentColor = '#b0f237', isLoading = false }: PodiumProps) => {
+export const Podium = ({ topThree, isLoading = false }: PodiumProps) => {
   if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.podiumRow}>
-          {/* Rank 2 Skeleton */}
-          <View style={styles.podiumItemContainer}>
-            <View style={styles.avatarWrapper}>
+          {[90, 120, 70].map((h, i) => (
+            <View key={i} style={styles.podiumItemContainer}>
               <Skeleton width={48} height={48} borderRadius={24} />
+              <Skeleton width={50} height={14} borderRadius={4} style={{ marginTop: spacing.xs }} />
+              <Skeleton width="100%" height={h} borderRadius={14} style={{ marginTop: spacing.xs }} />
             </View>
-            <Skeleton width={50} height={16} borderRadius={4} />
-            <Skeleton width={40} height={16} borderRadius={4} />
-            <Skeleton width="100%" height={90} borderRadius={8} />
-          </View>
-          
-          {/* Rank 1 Skeleton */}
-          <View style={styles.podiumItemContainer}>
-            <View style={styles.avatarWrapper}>
-              <Skeleton width={48} height={48} borderRadius={24} />
-            </View>
-            <Skeleton width={50} height={16} borderRadius={4} />
-            <Skeleton width={40} height={16} borderRadius={4} />
-            <Skeleton width="100%" height={120} borderRadius={8} />
-          </View>
-
-          {/* Rank 3 Skeleton */}
-          <View style={styles.podiumItemContainer}>
-            <View style={styles.avatarWrapper}>
-              <Skeleton width={48} height={48} borderRadius={24} />
-            </View>
-            <Skeleton width={50} height={16} borderRadius={4} />
-            <Skeleton width={40} height={16} borderRadius={4} />
-            <Skeleton width="100%" height={70} borderRadius={8} />
-          </View>
+          ))}
         </View>
       </View>
     );
@@ -89,17 +121,9 @@ export const Podium = ({ topThree, accentColor = '#b0f237', isLoading = false }:
   return (
     <View style={styles.container}>
       <View style={styles.podiumRow}>
-        {topThree[1] && (
-          <PodiumItem member={topThree[1]} height={90} accentColor={accentColor} />
-        )}
-        
-        {topThree[0] && (
-          <PodiumItem member={topThree[0]} height={120} accentColor={accentColor} isFirst />
-        )}
-
-        {topThree[2] && (
-          <PodiumItem member={topThree[2]} height={70} accentColor={accentColor} />
-        )}
+        {topThree[1] && <PodiumItem member={topThree[1]} />}
+        {topThree[0] && <PodiumItem member={topThree[0]} />}
+        {topThree[2] && <PodiumItem member={topThree[2]} />}
       </View>
     </View>
   );
@@ -122,53 +146,36 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   avatarWrapper: {
-    position: 'relative',
     alignItems: 'center',
   },
-  crown: {
-    position: 'absolute',
-    top: -20,
-    fontSize: 18,
-    zIndex: 10,
-  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   name: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 11.5,
     textAlign: 'center',
-    maxWidth: 60,
-    color: '#FFFFFF',
-    height: 16,
-    lineHeight: 16,
+    maxWidth: 70,
   },
-  points: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    height: 16,
-    lineHeight: 16,
+  statLine: {
+    fontSize: 10,
   },
   bar: {
     width: '100%',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderTopWidth: 2,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 4,
+    justifyContent: 'center',
+    gap: 2,
   },
-  rankLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  }
+  pointsText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
 });

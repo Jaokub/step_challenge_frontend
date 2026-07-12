@@ -59,7 +59,11 @@ export default function UsersManagementScreen() {
       : item.department || t('admin.filterNoDept');
 
     return (
-      <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => router.push(`/admin/users/${item.id}`)}
+        style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+      >
         <View style={[styles.avatar, { backgroundColor: adminAccents.avatarBg }]}>
           <AppText variant="heading-bold" style={{ color: adminAccents.onDark, fontSize: fontSize.xs }}>
             {item.fullName.charAt(0)}
@@ -87,7 +91,7 @@ export default function UsersManagementScreen() {
             {isAdmin ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
           </AppText>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -138,12 +142,6 @@ export default function UsersManagementScreen() {
         })}
       </View>
 
-      <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '1A' }]}>
-        <AppText style={{ fontSize: 10.5, color: colors.warning, fontWeight: '700' as any, textAlign: 'center' }}>
-          {t('admin.roleToggleNeedsEndpoint')}
-        </AppText>
-      </View>
-
       {loading ? (
         <LoadingScreen />
       ) : error ? (
@@ -183,12 +181,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm - 1,
     borderRadius: 999,
-  },
-  needsEndpointPill: {
-    marginHorizontal: spacing.xl,
-    marginBottom: spacing.sm,
-    padding: spacing.sm,
-    borderRadius: 12,
   },
   searchContainer: {
     paddingHorizontal: spacing.xl,
