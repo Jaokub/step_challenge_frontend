@@ -1,14 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AppText, PointsBadge, Skeleton } from '../../components';
-import { spacing, borderRadius, fontSize } from '../../constants/theme';
+import { AppText, Skeleton } from '../../components';
+import { spacing } from '../../constants/theme';
 import type { SiblingGroupOverview } from '../../types';
 
 // Deliberately no ranking / member list here — siblings only ever see each
 // other's overall stats, never a member breakdown. See groupOverview.service.js.
+// Mockup frame 13/15 "กลุ่มใกล้เคียง": plain white row, name + total steps —
+// no icon circle, no points badge.
 interface GroupSiblingsSectionProps {
   siblings: SiblingGroupOverview[];
   isLoading: boolean;
@@ -22,30 +23,24 @@ export const GroupSiblingsSection: React.FC<GroupSiblingsSectionProps> = ({ sibl
 
   return (
     <View style={styles.container}>
-      <AppText variant="body-bold" style={styles.sectionTitle}>
+      <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
         {t('groups.siblingGroups')}
       </AppText>
 
       {isLoading ? (
-        <Skeleton width="100%" height={64} borderRadius={borderRadius.xl} />
+        <Skeleton width="100%" height={48} borderRadius={18} />
       ) : (
         siblings.map((sibling) => (
           <View
             key={sibling.groupId}
-            style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+            style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
           >
-            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-              <Ionicons name="people-outline" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.info}>
-              <AppText style={[styles.name, { color: colors.textOnCard }]} numberOfLines={1}>
-                {sibling.groupName}
-              </AppText>
-              <AppText style={[styles.meta, { color: colors.textCardSecondary }]}>
-                {sibling.overallStats.memberCount} {t('common.members')} · {sibling.overallStats.totalSteps.toLocaleString()} {t('health.stepsUnit')}
-              </AppText>
-            </View>
-            <PointsBadge points={sibling.overallStats.totalPoints} size="sm" />
+            <AppText variant="body-semiBold" style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+              {sibling.groupName}
+            </AppText>
+            <AppText variant="heading-bold" style={[styles.steps, { color: colors.textPrimary }]}>
+              {sibling.overallStats.totalSteps.toLocaleString()}
+            </AppText>
           </View>
         ))
       )}
@@ -54,24 +49,17 @@ export const GroupSiblingsSection: React.FC<GroupSiblingsSectionProps> = ({ sibl
 };
 
 const styles = StyleSheet.create({
-  container: { marginBottom: spacing.md, paddingHorizontal: spacing.xl },
-  sectionTitle: { fontSize: fontSize.md, marginBottom: spacing.md },
-  card: {
+  container: { marginBottom: spacing.md },
+  sectionTitle: { fontSize: 14, lineHeight: 17, marginBottom: spacing.sm },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.xl,
+    gap: spacing.md,
+    padding: 13,
+    borderRadius: 18,
     borderWidth: 1,
     marginBottom: spacing.sm,
   },
-  iconContainer: {
-    width: 40, height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  info: { flex: 1 },
-  name: { fontSize: fontSize.md, marginBottom: 2 },
-  meta: { fontSize: fontSize.xs },
+  name: { flex: 1, fontSize: 13, lineHeight: 15 },
+  steps: { fontSize: 13, lineHeight: 15 },
 });
