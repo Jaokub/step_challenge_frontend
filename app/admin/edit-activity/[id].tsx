@@ -231,29 +231,37 @@ export default function EditActivityScreen() {
           </View>
         </View>
 
-        <PrimaryButton
-          title={isSubmitting ? t('common.loading') : t('common.save')}
-          onPress={handleUpdate}
+        {/* Bottom actions — mockup frame 4: [ยกเลิก | บันทึก] side by side */}
+        <View style={styles.btnRow}>
+          <TouchableOpacity
+            style={[styles.cancelBtn, { backgroundColor: colors.inputBackground }]}
+            onPress={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
+            disabled={isSubmitting}
+          >
+            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.textPrimary }}>
+              {t('common.cancel')}
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.saveBtn, { backgroundColor: colors.primary, opacity: isSubmitting ? 0.6 : 1 }]}
+            onPress={handleUpdate}
+            disabled={isSubmitting}
+          >
+            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
+              {isSubmitting ? t('common.loading') : t('common.save')}
+            </AppText>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.deleteLink}
+          onPress={() => setShowDeleteModal(true)}
           disabled={isSubmitting}
-          style={{ marginTop: 24 }}
-        />
-
-        <View style={{ marginTop: 12 }}>
-          <PrimaryButton
-            title={t('admin.actionAttendees')}
-            onPress={() => router.push(`/admin/activities/${id}/attendees`)}
-            style={{ backgroundColor: colors.success }}
-            icon="people-outline"
-          />
-        </View>
-
-        <View style={{ marginTop: 12 }}>
-          <OutlineButton
-            title={t('common.delete')}
-            onPress={() => setShowDeleteModal(true)}
-            color={colors.error}
-          />
-        </View>
+        >
+          <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: colors.error }}>
+            {t('common.delete')}
+          </AppText>
+        </TouchableOpacity>
       </ScrollView>
 
       <CustomModal
@@ -289,5 +297,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm + 1,
     borderRadius: 12,
+  },
+  btnRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: 24,
+  },
+  cancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 16,
+  },
+  saveBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    borderRadius: 16,
+  },
+  deleteLink: {
+    marginTop: 16,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
   },
 });

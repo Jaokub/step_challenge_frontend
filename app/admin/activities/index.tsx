@@ -31,7 +31,10 @@ export default function AdminActivitiesListScreen() {
         <StatusBadge status={item.status} />
       </View>
       <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {item.location} · {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
+        {item.location}
+      </AppText>
+      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
+        {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
       </AppText>
       {typeof item.participantCount === 'number' && (
         <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
