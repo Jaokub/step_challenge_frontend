@@ -65,8 +65,8 @@ export default function AdminDashboardScreen() {
           title={t('admin.dashboard')}
           subtitle={t('admin.dashboardSubtitle')}
           rightActions={
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} style={{ padding: 4 }}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
+            <TouchableOpacity onPress={() => router.push('/settings')} style={{ padding: 4 }}>
+              <Ionicons name="settings-outline" size={22} color={colors.textPrimary} />
             </TouchableOpacity>
           }
         />

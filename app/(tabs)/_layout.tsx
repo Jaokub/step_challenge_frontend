@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { LoadingScreen } from '../../src/components';
 
 export default function TabsLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
 
@@ -18,6 +18,12 @@ export default function TabsLayout() {
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/login" />;
+  }
+
+  // Admin accounts are console-only (mockup Section 1 · ADMIN CONSOLE):
+  // they never see the normal user tabs. Keep them inside /admin/*.
+  if (isAdmin) {
+    return <Redirect href="/admin/dashboard" />;
   }
 
   const tabIcon =

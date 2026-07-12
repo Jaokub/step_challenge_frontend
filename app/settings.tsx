@@ -6,17 +6,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { AppCard, SettingsRow, ThemeToggle } from '../src/components';
 import { spacing, fontSize } from '../src/constants/theme';
 
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
+  const { signOut, isAdmin } = useAuth();
 
   const currentLang = i18n.language;
 
   const toggleLanguage = () => {
-  const { t } = useTranslation();
     const newLang = currentLang === 'th' ? 'en' : 'th';
     i18n.changeLanguage(newLang);
   };
@@ -75,17 +76,21 @@ export default function SettingsScreen() {
           />
         </AppCard>
 
-        {/* Admin Panel */}
-        <AppText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          Admin Management
-        </AppText>
-        <AppCard style={styles.card}>
-          <SettingsRow
-            icon="shield-checkmark"
-            label="Admin Dashboard"
-            onPress={() => router.push('/admin/dashboard')}
-          />
-        </AppCard>
+        {/* Admin Panel (admins only) */}
+        {isAdmin && (
+          <>
+            <AppText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+              Admin Management
+            </AppText>
+            <AppCard style={styles.card}>
+              <SettingsRow
+                icon="shield-checkmark"
+                label="Admin Dashboard"
+                onPress={() => router.push('/admin/dashboard')}
+              />
+            </AppCard>
+          </>
+        )}
 
         {/* About */}
         <AppText style={[styles.sectionTitle, { color: colors.textSecondary }]}>
@@ -98,6 +103,20 @@ export default function SettingsScreen() {
             value="1.0.0"
           />
         </AppCard>
+
+        {/* Logout */}
+        <TouchableOpacity
+          style={[styles.logoutBtn, { backgroundColor: colors.card, borderColor: colors.error + '33' }]}
+          onPress={async () => {
+            await signOut();
+            // /settings is a root-level modal with no auth guard, so unlike the
+            // profile tab it won't auto-redirect on logout — send to login explicitly.
+            router.replace('/(auth)/login');
+          }}
+        >
+          <Ionicons name="log-out-outline" size={20} color={colors.error} />
+          <AppText style={[styles.logoutText, { color: colors.error }]}>{t('Logout')}</AppText>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -122,4 +141,10 @@ const styles = StyleSheet.create({
   },
   themeLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   themeLabelText: { fontSize: fontSize.md },
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    marginTop: spacing.xl, paddingVertical: spacing.md,
+    borderRadius: spacing.md, borderWidth: 1,
+  },
+  logoutText: { fontSize: fontSize.md, fontWeight: '600' },
 });
