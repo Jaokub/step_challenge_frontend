@@ -75,6 +75,7 @@ export default function AdminActivitiesListScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.activitiesListTitle')}
+          onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/dashboard'))}
           rightActions={
             <TouchableOpacity onPress={() => router.push('/admin/create-activity')}>
               <LinearGradient

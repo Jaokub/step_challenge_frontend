@@ -94,11 +94,7 @@ export default function UsersManagementScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.navUsersTitle')}
-          rightActions={
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} style={{ padding: 4 }}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </TouchableOpacity>
-          }
+          onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/dashboard'))}
         />
       </SafeAreaView>
 

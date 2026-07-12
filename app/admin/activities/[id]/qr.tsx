@@ -64,11 +64,7 @@ export default function ActivityQrScreen() {
         <ScreenHeader
           title={activity.title}
           subtitle={t('admin.qrTitle')}
-          rightActions={
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/admin/activities')} style={{ padding: 4 }}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </TouchableOpacity>
-          }
+          onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
         />
       </SafeAreaView>
 

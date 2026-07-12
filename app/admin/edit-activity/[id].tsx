@@ -136,11 +136,7 @@ export default function EditActivityScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
           title={t('admin.editActivity')}
-          rightActions={
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/admin/dashboard')} style={{ padding: 4 }}>
-              <Ionicons name="close" size={24} color={colors.textPrimary} />
-            </TouchableOpacity>
-          }
+          onBack={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
         />
       </SafeAreaView>
 
