@@ -15,6 +15,7 @@ export const queryKeys = {
   dashboard: {
     personal: ['dashboard', 'personal'] as const,
     admin: ['dashboard', 'admin'] as const,
+    stats: ['dashboard', 'stats'] as const,
   },
   health: {
     summary: ['health', 'summary'] as const,

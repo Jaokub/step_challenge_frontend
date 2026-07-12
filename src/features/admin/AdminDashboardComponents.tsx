@@ -2,93 +2,157 @@ import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { AppText, AppCard, PrimaryButton } from '../../components';
+import { AppText, AppCard } from '../../components';
 import { spacing, borderRadius, fontSize } from '../../constants/theme';
 
-export const AdminOverviewStats = ({ stats, colors }: any) => {
+// Frame 1 — orange banner: coordinators don't see this admin console at all,
+// they use the "My Groups" tab instead. Purely informational copy.
+export const AdminCoordinatorBanner = ({ colors }: any) => {
   const { t } = useTranslation();
   return (
-    <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md }}>
-      <View style={{ flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md }}>
-        <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
-          <MaterialCommunityIcons name="account-group" size={24} color={colors.primary} />
-          <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary, marginTop: spacing.sm }}>{stats.totalUsers}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.totalUsers')}</AppText>
-        </AppCard>
-        <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
-          <MaterialCommunityIcons name="check-decagram" size={24} color={colors.primary} />
-          <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary, marginTop: spacing.sm }}>{stats.checkInRate}%</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.checkInRate')}</AppText>
-        </AppCard>
-      </View>
-      <View style={{ flexDirection: 'row', gap: spacing.md }}>
-        <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
-          <MaterialCommunityIcons name="calendar-today" size={24} color={colors.warning} />
-          <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>{stats.dau} / {stats.wau}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.dauWau')}</AppText>
-        </AppCard>
-        <AppCard style={[styles.statCardContainer, { flex: 1 }]}>
-          <MaterialCommunityIcons name="run" size={24} color={colors.warning} />
-          <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>{stats.activeActivities} / {stats.completedActivities}</AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.activeEnded')}</AppText>
-        </AppCard>
-      </View>
+    <View style={[styles.banner, { backgroundColor: colors.warning + '1A', borderColor: colors.warning + '40' }]}>
+      <AppText style={{ fontSize: fontSize.xs, color: colors.warning, lineHeight: 18 }}>
+        {t('admin.coordinatorBanner')}
+      </AppText>
     </View>
   );
 };
 
-export const AdminExportBtn = ({ onExport }: any) => (
-  <View style={{ paddingHorizontal: spacing.xl, marginVertical: spacing.md }}>
-    <PrimaryButton 
-      title="Export Report (CSV)" 
-      onPress={onExport} 
-      icon="download"
-    />
+interface KpiItem {
+  key: string;
+  value: number;
+  label: string;
+  icon: string;
+}
+
+export const AdminKpiGrid = ({ items, colors }: { items: KpiItem[]; colors: any }) => (
+  <View style={styles.kpiGrid}>
+    {items.map((kpi) => (
+      <AppCard key={kpi.key} style={styles.kpiCard}>
+        <View style={[styles.kpiIcon, { backgroundColor: colors.primary + '1A' }]}>
+          <MaterialCommunityIcons name={kpi.icon as any} size={16} color={colors.primary} />
+        </View>
+        <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>
+          {kpi.value.toLocaleString()}
+        </AppText>
+        <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 15 }}>{kpi.label}</AppText>
+      </AppCard>
+    ))}
   </View>
 );
 
-export const AdminTopList = ({ title, data, icon, valueKey, labelKey, colors, onItemPress, actionBtn, onViewAll }: any) => {
+// Frame 1 — "ก้าวรวมทั้งคณะ (เดือนนี้)" has no backend aggregate today
+// (no endpoint sums HealthRecord.steps across every user). Stub + flag
+// instead of computing a misleading number client-side.
+export const AdminFacultyStepsCard = ({ colors }: any) => {
   const { t } = useTranslation();
   return (
-  <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.lg }}>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-      <AppText variant="heading-bold" style={{ fontSize: fontSize.lg, color: colors.textPrimary }}>{title}</AppText>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        {onViewAll && (
-          <TouchableOpacity onPress={onViewAll}>
-            <AppText style={{ fontSize: fontSize.sm, color: colors.primary }}>{t('common.seeAll')}</AppText>
-          </TouchableOpacity>
-        )}
-        {actionBtn}
+    <View style={[styles.stepsCard, { backgroundColor: colors.inputBackground, borderColor: colors.primary + '30' }]}>
+      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.facultyStepsLabel')}</AppText>
+      <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textSecondary, marginTop: 4 }}>
+        —
+      </AppText>
+      <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '1A' }]}>
+        <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any }}>
+          {t('admin.facultyStepsNeedsEndpoint')}
+        </AppText>
       </View>
     </View>
-    <AppCard style={{ padding: spacing.md }}>
-      {data.map((item: any, idx: number) => {
-        const Wrapper: any = onItemPress ? TouchableOpacity : View;
-        return (
-          <Wrapper 
-            key={item.id} 
-            style={[styles.listItem, idx < data.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.cardBorder }]}
-            onPress={onItemPress ? () => onItemPress(item) : undefined}
-          >
-            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', marginRight: spacing.md }}>
-              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>{idx + 1}</AppText>
-            </View>
-            <AppText style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }}>{item[labelKey]}</AppText>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialCommunityIcons name={icon} size={16} color={colors.primary} style={{ marginRight: 4 }} />
-              <AppText style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>{item[valueKey]}</AppText>
-              {onItemPress && <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} style={{ marginLeft: spacing.sm }} />}
-            </View>
-          </Wrapper>
-        );
-      })}
-    </AppCard>
-  </View>
   );
 };
 
+interface NavCard {
+  key: string;
+  title: string;
+  desc: string;
+  icon: string;
+  onPress?: () => void;
+  disabledNote?: string;
+}
+
+export const AdminNavGrid = ({ items, colors }: { items: NavCard[]; colors: any }) => (
+  <View style={styles.navGrid}>
+    {items.map((nav) => {
+      const disabled = !nav.onPress;
+      return (
+        <TouchableOpacity
+          key={nav.key}
+          disabled={disabled}
+          onPress={nav.onPress}
+          style={[styles.navCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: disabled ? 0.6 : 1 }]}
+        >
+          <View style={[styles.navIcon, { backgroundColor: colors.inputBackground }]}>
+            <Ionicons name={nav.icon as any} size={16} color={colors.primary} />
+          </View>
+          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>{nav.title}</AppText>
+          <AppText style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 14 }}>{nav.desc}</AppText>
+          {disabled && nav.disabledNote && (
+            <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any, marginTop: 2 }}>
+              {nav.disabledNote}
+            </AppText>
+          )}
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+);
+
 const styles = StyleSheet.create({
-  statCardContainer: { padding: spacing.lg },
-  listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md },
+  banner: {
+    marginHorizontal: spacing.xl,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  kpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  kpiCard: {
+    width: '47%',
+    padding: spacing.lg,
+  },
+  kpiIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepsCard: {
+    marginHorizontal: spacing.xl,
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+  },
+  needsEndpointPill: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  navGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  navCard: {
+    width: '47%',
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  navIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
 });

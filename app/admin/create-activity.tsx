@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -72,7 +72,7 @@ export default function CreateActivityScreen() {
       }
     } catch (error: any) {
       console.error('Failed to create activity', error);
-      Alert.alert(t('common.error'), error?.response?.data?.message || error?.message || t('common.error'));
+      showToast(error?.response?.data?.message || error?.message || t('common.error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -82,7 +82,7 @@ export default function CreateActivityScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
-          title="Create Activity"
+          title={t('admin.createActivity')}
           rightActions={
             <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/admin/dashboard')} style={{ padding: 4 }}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -93,7 +93,7 @@ export default function CreateActivityScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <FormInput
-          label="Activity Title *"
+          label={t('admin.activityTitle') + ' *'}
           value={title}
           onChangeText={setTitle}
           placeholder={t('admin.egCampusRun')}
@@ -101,7 +101,7 @@ export default function CreateActivityScreen() {
         />
 
         <FormInput
-          label="Description"
+          label={t('admin.activityDescription')}
           value={description}
           onChangeText={setDescription}
           placeholder={t('admin.describeActivity')}
@@ -110,7 +110,7 @@ export default function CreateActivityScreen() {
         />
 
         <FormInput
-          label="Location *"
+          label={t('admin.activityLocation') + ' *'}
           value={location}
           onChangeText={setLocation}
           placeholder={t('admin.egLocation')}
@@ -118,7 +118,7 @@ export default function CreateActivityScreen() {
         />
 
         <FormInput
-          label="Expected Steps"
+          label={t('admin.expectedStepsLabel')}
           value={expectedSteps}
           onChangeText={setExpectedSteps}
           placeholder={t('admin.egSteps')}
@@ -127,7 +127,7 @@ export default function CreateActivityScreen() {
         />
 
         <FormInput
-          label="Total Distance (km)"
+          label={t('admin.totalDistanceLabel')}
           value={totalDistance}
           onChangeText={setTotalDistance}
           placeholder={t('admin.egDistance')}
@@ -136,7 +136,7 @@ export default function CreateActivityScreen() {
         />
 
         <FormInput
-          label="Points"
+          label={t('admin.activityPoints')}
           value={points}
           onChangeText={setPoints}
           placeholder={t('admin.egPoints')}
@@ -145,14 +145,14 @@ export default function CreateActivityScreen() {
         />
 
         <FormDateField
-          label="Start Date *"
+          label={t('admin.startDate') + ' *'}
           value={startDate}
           onChange={setStartDate}
           colors={colors}
         />
 
         <FormDateField
-          label="End Date *"
+          label={t('admin.endDate') + ' *'}
           value={endDate}
           onChange={setEndDate}
           minimumDate={startDate ? new Date(startDate) : undefined}
@@ -160,7 +160,7 @@ export default function CreateActivityScreen() {
         />
 
         <PrimaryButton
-          title={isSubmitting ? "Creating..." : "Create Activity"}
+          title={isSubmitting ? t('admin.creating') : t('admin.createActivity')}
           onPress={handleCreate}
           disabled={isSubmitting}
           style={{ marginTop: 24 }}

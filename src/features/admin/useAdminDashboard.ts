@@ -1,9 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import dashboardService from '../dashboard/dashboardService';
+import eventService from '../event/eventService';
 import { queryKeys } from '../../constants/queryKeys';
 
+/**
+ * Admin dashboard KPIs (mockup frame 1). Every number here is backed by a
+ * real endpoint — see the `dataGaps` flag for the one metric ("faculty total
+ * steps this month") that has no backend aggregate yet. Never fake it; the
+ * dashboard screen shows a "needs endpoint" pill instead.
+ */
 export function useAdminDashboard() {
-  const { data: adminData, isPending, refetch } = useQuery({
+  const adminQuery = useQuery({
     queryKey: queryKeys.dashboard.admin,
     queryFn: async () => {
       const result = await dashboardService.getAdminDashboard();
@@ -12,44 +19,43 @@ export function useAdminDashboard() {
     },
   });
 
-  const stats = {
-    totalUsers: adminData?.totalUsers || 0,
-    checkInRate: adminData?.participationRate || 0,
-    dau: Math.floor((adminData?.totalCheckIns || 0) / 30), // Approx
-    wau: Math.floor((adminData?.totalCheckIns || 0) / 4), // Approx
-    activeActivities: adminData?.totalActivities || 0,
-    completedActivities: 0,
-  };
+  const statsQuery = useQuery({
+    queryKey: queryKeys.dashboard.stats,
+    queryFn: async () => {
+      const result = await dashboardService.getStats();
+      if (!result.success) throw new Error('Failed to load dashboard stats');
+      return result.data;
+    },
+  });
 
-  const topUsers = (adminData?.mostActiveUsers || []).map(u => ({
-    id: u.id,
-    name: u.fullName,
-    points: u.totalPoints
-  }));
+  // "เปิดอยู่" (open) = an event participants can still be part of: UPCOMING or ONGOING.
+  const eventsQuery = useQuery({
+    queryKey: queryKeys.events.list,
+    queryFn: async () => {
+      const result = await eventService.getEvents();
+      if (!result.success) throw new Error('Failed to load events');
+      return result.data;
+    },
+  });
 
-  const topActivities = (adminData?.mostPopularActivities || []).map(a => ({
-    id: a.id,
-    title: a.title,
-    checkIns: a.participantCount || 0
-  }));
+  const openEventsCount = (eventsQuery.data ?? []).filter(
+    (e) => e.status === 'UPCOMING' || e.status === 'ONGOING',
+  ).length;
 
-  const topGroups = [
-    { id: 'g1', name: 'Running Club', members: 45, points: 2100 },
-    { id: 'g2', name: 'IT Dept', members: 30, points: 1800 },
-  ];
-
-  const handleExportCSV = () => {
-    console.log("Exporting CSV...");
-    // Real implementation would call API and download file
+  const kpis = {
+    totalUsers: adminQuery.data?.totalUsers ?? 0,
+    checkInsThisMonth: adminQuery.data?.checkInsThisMonth ?? 0,
+    ongoingActivities: statsQuery.data?.activitiesByStatus?.ONGOING ?? 0,
+    openEvents: openEventsCount,
   };
 
   return {
-    stats,
-    topUsers,
-    topActivities,
-    topGroups,
-    handleExportCSV,
-    loading: isPending,
-    refreshData: refetch
+    kpis,
+    loading: adminQuery.isPending || statsQuery.isPending || eventsQuery.isPending,
+    refresh: () => {
+      adminQuery.refetch();
+      statsQuery.refetch();
+      eventsQuery.refetch();
+    },
   };
 }

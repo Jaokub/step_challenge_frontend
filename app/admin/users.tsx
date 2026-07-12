@@ -71,7 +71,7 @@ export default function UsersManagementScreen() {
             )}
           </View>
           <AppText style={{ color: colors.textSecondary, fontSize: fontSize.sm }}>
-            {item.department}
+            {item.department || t('admin.filterNoDept')}
           </AppText>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
@@ -92,8 +92,8 @@ export default function UsersManagementScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
-        <ScreenHeader 
-          title="Users Management" 
+        <ScreenHeader
+          title={t('admin.navUsersTitle')}
           rightActions={
             <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} style={{ padding: 4 }}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -147,10 +147,10 @@ export default function UsersManagementScreen() {
       {loading ? (
         <LoadingScreen />
       ) : error ? (
-        <ErrorState 
-          title="Error Loading Users" 
-          message={error} 
-          onRetry={fetchUsers} 
+        <ErrorState
+          title={t('admin.errorLoadingUsers')}
+          message={error}
+          onRetry={fetchUsers}
         />
       ) : (
         <FlatList
@@ -161,8 +161,8 @@ export default function UsersManagementScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="people"
-              title="No users found"
-              subtitle="Try adjusting your search query"
+              title={t('admin.noUsersFound')}
+              subtitle={t('admin.noUsersFoundSubtitle')}
             />
           }
         />

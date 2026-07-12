@@ -171,7 +171,7 @@ export default function EditActivityScreen() {
         />
 
         <FormInput
-          label={t('admin.egSteps')}
+          label={t('admin.expectedStepsLabel')}
           value={expectedSteps}
           onChangeText={setExpectedSteps}
           placeholder={t('admin.egSteps')}
@@ -180,7 +180,7 @@ export default function EditActivityScreen() {
         />
 
         <FormInput
-          label={t('admin.egDistance')}
+          label={t('admin.totalDistanceLabel')}
           value={totalDistance}
           onChangeText={setTotalDistance}
           placeholder={t('admin.egDistance')}
