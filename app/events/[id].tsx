@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -7,8 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useToast } from '../../src/contexts/ToastContext';
-import { AppText, Skeleton, PrimaryButton, CustomModal } from '../../src/components';
-import { spacing, borderRadius, layout, fontSize } from '../../src/constants/theme';
+import { AppText, Skeleton, PrimaryButton, CustomModal, GradientText } from '../../src/components';
+import { spacing, borderRadius, layout, fontSize, gradients } from '../../src/constants/theme';
 import { useEventDetail, useEventLeaderboard } from '../../src/features/event/useEvents';
 import { useGroups } from '../../src/features/group/useGroups';
 import EventRankingList from '../../src/features/event/EventRankingList';
@@ -76,25 +77,31 @@ export default function EventDetailScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Event-wide stats */}
-          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>{t('events.totalSteps')}</AppText>
+          {/* Event-wide stats — mockup frame 5: mint gradient hero card with a
+              gradient-filled step count, never a plain white card. */}
+          <LinearGradient
+            colors={gradients.mint}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.statCard, { borderColor: colors.primary + '2E' }]}
+          >
+            <AppText style={[styles.statLabel, { color: colors.primary }]}>{t('events.totalSteps')}</AppText>
             {isStatsLoading ? (
               <Skeleton width={140} height={34} borderRadius={borderRadius.sm} />
             ) : (
-              <AppText variant="heading-bold" style={[styles.statValue, { color: colors.textPrimary }]}>
+              <GradientText colors={gradients.statValue} variant="heading-bold" style={styles.statValue}>
                 {(stats?.totalSteps ?? 0).toLocaleString()}
-              </AppText>
+              </GradientText>
             )}
             <View style={styles.statRow}>
-              <AppText style={[styles.statSub, { color: colors.textSecondary }]}>
+              <AppText style={[styles.statSub, { color: colors.primary }]}>
                 {t('events.participants', { count: stats?.participantCount ?? 0 })}
               </AppText>
-              <AppText style={[styles.statSub, { color: colors.textSecondary }]}>
+              <AppText style={[styles.statSub, { color: colors.primary }]}>
                 {t('events.groups', { count: stats?.groupCount ?? 0 })}
               </AppText>
             </View>
-          </View>
+          </LinearGradient>
 
           {/* Join / Leave */}
           {isLoading ? (

@@ -1,11 +1,19 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppText, Skeleton } from '../../components';
-import { spacing, borderRadius } from '../../constants/theme';
+import { spacing, borderRadius, gradients } from '../../constants/theme';
 import type { EventIndividualRow, EventGroupRow, EventScope } from '../../types';
 
 const ROW_HEIGHT = 64;
+
+const initialsOf = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+};
 
 interface Props {
   scope: EventScope;
@@ -72,6 +80,20 @@ const EventRankingList: React.FC<Props> = ({ scope, ranking, isLoading, colors, 
             <AppText variant="heading-bold" style={[styles.rank, { color: rankColor(row.rank, colors) }]}>
               {row.rank}
             </AppText>
+            {/* Mockup frame 5: individual rows get a brand-gradient initials chip;
+                group rows don't (no single person to represent). */}
+            {!isGroup && (
+              <LinearGradient
+                colors={gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatar}
+              >
+                <AppText variant="heading-bold" style={[styles.avatarText, { color: colors.onPrimary }]}>
+                  {initialsOf(name || '')}
+                </AppText>
+              </LinearGradient>
+            )}
             <View style={styles.info}>
               <AppText numberOfLines={1} style={[styles.name, { color: colors.textPrimary }]}>
                 {name}
@@ -82,14 +104,9 @@ const EventRankingList: React.FC<Props> = ({ scope, ranking, isLoading, colors, 
                 </AppText>
               )}
             </View>
-            <View style={styles.stepsBox}>
-              <AppText variant="heading-bold" style={[styles.steps, { color: colors.textPrimary }]}>
-                {steps.toLocaleString()}
-              </AppText>
-              <AppText style={[styles.stepsLabel, { color: colors.textSecondary }]}>
-                {t('events.steps')}
-              </AppText>
-            </View>
+            <AppText variant="heading-bold" style={[styles.steps, { color: colors.textPrimary }]}>
+              {steps.toLocaleString()}
+            </AppText>
           </View>
         );
       })}
@@ -105,13 +122,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  rank: { width: 28, textAlign: 'center', fontSize: 16 },
+  rank: { width: 20, textAlign: 'center', fontSize: 15 },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { fontSize: 12 },
   info: { flex: 1 },
   name: { fontSize: 15 },
   sub: { fontSize: 12, marginTop: 2 },
-  stepsBox: { alignItems: 'flex-end' },
   steps: { fontSize: 16, lineHeight: 20 },
-  stepsLabel: { fontSize: 11 },
   empty: { alignItems: 'center', paddingVertical: spacing['3xl'] },
 });
 

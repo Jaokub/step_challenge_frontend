@@ -185,6 +185,10 @@ export const gradients = {
   // Mint teal→lime tint used by admin mockup stat cards (faculty steps, event
   // steps, check-in progress, live QR count) — mockup: linear-gradient(150deg,#e8fbf6,#f3fbe9)
   mint: ['#e8fbf6', '#f3fbe9'] as const,
+  // Big stat-number text fill inside the mint cards above (faculty total steps,
+  // event total steps) — mockup: linear-gradient(135deg,#0d9488,#7ec83a). Distinct
+  // from `primary` (brand CTA teal→lime) — use with `GradientText`, never a solid color.
+  statValue: ['#0d9488', '#7ec83a'] as const,
 } as const;
 
 // Theme-aware accent sets consumed by dashboard cards. Index 0 = dark, 1 = light.
@@ -246,4 +250,15 @@ export const shadows = {
     shadowRadius: 12,
     elevation: 3,
   },
+} as const;
+
+// Named constants for the admin console (a light-only, mockup-literal surface).
+// These are intentionally mode-agnostic: fixed chip/accent/shadow colors that
+// don't flip with the theme, exported here only so screens never inline raw hex.
+export const adminAccents = {
+  avatarBg: '#222b2e',   // dark initial-avatar chip (mockup frame 8)
+  onDark: '#FFFFFF',     // white text on the dark avatar / role badge
+  kpiBlue: '#4dabf7',    // "ผู้เข้าร่วม" KPI accent (frame 1)
+  kpiLime: '#7ec83a',    // "กิจกรรมที่กำลังดำเนิน" KPI accent (frame 1)
+  cardShadow: '#14201d', // activity card shadow (frame 2)
 } as const;

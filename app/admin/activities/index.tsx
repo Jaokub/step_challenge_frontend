@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, Skeleton, StatusBadge } from '../../../src/components';
 import { useAdminActivitiesList, AdminActivityFilter } from '../../../src/features/admin/useAdminActivitiesList';
-import { spacing, fontSize, borderRadius, gradients } from '../../../src/constants/theme';
+import { spacing, fontSize, borderRadius, gradients, adminAccents } from '../../../src/constants/theme';
 import { formatDate } from '../../../src/utils/formatDate';
 import type { Activity } from '../../../src/types';
 
@@ -24,7 +24,11 @@ export default function AdminActivitiesListScreen() {
     f === 'all' ? t('admin.filterAll') : f === 'ongoing' ? t('admin.filterOngoing') : t('admin.filterEnded');
 
   const renderCard = ({ item }: { item: Activity }) => (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => router.push(`/events/${item.id}`)}
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+    >
       <View style={styles.cardTop}>
         <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
           {item.title}
@@ -65,7 +69,7 @@ export default function AdminActivitiesListScreen() {
           </AppText>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -176,7 +180,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.lg,
     gap: spacing.sm, // mockup frame 2 card gap:8
-    shadowColor: '#14201d',
+    shadowColor: adminAccents.cardShadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,

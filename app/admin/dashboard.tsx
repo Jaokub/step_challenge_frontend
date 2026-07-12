@@ -13,7 +13,7 @@ import {
   AdminNavGrid,
 } from '../../src/features/admin/AdminDashboardComponents';
 import { ScreenHeader, Skeleton } from '../../src/components';
-import { spacing } from '../../src/constants/theme';
+import { spacing, adminAccents } from '../../src/constants/theme';
 
 export default function AdminDashboardScreen() {
   const { t } = useTranslation();
@@ -24,8 +24,8 @@ export default function AdminDashboardScreen() {
   // teal + orange are brand tokens; blue + lime are mockup-literal accents.
   const kpiItems = [
     { key: 'totalUsers', value: kpis.totalUsers, label: t('admin.kpiTotalUsers'), icon: 'account-group', color: colors.primary, round: true },
-    { key: 'checkIns', value: kpis.checkInsThisMonth, label: t('admin.kpiActiveParticipants'), icon: 'walk', color: '#4dabf7', round: true },
-    { key: 'ongoing', value: kpis.ongoingActivities, label: t('admin.kpiOngoingActivities'), icon: 'calendar-clock', color: '#7ec83a', round: false },
+    { key: 'checkIns', value: kpis.checkInsThisMonth, label: t('admin.kpiActiveParticipants'), icon: 'walk', color: adminAccents.kpiBlue, round: true },
+    { key: 'ongoing', value: kpis.ongoingActivities, label: t('admin.kpiOngoingActivities'), icon: 'calendar-clock', color: adminAccents.kpiLime, round: false },
     { key: 'events', value: kpis.openEvents, label: t('admin.kpiOpenEvents'), icon: 'flag-checkered', color: colors.warning, round: false },
   ];
 

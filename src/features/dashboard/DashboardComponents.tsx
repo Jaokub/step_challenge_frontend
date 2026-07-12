@@ -2,11 +2,10 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
-import { AppText, EmptyState, Skeleton, MonthYearPicker } from '../../components';
+import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText } from '../../components';
 import { gradients, layout, dashboardAccents } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -26,15 +25,6 @@ const ActiveBg = ({ active, colors, style, children }: any) =>
   ) : (
     <View style={[style, { backgroundColor: colors.inputBackground }]}>{children}</View>
   );
-
-/** Renders text painted with a gradient (defaults to the brand gradient). */
-const GradientText = ({ children, style, colors: gradColors = gradients.primary }: any) => (
-  <MaskedView maskElement={<AppText variant="heading-extraBold" style={style}>{children}</AppText>}>
-    <LinearGradient colors={gradColors as any} start={GRAD_START} end={GRAD_END}>
-      <AppText variant="heading-extraBold" style={[style, { opacity: 0 }]}>{children}</AppText>
-    </LinearGradient>
-  </MaskedView>
-);
 
 const greetingKey = () => {
   const h = new Date().getHours();

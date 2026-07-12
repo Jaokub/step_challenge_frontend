@@ -9,7 +9,7 @@ import { useTheme } from '../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen } from '../../src/components';
 import userService from '../../src/features/auth/userService';
 import { queryKeys } from '../../src/constants/queryKeys';
-import { spacing, fontSize } from '../../src/constants/theme';
+import { spacing, fontSize, adminAccents } from '../../src/constants/theme';
 
 type RoleFilter = 'all' | 'admin' | 'noDept';
 
@@ -50,8 +50,8 @@ export default function UsersManagementScreen() {
     const isAdmin = item.role === 'ADMIN';
     return (
       <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <View style={[styles.avatar, { backgroundColor: '#222b2e' }]}>
-          <AppText variant="heading-bold" style={{ color: '#FFFFFF', fontSize: fontSize.xs }}>
+        <View style={[styles.avatar, { backgroundColor: adminAccents.avatarBg }]}>
+          <AppText variant="heading-bold" style={{ color: adminAccents.onDark, fontSize: fontSize.xs }}>
             {item.fullName.charAt(0)}
           </AppText>
         </View>
@@ -66,7 +66,7 @@ export default function UsersManagementScreen() {
         <View style={{ alignItems: 'flex-end', gap: 5 }}>
           {(isAdmin || item.isArchived) && (
             <View style={[styles.roleBadge, { backgroundColor: isAdmin ? colors.warning : colors.textSecondary }]}>
-              <AppText style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' as any }}>
+              <AppText style={{ color: adminAccents.onDark, fontSize: 10, fontWeight: '700' as any }}>
                 {isAdmin ? t('admin.roleAdmin') : t('admin.statusArchived')}
               </AppText>
             </View>
