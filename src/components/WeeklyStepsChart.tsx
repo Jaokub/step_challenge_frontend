@@ -12,9 +12,11 @@ export interface DailyStepData {
 
 interface WeeklyStepsChartProps {
   data: DailyStepData[];
+  /** Optional section title rendered inside the card (mockup: "ก้าวรายสัปดาห์"). */
+  title?: string;
 }
 
-const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data }) => {
+const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
   const { colors } = useTheme();
 
   if (!data || data.length === 0) {
@@ -26,6 +28,11 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...shadows.card, shadowColor: colors.cardShadow }]}>
+      {title && (
+        <AppText variant="body-bold" style={[styles.title, { color: colors.textOnCard }]}>
+          {title}
+        </AppText>
+      )}
       <View style={styles.chartArea}>
         {data.map((day, index) => {
           const isToday = index === data.length - 1;
@@ -63,6 +70,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,
     minHeight: 160,
+  },
+  title: {
+    fontSize: 14,
+    marginBottom: spacing.md,
   },
   chartArea: {
     flexDirection: 'row',

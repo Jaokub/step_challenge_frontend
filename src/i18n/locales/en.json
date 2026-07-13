@@ -297,7 +297,15 @@
     "privacy": "Privacy",
     "languageLabel": "Language",
     "help": "Help",
-    "days": "days"
+    "days": "days",
+    "themeLabel": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "langThai": "Thai",
+    "langEn": "EN",
+    "accountSettings": "Account Settings",
+    "avgPerDay": "Avg / day",
+    "stepsUnit": "steps"
   },
   "leaderboard": {
     "title": "Leaderboard",

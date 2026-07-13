@@ -50,6 +50,7 @@ export { default as MonthYearPicker } from './MonthYearPicker';
 // Settings & Preferences
 export { default as SettingsRow } from './SettingsRow';
 export { default as ThemeToggle } from './ThemeToggle';
+export { default as SegmentedToggle } from './SegmentedToggle';
 
 // Feedback
 export { default as Toast } from './Toast';

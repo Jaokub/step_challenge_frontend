@@ -297,7 +297,15 @@
     "privacy": "ความเป็นส่วนตัว",
     "languageLabel": "ภาษา",
     "help": "ช่วยเหลือ",
-    "days": "วัน"
+    "days": "วัน",
+    "themeLabel": "ธีม",
+    "dark": "มืด",
+    "light": "สว่าง",
+    "langThai": "ไทย",
+    "langEn": "EN",
+    "accountSettings": "ตั้งค่าบัญชี",
+    "avgPerDay": "เฉลี่ย/วัน",
+    "stepsUnit": "ก้าว"
   },
   "leaderboard": {
     "title": "กระดานผู้นำ",

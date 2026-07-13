@@ -115,7 +115,7 @@ export default function EnrollActivitySheet({
             return (
               <TouchableOpacity
                 key={a.id}
-                onPress={() => setSelectedId(a.id)}
+                onPress={() => setSelectedId((prev) => (prev === a.id ? null : a.id))}
                 style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
               >
                 <View style={{ flex: 1, minWidth: 0 }}>
