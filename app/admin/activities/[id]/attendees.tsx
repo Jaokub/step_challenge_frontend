@@ -19,6 +19,7 @@ import {
   PrimaryButton,
   OutlineButton,
   StatusBadge,
+  Skeleton,
 } from '../../../../src/components';
 import { spacing, fontSize, borderRadius, gradients, shadows } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
@@ -413,7 +414,20 @@ export default function AdminAttendeesScreen() {
             ]}
           >
             {isLoadingActivityOptions ? (
-              <ActivityIndicator color={colors.primary} style={{ paddingVertical: spacing.lg }} />
+              // Skeleton rows occupy the exact box of a real activityOption
+              // row (same padding/borderRadius/borderWidth/marginBottom) so
+              // the dropdown doesn't resize/jump the moment data arrives.
+              <View>
+                {[0, 1, 2].map((i) => (
+                  <View key={i} style={[styles.activityOption, { borderColor: 'transparent' }]}>
+                    <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                      <Skeleton width="70%" height={16} borderRadius={4} />
+                      <Skeleton width="45%" height={12} borderRadius={4} />
+                    </View>
+                    <Skeleton width={54} height={20} borderRadius={borderRadius.full} />
+                  </View>
+                ))}
+              </View>
             ) : activityOptionsError ? (
               <AppText style={{ fontSize: fontSize.sm, color: colors.error, textAlign: 'center', paddingVertical: spacing.lg }}>
                 {(activityOptionsError as any)?.message ?? t('common.error')}

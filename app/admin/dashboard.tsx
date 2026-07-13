@@ -38,6 +38,15 @@ export default function AdminDashboardScreen() {
       onPress: () => router.push('/admin/activities'),
     },
     {
+      key: 'manualCheckin',
+      title: t('admin.navManualCheckinTitle'),
+      desc: t('admin.navManualCheckinDesc'),
+      icon: 'qr-code-outline',
+      // Mockup frame 19: a dedicated "select event" screen, not a direct
+      // deep-link — lists activities with a manual-check-in / QR pill each.
+      onPress: () => router.push('/admin/manual-checkin/select-event'),
+    },
+    {
       key: 'groups',
       title: t('admin.navGroupsTitle'),
       desc: t('admin.navGroupsDesc'),
@@ -50,15 +59,6 @@ export default function AdminDashboardScreen() {
       desc: t('admin.navUsersDesc'),
       icon: 'person-outline',
       onPress: () => router.push('/admin/users'),
-    },
-    {
-      key: 'manualCheckin',
-      title: t('admin.navManualCheckinTitle'),
-      desc: t('admin.navManualCheckinDesc'),
-      icon: 'qr-code-outline',
-      // Mockup frame 19: a dedicated "select event" screen, not a direct
-      // deep-link — lists activities with a manual-check-in / QR pill each.
-      onPress: () => router.push('/admin/manual-checkin/select-event'),
     },
   ];
 
