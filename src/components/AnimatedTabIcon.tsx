@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 interface AnimatedTabIconProps {
   name: string;
@@ -11,41 +11,33 @@ interface AnimatedTabIconProps {
 }
 
 /**
- * Tab bar icon with a spring "bulge" (scale up + lift, settling back down)
- * that plays whenever the tab becomes focused — the B5 mockup follow-up
- * asked for a raised/pressed feel on the footer.
+ * Tab bar icon — lifts a few pixels (spring, no scale) when its tab becomes
+ * focused, plus the small active dot. Mockup footer icons are always the
+ * outline/stroke style (fill:none), even the active one — only the stroke
+ * color and the dot change — so this never swaps to a filled Ionicons
+ * variant like a lot of tab-bar implementations do.
  *
- * This intentionally does NOT touch `tabBarButton`/the touchable itself —
+ * Also intentionally does NOT touch `tabBarButton`/the touchable itself —
  * an earlier attempt wrapped the whole tab button in a custom `Pressable`
  * and it broke expo-router's Link-based tab switching (every tab press
  * started showing a full-screen LoadingScreen flash instead of the
  * instant/skeleton-only transition). Animating only the icon on `focused`
- * change gets the same bulge feel without going near navigation plumbing.
+ * change avoids going near navigation plumbing.
  */
 const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, color, focused, size }) => {
-  const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
 
   useEffect(() => {
-    if (focused) {
-      scale.value = withSequence(
-        withSpring(1.22, { damping: 8, stiffness: 300 }),
-        withSpring(1, { damping: 10, stiffness: 260 })
-      );
-      translateY.value = withSequence(
-        withSpring(-5, { damping: 8, stiffness: 300 }),
-        withSpring(0, { damping: 10, stiffness: 260 })
-      );
-    }
-  }, [focused, scale, translateY]);
+    translateY.value = withSpring(focused ? -4 : 0, { damping: 14, stiffness: 260 });
+  }, [focused, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+    transform: [{ translateY: translateY.value }],
   }));
 
   return (
     <Animated.View style={[styles.wrap, animatedStyle]}>
-      <Ionicons name={(focused ? name : `${name}-outline`) as any} size={size} color={color} />
+      <Ionicons name={`${name}-outline` as any} size={size} color={color} />
       {focused && <View style={[styles.dot, { backgroundColor: color }]} />}
     </Animated.View>
   );
