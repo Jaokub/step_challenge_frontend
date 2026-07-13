@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
+import { useForm, Controller, FieldErrors } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +16,18 @@ import { spacing, fontSize, gradients } from '../../../src/constants/theme';
 import type { ActivityStatus } from '../../../src/types';
 
 const STATUS_OPTIONS: ActivityStatus[] = ['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'];
+
+interface EditActivityForm {
+  title: string;
+  description: string;
+  location: string;
+  points: string;
+  expectedSteps: string;
+  totalDistance: string;
+  startDate: string;
+  endDate: string;
+  status: ActivityStatus;
+}
 
 export default function EditActivityScreen() {
   const { t } = useTranslation();
@@ -33,59 +46,59 @@ export default function EditActivityScreen() {
     enabled: !!id,
   });
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [points, setPoints] = useState('');
-  const [expectedSteps, setExpectedSteps] = useState('');
-  const [totalDistance, setTotalDistance] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [status, setStatus] = useState<ActivityStatus>('UPCOMING');
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<EditActivityForm>({
+    defaultValues: {
+      title: '',
+      description: '',
+      location: '',
+      points: '',
+      expectedSteps: '',
+      totalDistance: '',
+      startDate: '',
+      endDate: '',
+      status: 'UPCOMING',
+    },
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (!activity) return;
-    setTitle(activity.title ?? '');
-    setDescription(activity.description ?? '');
-    setLocation(activity.location ?? '');
-    setPoints(activity.points ? String(activity.points) : '');
-    setExpectedSteps(activity.expectedSteps ? String(activity.expectedSteps) : '');
-    setTotalDistance(activity.totalDistance ? String(activity.totalDistance) : '');
-    setStartDate(activity.startDate ? activity.startDate.slice(0, 10) : '');
-    setEndDate(activity.endDate ? activity.endDate.slice(0, 10) : '');
-    setStatus(activity.status ?? 'UPCOMING');
-  }, [activity]);
+    reset({
+      title: activity.title ?? '',
+      description: activity.description ?? '',
+      location: activity.location ?? '',
+      points: activity.points ? String(activity.points) : '',
+      expectedSteps: activity.expectedSteps ? String(activity.expectedSteps) : '',
+      totalDistance: activity.totalDistance ? String(activity.totalDistance) : '',
+      startDate: activity.startDate ? activity.startDate.slice(0, 10) : '',
+      endDate: activity.endDate ? activity.endDate.slice(0, 10) : '',
+      status: activity.status ?? 'UPCOMING',
+    });
+  }, [activity, reset]);
 
-  const handleUpdate = async () => {
-    if (!title || !location || !startDate || !endDate) {
-      showToast(t('admin.fillRequiredFields'), 'error');
-      return;
-    }
-    if (!expectedSteps && !totalDistance) {
-      showToast(t('admin.provideStepsOrDistance'), 'error');
-      return;
-    }
-    if (new Date(endDate) < new Date(startDate)) {
-      showToast(t('admin.endBeforeStart'), 'error');
-      return;
-    }
+  const startDateValue = watch('startDate');
+  const statusValue = watch('status');
 
-    setIsSubmitting(true);
+  const onSubmit = async (values: EditActivityForm) => {
     try {
       const payload: Record<string, unknown> = {
-        title,
-        description,
-        location,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        points: points ? parseInt(points, 10) : 0,
-        expectedSteps: expectedSteps ? parseInt(expectedSteps, 10) : null,
-        totalDistance: totalDistance ? parseFloat(totalDistance) : null,
-        status, // accepted by the backend (see updateActivity controller), not in ActivityInput's TS shape
+        title: values.title,
+        description: values.description,
+        location: values.location,
+        startDate: new Date(values.startDate).toISOString(),
+        endDate: new Date(values.endDate).toISOString(),
+        points: values.points ? parseInt(values.points, 10) : 0,
+        expectedSteps: values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
+        totalDistance: values.totalDistance ? parseFloat(values.totalDistance) : null,
+        status: values.status, // accepted by the backend (see updateActivity controller), not in ActivityInput's TS shape
       };
       const res = await activityService.updateActivity(id, payload as any);
       if (!res.success) throw new Error(res.message || t('common.error'));
@@ -95,10 +108,26 @@ export default function EditActivityScreen() {
       setTimeout(() => router.back(), 800);
     } catch (err: any) {
       showToast(err?.message || t('common.error'), 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
+
+  // Same priority order as the old imperative checks: missing required
+  // fields first, then the steps-or-distance rule, then the date-order rule.
+  const onInvalid = (errors: FieldErrors<EditActivityForm>) => {
+    if (errors.title || errors.location || errors.startDate || errors.endDate?.type === 'required') {
+      showToast(t('admin.fillRequiredFields'), 'error');
+      return;
+    }
+    if (errors.expectedSteps || errors.totalDistance) {
+      showToast(t('admin.provideStepsOrDistance'), 'error');
+      return;
+    }
+    if (errors.endDate) {
+      showToast(t('admin.endBeforeStart'), 'error');
+    }
+  };
+
+  const submit = handleSubmit(onSubmit, onInvalid);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -144,74 +173,132 @@ export default function EditActivityScreen() {
       </SafeAreaView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <FormInput
-          label={t('admin.activityTitle') + ' *'}
-          value={title}
-          onChangeText={setTitle}
-          placeholder={t('admin.egCampusRun')}
-          colors={colors}
+        <Controller
+          control={control}
+          name="title"
+          rules={{ required: true }}
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityTitle') + ' *'}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egCampusRun')}
+              colors={colors}
+            />
+          )}
         />
 
-        <FormInput
-          label={t('admin.activityDescription')}
-          value={description}
-          onChangeText={setDescription}
-          placeholder={t('admin.describeActivity')}
-          multiline
-          colors={colors}
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityDescription')}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.describeActivity')}
+              multiline
+              colors={colors}
+            />
+          )}
         />
 
-        <FormInput
-          label={t('admin.activityLocation') + ' *'}
-          value={location}
-          onChangeText={setLocation}
-          placeholder={t('admin.egLocation')}
-          colors={colors}
+        <Controller
+          control={control}
+          name="location"
+          rules={{ required: true }}
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityLocation') + ' *'}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egLocation')}
+              colors={colors}
+            />
+          )}
         />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <FormInput
-              label={t('admin.expectedStepsLabel')}
-              value={expectedSteps}
-              onChangeText={setExpectedSteps}
-              placeholder={t('admin.egSteps')}
-              keyboardType="numeric"
-              colors={colors}
+            <Controller
+              control={control}
+              name="expectedSteps"
+              rules={{ validate: (v, formValues) => !!v || !!formValues.totalDistance || 'stepsOrDistance' }}
+              render={({ field: { value, onChange } }) => (
+                <FormInput
+                  label={t('admin.expectedStepsLabel')}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('admin.egSteps')}
+                  keyboardType="numeric"
+                  colors={colors}
+                />
+              )}
             />
           </View>
           <View style={{ flex: 1 }}>
-            <FormInput
-              label={t('admin.totalDistanceLabel')}
-              value={totalDistance}
-              onChangeText={setTotalDistance}
-              placeholder={t('admin.egDistance')}
-              keyboardType="numeric"
-              colors={colors}
+            <Controller
+              control={control}
+              name="totalDistance"
+              rules={{ validate: (v, formValues) => !!v || !!formValues.expectedSteps || 'stepsOrDistance' }}
+              render={({ field: { value, onChange } }) => (
+                <FormInput
+                  label={t('admin.totalDistanceLabel')}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('admin.egDistance')}
+                  keyboardType="numeric"
+                  colors={colors}
+                />
+              )}
             />
           </View>
         </View>
 
-        <FormInput
-          label={t('admin.activityPoints')}
-          value={points}
-          onChangeText={setPoints}
-          placeholder={t('admin.egPoints')}
-          keyboardType="numeric"
-          colors={colors}
+        <Controller
+          control={control}
+          name="points"
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityPoints')}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egPoints')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          )}
         />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <FormDateField label={t('admin.startDate') + ' *'} value={startDate} onChange={setStartDate} colors={colors} />
+            <Controller
+              control={control}
+              name="startDate"
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <FormDateField label={t('admin.startDate') + ' *'} value={value} onChange={onChange} colors={colors} />
+              )}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <FormDateField
-              label={t('admin.endDate') + ' *'}
-              value={endDate}
-              onChange={setEndDate}
-              minimumDate={startDate ? new Date(startDate) : undefined}
-              colors={colors}
+            <Controller
+              control={control}
+              name="endDate"
+              rules={{
+                required: true,
+                validate: (v, formValues) =>
+                  !formValues.startDate || new Date(v) >= new Date(formValues.startDate) || 'endBeforeStart',
+              }}
+              render={({ field: { value, onChange } }) => (
+                <FormDateField
+                  label={t('admin.endDate') + ' *'}
+                  value={value}
+                  onChange={onChange}
+                  minimumDate={startDateValue ? new Date(startDateValue) : undefined}
+                  colors={colors}
+                />
+              )}
             />
           </View>
         </View>
@@ -220,29 +307,35 @@ export default function EditActivityScreen() {
           <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>
             {t('admin.activityStatus')}
           </AppText>
-          <View style={styles.statusRow}>
-            {STATUS_OPTIONS.map((opt) => {
-              const active = opt === status;
-              // Mockup's editActivityStatusOptions: active uses that status's own
-              // tint/color (teal for ongoing, orange for upcoming, red for
-              // cancelled, grey for completed) — never a flat teal for every status.
-              const { bg, text } = statusColors(opt, colors);
-              return (
-                <TouchableOpacity
-                  key={opt}
-                  onPress={() => setStatus(opt)}
-                  style={[
-                    styles.statusChip,
-                    { backgroundColor: active ? bg : colors.inputBackground },
-                  ]}
-                >
-                  <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: active ? text : colors.textSecondary }}>
-                    {t(`status.${opt}`)}
-                  </AppText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <Controller
+            control={control}
+            name="status"
+            render={({ field: { onChange } }) => (
+              <View style={styles.statusRow}>
+                {STATUS_OPTIONS.map((opt) => {
+                  const active = opt === statusValue;
+                  // Mockup's editActivityStatusOptions: active uses that status's own
+                  // tint/color (teal for ongoing, orange for upcoming, red for
+                  // cancelled, grey for completed) — never a flat teal for every status.
+                  const { bg, text } = statusColors(opt, colors);
+                  return (
+                    <TouchableOpacity
+                      key={opt}
+                      onPress={() => onChange(opt)}
+                      style={[
+                        styles.statusChip,
+                        { backgroundColor: active ? bg : colors.inputBackground },
+                      ]}
+                    >
+                      <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: active ? text : colors.textSecondary }}>
+                        {t(`status.${opt}`)}
+                      </AppText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          />
         </View>
 
         {/* Bottom actions — mockup frame 4: [ยกเลิก | บันทึก] side by side */}
@@ -256,7 +349,7 @@ export default function EditActivityScreen() {
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={handleUpdate} disabled={isSubmitting}>
+          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={submit} disabled={isSubmitting}>
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtn}>
               <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
                 {isSubmitting ? t('common.loading') : t('common.save')}

@@ -37,6 +37,7 @@ export default function AdminLayout() {
           <Stack.Screen name="edit-activity/[id]" />
           <Stack.Screen name="activities/[id]/qr" />
           <Stack.Screen name="activities/[id]/attendees" />
+          <Stack.Screen name="manual-checkin/select-event" />
           <Stack.Screen name="ranking/[type]" />
           <Stack.Screen name="users" />
         </Stack>

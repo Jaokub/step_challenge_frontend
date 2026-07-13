@@ -1,100 +1,143 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { useToast } from '../src/contexts/ToastContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { AppText, ScreenHeader, PrimaryButton, OutlineButton } from '../src/components';
 import authService from '../src/features/auth/authService';
 import userService from '../src/features/auth/userService';
+import { queryKeys } from '../src/constants/queryKeys';
 import { spacing, fontSize } from '../src/constants/theme';
+
+interface ProfileForm {
+  fullName: string;
+  nickname: string;
+  department: string;
+}
+
+interface PasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 const EditProfileScreen = () => {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { showToast } = useToast();
+  const { refreshUser } = useAuth();
+  const queryClient = useQueryClient();
 
-  const [fullName, setFullName] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [department, setDepartment] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const [loading, setLoading] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
+  const { data: profile } = useQuery({
+    queryKey: queryKeys.users.me,
+    queryFn: async () => {
+      const res = await authService.getMe();
+      if (!res.success) throw new Error(res.message);
+      return res.data.user;
+    },
+  });
 
+  const {
+    control: profileControl,
+    handleSubmit: handleProfileSubmit,
+    reset: resetProfileForm,
+    formState: { isSubmitting: isSavingProfile },
+  } = useForm<ProfileForm>({
+    defaultValues: { fullName: '', nickname: '', department: '' },
+  });
+
+  // Sync the fetched profile into the editable form once it resolves —
+  // same pattern as admin/edit-activity/[id].tsx.
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await authService.getMe();
-        if (res.success) {
-          setFullName(res.data.user.fullName || '');
-          setNickname(res.data.user.nickname || '');
-          setDepartment(res.data.user.department || '');
-        }
-      } catch (e) {
-        console.error('Failed to load profile', e);
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (!profile) return;
+    resetProfileForm({
+      fullName: profile.fullName || '',
+      nickname: profile.nickname || '',
+      department: profile.department || '',
+    });
+  }, [profile, resetProfileForm]);
 
-  const handleUpdateProfile = async () => {
-    if (!fullName) {
-      showToast(t('profile.nameRequired'), 'error');
-      return;
-    }
-    setLoading(true);
+  const {
+    control: passwordControl,
+    handleSubmit: handlePasswordSubmit,
+    reset: resetPasswordForm,
+    formState: { isSubmitting: isSavingPassword },
+  } = useForm<PasswordForm>({
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (values: ProfileForm) =>
+      userService.updateProfile({
+        fullName: values.fullName,
+        nickname: values.nickname,
+        department: values.department,
+      }),
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: (values: PasswordForm) =>
+      authService.changePassword(values.currentPassword, values.newPassword),
+  });
+
+  const onSubmitProfile = async (values: ProfileForm) => {
     try {
-      await userService.updateProfile({ fullName, nickname, department });
+      const res = await updateProfileMutation.mutateAsync(values);
+      if (!res.success) throw new Error(res.message);
+      // Keep the query cache and the AuthContext copy of `user` (read by
+      // other screens via useAuth()) both in sync with the new name.
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.profileScreen });
+      await refreshUser();
       showToast(t('profile.profileUpdated'), 'success');
     } catch (e: any) {
       showToast(e.message || t('profile.failedToUpdate'), 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      showToast(t('profile.fillAllPasswordFields'), 'error');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
+  const onSubmitPassword = async (values: PasswordForm) => {
+    if (values.newPassword !== values.confirmPassword) {
       showToast(t('profile.passwordsNotMatch'), 'error');
       return;
     }
-    if (newPassword.length < 6) {
+    if (values.newPassword.length < 6) {
       showToast(t('profile.passwordTooShort'), 'error');
       return;
     }
-    setPasswordLoading(true);
     try {
-      await authService.changePassword(currentPassword, newPassword);
+      const res = await changePasswordMutation.mutateAsync(values);
+      if (!res.success) throw new Error(res.message);
       showToast(t('profile.passwordChanged'), 'success');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      resetPasswordForm();
     } catch (e: any) {
       showToast(e.message || t('profile.failedToChangePassword'), 'error');
-    } finally {
-      setPasswordLoading(false);
     }
+  };
+
+  const onProfileInvalid = () => {
+    showToast(t('profile.nameRequired'), 'error');
+  };
+
+  const onPasswordInvalid = () => {
+    showToast(t('profile.fillAllPasswordFields'), 'error');
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
-        <ScreenHeader 
+        <ScreenHeader
           title={t('profile.editProfile')}
           rightActions={
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="close" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
-          } 
+          }
         />
       </SafeAreaView>
 
@@ -104,44 +147,63 @@ const EditProfileScreen = () => {
         keyboardDismissMode="on-drag"
       >
         <AppText style={[styles.sectionTitle, { color: colors.primary }]}>{t('profile.profileInformation')}</AppText>
-        
+
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('auth.fullName')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder={t('profile.johnDoe')}
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={profileControl}
+            name="fullName"
+            rules={{ required: true }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={t('profile.johnDoe')}
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.nickname')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={nickname}
-            onChangeText={setNickname}
-            placeholder={t('profile.nickname')}
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={profileControl}
+            name="nickname"
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={t('profile.nickname')}
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('auth.department')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={department}
-            onChangeText={setDepartment}
-            placeholder={t('profile.compEng')}
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={profileControl}
+            name="department"
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={t('profile.compEng')}
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
-        <PrimaryButton 
-          title={t('profile.saveProfile')} 
-          onPress={handleUpdateProfile} 
-          loading={loading}
+        <PrimaryButton
+          title={t('profile.saveProfile')}
+          onPress={handleProfileSubmit(onSubmitProfile, onProfileInvalid)}
+          loading={isSavingProfile || updateProfileMutation.isPending}
           style={{ marginTop: spacing.md }}
         />
 
@@ -151,44 +213,65 @@ const EditProfileScreen = () => {
 
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.currentPassword')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={passwordControl}
+            name="currentPassword"
+            rules={{ required: true }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                placeholder="••••••••"
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.newPassword')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={passwordControl}
+            name="newPassword"
+            rules={{ required: true }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                placeholder="••••••••"
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
         <View style={styles.inputGroup}>
           <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('profile.confirmNewPassword')}</AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            placeholder="••••••••"
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={passwordControl}
+            name="confirmPassword"
+            rules={{ required: true }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.card, color: colors.textPrimary, borderColor: colors.inputBorder }]}
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                placeholder="••••••••"
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
-        <OutlineButton 
-          title={t('profile.changePassword')} 
-          onPress={handleChangePassword} 
-          loading={passwordLoading}
+        <OutlineButton
+          title={t('profile.changePassword')}
+          onPress={handlePasswordSubmit(onSubmitPassword, onPasswordInvalid)}
+          loading={isSavingPassword || changePasswordMutation.isPending}
           style={{ marginTop: spacing.md }}
         />
       </ScrollView>

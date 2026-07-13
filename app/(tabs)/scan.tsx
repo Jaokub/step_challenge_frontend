@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import QRCode from 'react-native-qrcode-svg';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../src/constants/queryKeys';
 import { AppText, ScreenHeader } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -33,10 +33,33 @@ export default function ScanScreen() {
 
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
-  
+
   const [mode, setMode] = useState<Mode>("scan");
+
+  // Both scan outcomes (add-friend vs. check-in) are writes — TanStack
+  // mutations instead of a hand-rolled `processing` flag, with cache
+  // invalidation owned by each mutation's onSuccess.
+  const sendFriendRequestMutation = useMutation({
+    mutationFn: (userId: string) => friendService.sendFriendRequest(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
+    },
+  });
+
+  const checkinMutation = useMutation({
+    mutationFn: (qrCode: string) => checkinService.checkinWithQR(qrCode),
+    onSuccess: () => {
+      // A check-in changes points, streak, and attendance — refresh
+      // everything that displays them.
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.personal });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.profileScreen });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
+    },
+  });
+
+  const processing = sendFriendRequestMutation.isPending || checkinMutation.isPending;
 
   // useRef so the animated value survives re-renders (a plain `new Animated.Value`
   // here would be recreated every render and the scan line would stutter/reset).
@@ -113,7 +136,6 @@ export default function ScanScreen() {
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (scanned || processing || mode !== 'scan') return;
     setScanned(true);
-    setProcessing(true);
 
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -123,18 +145,11 @@ export default function ScanScreen() {
       const scannedUserId = parseFriendQR(data);
 
       if (scannedUserId) {
-        await friendService.sendFriendRequest(scannedUserId);
-        queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
+        await sendFriendRequestMutation.mutateAsync(scannedUserId);
         setResult({ success: true, message: t('scan.friendRequestSent') });
       } else {
-        const response = await checkinService.checkinWithQR(data);
+        const response = await checkinMutation.mutateAsync(data);
         const pointsAwarded = response.data?.pointsAwarded ?? 0;
-        // A check-in changes points, streak, and attendance — refresh
-        // everything that displays them.
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.personal });
-        queryClient.invalidateQueries({ queryKey: queryKeys.users.profileScreen });
-        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-        queryClient.invalidateQueries({ queryKey: queryKeys.activities.all });
         setResult({
           success: true,
           message: pointsAwarded > 0
@@ -148,8 +163,6 @@ export default function ScanScreen() {
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       } catch {}
-    } finally {
-      setProcessing(false);
     }
   };
 

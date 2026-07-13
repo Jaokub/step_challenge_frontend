@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm, Controller, FieldErrors } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,53 +14,54 @@ import { AppText, ScreenHeader } from '../../src/components';
 import { LinearGradient } from 'expo-linear-gradient';
 import { spacing, fontSize, gradients } from '../../src/constants/theme';
 
+interface CreateActivityForm {
+  title: string;
+  description: string;
+  location: string;
+  points: string;
+  expectedSteps: string;
+  totalDistance: string;
+  startDate: string;
+  endDate: string;
+}
+
 export default function CreateActivityScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [points, setPoints] = useState('');
-  const [expectedSteps, setExpectedSteps] = useState('');
-  const [totalDistance, setTotalDistance] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<CreateActivityForm>({
+    defaultValues: {
+      title: '',
+      description: '',
+      location: '',
+      points: '',
+      expectedSteps: '',
+      totalDistance: '',
+      startDate: '',
+      endDate: '',
+    },
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const startDateValue = watch('startDate');
 
-  const handleCreate = async () => {
-    // Required fields
-    if (!title || !location || !startDate || !endDate) {
-      showToast(t('admin.fillRequiredFields'), 'error');
-      return;
-    }
-
-    // At least one target (expected steps OR total distance) must be provided
-    if (!expectedSteps && !totalDistance) {
-      showToast(t('admin.provideStepsOrDistance'), 'error');
-      return;
-    }
-
-    // endDate must not be before startDate
-    if (new Date(endDate) < new Date(startDate)) {
-      showToast(t('admin.endBeforeStart'), 'error');
-      return;
-    }
-
-    setIsSubmitting(true);
+  const onSubmit = async (values: CreateActivityForm) => {
     try {
       const res = await activityService.createActivity({
-        title,
-        description,
-        location,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        points: points ? parseInt(points, 10) : 0,
-        expectedSteps: expectedSteps ? parseInt(expectedSteps, 10) : null,
-        totalDistance: totalDistance ? parseFloat(totalDistance) : null,
+        title: values.title,
+        description: values.description,
+        location: values.location,
+        startDate: new Date(values.startDate).toISOString(),
+        endDate: new Date(values.endDate).toISOString(),
+        points: values.points ? parseInt(values.points, 10) : 0,
+        expectedSteps: values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
+        totalDistance: values.totalDistance ? parseFloat(values.totalDistance) : null,
       });
 
       if (res && res.success) {
@@ -73,10 +75,26 @@ export default function CreateActivityScreen() {
     } catch (error: any) {
       console.error('Failed to create activity', error);
       showToast(error?.response?.data?.message || error?.message || t('common.error'), 'error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
+
+  // Same priority order as the old imperative checks: missing required
+  // fields first, then the steps-or-distance rule, then the date-order rule.
+  const onInvalid = (errors: FieldErrors<CreateActivityForm>) => {
+    if (errors.title || errors.location || errors.startDate || errors.endDate?.type === 'required') {
+      showToast(t('admin.fillRequiredFields'), 'error');
+      return;
+    }
+    if (errors.expectedSteps || errors.totalDistance) {
+      showToast(t('admin.provideStepsOrDistance'), 'error');
+      return;
+    }
+    if (errors.endDate) {
+      showToast(t('admin.endBeforeStart'), 'error');
+    }
+  };
+
+  const submit = handleSubmit(onSubmit, onInvalid);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -91,79 +109,132 @@ export default function CreateActivityScreen() {
       </SafeAreaView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <FormInput
-          label={t('admin.activityTitle') + ' *'}
-          value={title}
-          onChangeText={setTitle}
-          placeholder={t('admin.egCampusRun')}
-          colors={colors}
+        <Controller
+          control={control}
+          name="title"
+          rules={{ required: true }}
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityTitle') + ' *'}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egCampusRun')}
+              colors={colors}
+            />
+          )}
         />
 
-        <FormInput
-          label={t('admin.activityDescription')}
-          value={description}
-          onChangeText={setDescription}
-          placeholder={t('admin.describeActivity')}
-          multiline={true}
-          colors={colors}
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityDescription')}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.describeActivity')}
+              multiline={true}
+              colors={colors}
+            />
+          )}
         />
 
-        <FormInput
-          label={t('admin.activityLocation') + ' *'}
-          value={location}
-          onChangeText={setLocation}
-          placeholder={t('admin.egLocation')}
-          colors={colors}
+        <Controller
+          control={control}
+          name="location"
+          rules={{ required: true }}
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityLocation') + ' *'}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egLocation')}
+              colors={colors}
+            />
+          )}
         />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <FormInput
-              label={t('admin.expectedStepsLabel')}
-              value={expectedSteps}
-              onChangeText={setExpectedSteps}
-              placeholder={t('admin.egSteps')}
-              keyboardType="numeric"
-              colors={colors}
+            <Controller
+              control={control}
+              name="expectedSteps"
+              rules={{ validate: (v, formValues) => !!v || !!formValues.totalDistance || 'stepsOrDistance' }}
+              render={({ field: { value, onChange } }) => (
+                <FormInput
+                  label={t('admin.expectedStepsLabel')}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('admin.egSteps')}
+                  keyboardType="numeric"
+                  colors={colors}
+                />
+              )}
             />
           </View>
           <View style={{ flex: 1 }}>
-            <FormInput
-              label={t('admin.totalDistanceLabel')}
-              value={totalDistance}
-              onChangeText={setTotalDistance}
-              placeholder={t('admin.egDistance')}
-              keyboardType="numeric"
-              colors={colors}
+            <Controller
+              control={control}
+              name="totalDistance"
+              rules={{ validate: (v, formValues) => !!v || !!formValues.expectedSteps || 'stepsOrDistance' }}
+              render={({ field: { value, onChange } }) => (
+                <FormInput
+                  label={t('admin.totalDistanceLabel')}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('admin.egDistance')}
+                  keyboardType="numeric"
+                  colors={colors}
+                />
+              )}
             />
           </View>
         </View>
 
-        <FormInput
-          label={t('admin.activityPoints')}
-          value={points}
-          onChangeText={setPoints}
-          placeholder={t('admin.egPoints')}
-          keyboardType="numeric"
-          colors={colors}
+        <Controller
+          control={control}
+          name="points"
+          render={({ field: { value, onChange } }) => (
+            <FormInput
+              label={t('admin.activityPoints')}
+              value={value}
+              onChangeText={onChange}
+              placeholder={t('admin.egPoints')}
+              keyboardType="numeric"
+              colors={colors}
+            />
+          )}
         />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <FormDateField
-              label={t('admin.startDate') + ' *'}
-              value={startDate}
-              onChange={setStartDate}
-              colors={colors}
+            <Controller
+              control={control}
+              name="startDate"
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <FormDateField label={t('admin.startDate') + ' *'} value={value} onChange={onChange} colors={colors} />
+              )}
             />
           </View>
           <View style={{ flex: 1 }}>
-            <FormDateField
-              label={t('admin.endDate') + ' *'}
-              value={endDate}
-              onChange={setEndDate}
-              minimumDate={startDate ? new Date(startDate) : undefined}
-              colors={colors}
+            <Controller
+              control={control}
+              name="endDate"
+              rules={{
+                required: true,
+                validate: (v, formValues) =>
+                  !formValues.startDate || new Date(v) >= new Date(formValues.startDate) || 'endBeforeStart',
+              }}
+              render={({ field: { value, onChange } }) => (
+                <FormDateField
+                  label={t('admin.endDate') + ' *'}
+                  value={value}
+                  onChange={onChange}
+                  minimumDate={startDateValue ? new Date(startDateValue) : undefined}
+                  colors={colors}
+                />
+              )}
             />
           </View>
         </View>
@@ -179,7 +250,7 @@ export default function CreateActivityScreen() {
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={handleCreate} disabled={isSubmitting}>
+          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={submit} disabled={isSubmitting}>
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createBtn}>
               <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
                 {isSubmitting ? t('admin.creating') : t('admin.createActivity')}

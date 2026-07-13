@@ -23,54 +23,34 @@ export default function AdminActivitiesListScreen() {
   const filterLabel = (f: AdminActivityFilter) =>
     f === 'all' ? t('admin.filterAll') : f === 'ongoing' ? t('admin.filterOngoing') : t('admin.filterEnded');
 
+  // Mockup frame 2 (latest upload): the whole card is the tap target →
+  // straight to edit-activity. The per-card Edit/Attendees/QR action row is
+  // gone — attendees/QR now live behind the dedicated "Manual check-in"
+  // entry point (frame 19, /admin/manual-checkin/select-event) and the QR
+  // action inside edit-activity/attendees themselves.
   const renderCard = ({ item }: { item: Activity }) => (
     <TouchableOpacity
       activeOpacity={0.85}
-      onPress={() => router.push(`/events/${item.id}`)}
+      onPress={() => router.push(`/admin/edit-activity/${item.id}`)}
       style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
     >
-      <View style={styles.cardTop}>
-        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
+      <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
+        <AppText variant="body-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
           {item.title}
         </AppText>
-        <StatusBadge status={item.status} />
-      </View>
-      {/* Mockup frame 2: {{ a.location }} and {{ a.dateRange }} are two separate
-          lines, not joined with "·" on one line. */}
-      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{item.location}</AppText>
-      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
-      </AppText>
-      {typeof item.participantCount === 'number' && (
-        <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
-          {t('admin.checkedInCount', { count: item.participantCount })}
+        <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{item.location}</AppText>
+        <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
+          {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
         </AppText>
-      )}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
-          onPress={() => router.push(`/admin/edit-activity/${item.id}`)}
-        >
-          <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.textPrimary }}>
-            {t('admin.actionEdit')}
+        {typeof item.participantCount === 'number' && (
+          <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
+            {t('admin.checkedInCount', { count: item.participantCount })}
           </AppText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
-          onPress={() => router.push(`/admin/activities/${item.id}/attendees`)}
-        >
-          <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.textPrimary }}>
-            {t('admin.actionAttendees')}
-          </AppText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
-          onPress={() => router.push(`/admin/activities/${item.id}/qr`)}
-        >
-          <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.textPrimary }}>
-            {t('admin.actionQr')}
-          </AppText>
-        </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.cardRight}>
+        <StatusBadge status={item.status} />
+        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
@@ -179,32 +159,22 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: CARD_RADIUS,
     borderWidth: 1,
     padding: spacing.lg,
-    gap: spacing.sm, // mockup frame 2 card gap:8
+    gap: spacing.sm, // mockup frame 2 card gap:10
     shadowColor: adminAccents.cardShadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
     elevation: 3,
   },
-  cardTop: {
+  cardRight: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  actionBtn: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xs,
-    borderRadius: borderRadius.sm,
     alignItems: 'center',
+    gap: spacing.sm,
+    flexShrink: 0,
   },
 });

@@ -1,8 +1,7 @@
-import { useCallback, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import groupService from './groupService';
 import { queryKeys } from '../../constants/queryKeys';
-import type { AppGroup, GroupMember } from '../../types';
+import type { AppGroup } from '../../types';
 
 export function useGroups(active: boolean) {
   const queryClient = useQueryClient();
@@ -17,36 +16,7 @@ export function useGroups(active: boolean) {
     enabled: active,
   });
 
-  // Members live in the query cache (per-group key); this local mirror keeps
-  // the same Record shape the screen already renders from, and re-renders
-  // when a fetch resolves.
-  const [groupMembers, setGroupMembers] = useState<Record<string, GroupMember[]>>({});
-
-  const fetchGroupMembers = useCallback(
-    async (groupId: string, force?: boolean) => {
-      try {
-        const options = {
-          queryKey: queryKeys.groups.members(groupId),
-          queryFn: async () => {
-            const res = await groupService.getGroupMembers(groupId);
-            if (!res.success) throw new Error('Failed to load group members');
-            return res.data;
-          },
-        };
-        // fetchQuery refetches when stale; ensureQueryData reuses cache.
-        const data = force
-          ? await queryClient.fetchQuery({ ...options, staleTime: 0 })
-          : await queryClient.ensureQueryData(options);
-        setGroupMembers((prev) => ({ ...prev, [groupId]: data }));
-      } catch (error: any) {
-        console.warn('Error fetching group members:', error);
-      }
-    },
-    [queryClient]
-  );
-
   const handleRefresh = () => {
-    setGroupMembers({});
     queryClient.invalidateQueries({ queryKey: [...queryKeys.groups.all, 'members'] });
     groupsQuery.refetch();
   };
@@ -84,13 +54,11 @@ export function useGroups(active: boolean) {
 
   return {
     groups,
-    groupMembers,
     isLoading: groupsQuery.isPending,
     isRefreshing: groupsQuery.isRefetching,
     isSubmitting: createMutation.isPending || joinMutation.isPending,
     handleRefresh,
     handleCreateGroup,
     handleJoinGroup,
-    fetchGroupMembers,
   };
 }

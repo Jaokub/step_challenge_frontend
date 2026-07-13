@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useForm, Controller } from 'react-hook-form';
 import { View, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -10,6 +11,11 @@ import { useGroups } from '../../src/features/group/useGroups';
 import { AppText, ScreenHeader } from '../../src/components';
 import { spacing, fontSize, gradients } from '../../src/constants/theme';
 
+interface CreateGroupForm {
+  name: string;
+  description: string;
+}
+
 // Mockup frame 12 — mirrors create-activity's form pattern but kept local to
 // the group feature slice rather than importing the admin form components.
 export default function CreateGroupScreen() {
@@ -18,16 +24,13 @@ export default function CreateGroupScreen() {
   const { showToast } = useToast();
   const { handleCreateGroup, isSubmitting } = useGroups(false);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const { control, handleSubmit } = useForm<CreateGroupForm>({
+    defaultValues: { name: '', description: '' },
+  });
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      showToast(t('groups.groupNameRequired'), 'error');
-      return;
-    }
+  const onSubmit = async (values: CreateGroupForm) => {
     try {
-      await handleCreateGroup(name, description, () => {
+      await handleCreateGroup(values.name, values.description, () => {
         showToast(t('groups.createGroupSubmit'), 'success');
         setTimeout(() => (router.canGoBack() ? router.back() : router.push('/(tabs)/groups')), 600);
       });
@@ -35,6 +38,12 @@ export default function CreateGroupScreen() {
       showToast(error?.message || t('common.error'), 'error');
     }
   };
+
+  const onInvalid = () => {
+    showToast(t('groups.groupNameRequired'), 'error');
+  };
+
+  const submit = handleSubmit(onSubmit, onInvalid);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -53,12 +62,19 @@ export default function CreateGroupScreen() {
           <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.sm }}>
             {t('groups.groupName')}
           </AppText>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.textPrimary }]}
-            value={name}
-            onChangeText={setName}
-            placeholder={t('groups.groupNamePlaceholder')}
-            placeholderTextColor={colors.textSecondary}
+          <Controller
+            control={control}
+            name="name"
+            rules={{ validate: (v) => !!v.trim() || 'required' }}
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.textPrimary }]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={t('groups.groupNamePlaceholder')}
+                placeholderTextColor={colors.textSecondary}
+              />
+            )}
           />
         </View>
 
@@ -66,14 +82,20 @@ export default function CreateGroupScreen() {
           <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.sm }}>
             {t('groups.groupDescription')}
           </AppText>
-          <TextInput
-            style={[styles.input, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.textPrimary }]}
-            value={description}
-            onChangeText={setDescription}
-            placeholder={t('groups.groupDescriptionPlaceholder')}
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            textAlignVertical="top"
+          <Controller
+            control={control}
+            name="description"
+            render={({ field: { value, onChange } }) => (
+              <TextInput
+                style={[styles.input, styles.textArea, { backgroundColor: colors.inputBackground, color: colors.textPrimary }]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={t('groups.groupDescriptionPlaceholder')}
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                textAlignVertical="top"
+              />
+            )}
           />
         </View>
 
@@ -93,7 +115,7 @@ export default function CreateGroupScreen() {
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={handleSubmit} disabled={isSubmitting}>
+          <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={submit} disabled={isSubmitting}>
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.submitBtn}>
               <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
                 {isSubmitting ? t('groups.creatingGroup') : t('groups.createGroupSubmit')}
