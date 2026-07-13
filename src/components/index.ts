@@ -16,7 +16,10 @@ export { default as QuickActionButton } from './QuickActionButton';
 export { default as HeaderIconButton } from './HeaderIconButton';
 
 // Navigation
-export { default as TabBarButton } from './TabBarButton';
+// NOTE: TabBarButton.tsx (custom tabBarButton wrapper) is unused — it broke
+// expo-router's Link-based tab switching (see AnimatedTabIcon.tsx's comment).
+// Left in place rather than deleted; AnimatedTabIcon is the one actually used.
+export { default as AnimatedTabIcon } from './AnimatedTabIcon';
 
 // Progress & Animation
 export { default as AnimatedCounter } from './AnimatedCounter';

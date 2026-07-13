@@ -1,11 +1,10 @@
 import { Redirect, Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { LoadingScreen, TabBarButton } from '../../src/components';
+import { LoadingScreen, AnimatedTabIcon } from '../../src/components';
 
 export default function TabsLayout() {
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
@@ -29,10 +28,7 @@ export default function TabsLayout() {
   const tabIcon =
     (name: string) =>
     ({ color, focused, size }: { color: string; focused: boolean; size: number }) => (
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name={(focused ? name : `${name}-outline`) as any} size={size} color={color} />
-        {focused && <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
-      </View>
+      <AnimatedTabIcon name={name} color={color} focused={focused} size={size} />
     );
 
   return (
@@ -59,7 +55,9 @@ export default function TabsLayout() {
           paddingTop: 12,
           elevation: 0,
         },
-        tabBarButton: (props: any) => <TabBarButton {...props} />,
+        // No custom tabBarButton here — see AnimatedTabIcon.tsx's comment
+        // for why (it broke tab switching). The "bulge" feedback lives on
+        // the icon itself instead, driven by the `focused` prop below.
       }}
     >
       <Tabs.Screen
