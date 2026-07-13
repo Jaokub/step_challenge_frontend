@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, Pressable, ActivityIndicator, LayoutChangeEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +20,7 @@ import {
   OutlineButton,
   StatusBadge,
 } from '../../../../src/components';
-import { spacing, fontSize, borderRadius, gradients } from '../../../../src/constants/theme';
+import { spacing, fontSize, borderRadius, gradients, shadows } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
 import checkinService from '../../../../src/features/activity/checkinService';
 import userService from '../../../../src/features/auth/userService';
@@ -50,6 +50,9 @@ export default function AdminAttendeesScreen() {
   const [pendingUndo, setPendingUndo] = useState<AttendeeRow | null>(null);
   const [isUndoing, setIsUndoing] = useState(false);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
+  // Position of the selector pill (relative to the screen root), so the
+  // dropdown below can anchor directly under it regardless of header height.
+  const [selectorLayout, setSelectorLayout] = useState({ y: 0, height: 0 });
 
   // Reset local filters when switching activities via the picker below.
   useEffect(() => {
@@ -100,6 +103,9 @@ export default function AdminAttendeesScreen() {
 
   const checkedIn = checkinsResult?.checkIns ?? [];
   const totalCheckedIn = checkinsResult?.totalCheckIns ?? checkedIn.length;
+  // Denominator for the "X / Y checked in" summary — the activity's own cap
+  // if it has one, otherwise the full roster size (real data, not a guess).
+  const totalPossible = activity?.maxParticipants ?? allUsers?.length ?? 0;
   const checkedInByUserId = useMemo(
     () => new Map<string, CheckIn>(checkedIn.map((c) => [c.userId, c])),
     [checkedIn],
@@ -260,16 +266,21 @@ export default function AdminAttendeesScreen() {
       </SafeAreaView>
 
       {!!activity?.title && (
-        <View style={styles.activitySelectorWrap}>
+        <View
+          style={styles.activitySelectorWrap}
+          onLayout={(e: LayoutChangeEvent) =>
+            setSelectorLayout({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })
+          }
+        >
           <TouchableOpacity
             style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}
-            onPress={() => setShowActivityPicker(true)}
+            onPress={() => setShowActivityPicker((v) => !v)}
             activeOpacity={0.7}
           >
             <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
               {t('admin.attendeesActivityLabel', { title: activity.title })}
             </AppText>
-            <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
+            <Ionicons name={showActivityPicker ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
@@ -284,21 +295,25 @@ export default function AdminAttendeesScreen() {
           <View style={styles.summaryTop}>
             <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>{t('admin.totalCheckedIn')}</AppText>
             <AppText variant="heading-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }}>
-              {activity?.maxParticipants
-                ? t('admin.checkedInProgress', { checked: totalCheckedIn, total: activity.maxParticipants })
+              {totalPossible
+                ? t('admin.checkedInProgress', { checked: totalCheckedIn, total: totalPossible })
                 : t('admin.checkedInCount', { count: totalCheckedIn })}
             </AppText>
           </View>
-          {!!activity?.maxParticipants && (
-            <View style={[styles.gradientBarTrack, { backgroundColor: colors.primary + '26' }]}>
-              <LinearGradient
-                colors={gradients.primary}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.gradientBarFill, { width: `${Math.min(1, totalCheckedIn / activity.maxParticipants) * 100}%` }]}
-              />
-            </View>
-          )}
+          {/* Mockup frame 7: the progress track is always shown, not just
+              when the activity has a hard cap — the denominator is the
+              full roster whenever there's no `maxParticipants`. */}
+          <View style={[styles.gradientBarTrack, { backgroundColor: colors.primary + '26' }]}>
+            <LinearGradient
+              colors={gradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.gradientBarFill,
+                { width: `${totalPossible ? Math.min(1, totalCheckedIn / totalPossible) * 100 : 0}%` },
+              ]}
+            />
+          </View>
         </LinearGradient>
       </View>
 
@@ -380,56 +395,70 @@ export default function AdminAttendeesScreen() {
         </View>
       </CustomModal>
 
-      <CustomModal
-        visible={showActivityPicker}
-        onClose={() => setShowActivityPicker(false)}
-        title={t('admin.selectActivityTitle')}
-      >
-        {isLoadingActivityOptions ? (
-          <ActivityIndicator color={colors.primary} style={{ paddingVertical: spacing.xl }} />
-        ) : activityOptionsError ? (
-          <AppText style={{ fontSize: fontSize.sm, color: colors.error, textAlign: 'center', paddingVertical: spacing.xl }}>
-            {(activityOptionsError as any)?.message ?? t('common.error')}
-          </AppText>
-        ) : (
-          <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
-            {(activityOptions ?? []).map((a) => {
-              const isCurrent = a.id === id;
-              return (
-                <TouchableOpacity
-                  key={a.id}
-                  onPress={() => handleSelectActivity(a.id)}
-                  style={[
-                    styles.activityOption,
-                    {
-                      backgroundColor: isCurrent ? colors.primary + '14' : colors.inputBackground,
-                      borderColor: isCurrent ? colors.primary : 'transparent',
-                    },
-                  ]}
-                >
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
-                      {a.title}
-                    </AppText>
-                    <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
-                      {new Date(a.startDate).toLocaleDateString()}
-                    </AppText>
-                  </View>
-                  <StatusBadge status={a.status} />
-                  {isCurrent && (
-                    <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: spacing.sm }} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-            {!(activityOptions ?? []).length && (
-              <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.xl }}>
-                {t('admin.noActivitiesTitle')}
+      {/* Real inline dropdown (not a popup sheet) — anchored directly under
+          the selector pill via its measured layout, with a transparent
+          full-screen backdrop that closes it on an outside tap. */}
+      {showActivityPicker && (
+        <>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowActivityPicker(false)} />
+          <View
+            style={[
+              styles.dropdown,
+              shadows.cardLarge,
+              {
+                top: selectorLayout.y + selectorLayout.height + 6,
+                backgroundColor: colors.card,
+                borderColor: colors.cardBorder,
+              },
+            ]}
+          >
+            {isLoadingActivityOptions ? (
+              <ActivityIndicator color={colors.primary} style={{ paddingVertical: spacing.lg }} />
+            ) : activityOptionsError ? (
+              <AppText style={{ fontSize: fontSize.sm, color: colors.error, textAlign: 'center', paddingVertical: spacing.lg }}>
+                {(activityOptionsError as any)?.message ?? t('common.error')}
               </AppText>
+            ) : (
+              <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+                {(activityOptions ?? []).map((a) => {
+                  const isCurrent = a.id === id;
+                  return (
+                    <TouchableOpacity
+                      key={a.id}
+                      onPress={() => handleSelectActivity(a.id)}
+                      style={[
+                        styles.activityOption,
+                        {
+                          backgroundColor: isCurrent ? colors.primary + '14' : 'transparent',
+                          borderColor: isCurrent ? colors.primary : 'transparent',
+                        },
+                      ]}
+                    >
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+                          {a.title}
+                        </AppText>
+                        <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
+                          {new Date(a.startDate).toLocaleDateString()}
+                        </AppText>
+                      </View>
+                      <StatusBadge status={a.status} />
+                      {isCurrent && (
+                        <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: spacing.sm }} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+                {!(activityOptions ?? []).length && (
+                  <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg }}>
+                    {t('admin.noActivitiesTitle')}
+                  </AppText>
+                )}
+              </ScrollView>
             )}
-          </ScrollView>
-        )}
-      </CustomModal>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -480,6 +509,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 1,
     borderRadius: 14,
+  },
+  dropdown: {
+    position: 'absolute',
+    left: spacing.xl,
+    right: spacing.xl,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: spacing.sm,
+    zIndex: 50,
   },
   activityOption: {
     flexDirection: 'row',

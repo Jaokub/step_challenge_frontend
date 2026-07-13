@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -14,11 +14,31 @@ import {
 } from '../../src/features/admin/AdminDashboardComponents';
 import { ScreenHeader, Skeleton } from '../../src/components';
 import { spacing, adminAccents } from '../../src/constants/theme';
+import activityService from '../../src/features/activity/activityService';
 
 export default function AdminDashboardScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { kpis, loading } = useAdminDashboard();
+  const resolvingCheckin = useRef(false);
+
+  // "Manual check-in" has no single activity in the dashboard's own context,
+  // so jump straight to the current ONGOING activity's attendees screen (the
+  // actual walk-in check-in use case) — only fall back to the plain list if
+  // nothing is ongoing right now.
+  const handleManualCheckinPress = async () => {
+    if (resolvingCheckin.current) return;
+    resolvingCheckin.current = true;
+    try {
+      const res = await activityService.getActivities({ status: 'ONGOING', limit: 1 });
+      const ongoing = res.success ? res.data.activities?.[0] : undefined;
+      router.push(ongoing ? `/admin/activities/${ongoing.id}/attendees` : '/admin/activities');
+    } catch {
+      router.push('/admin/activities');
+    } finally {
+      resolvingCheckin.current = false;
+    }
+  };
 
   // Four distinct KPI accents per mockup frame 1 (teal / blue / lime / orange).
   // teal + orange are brand tokens; blue + lime are mockup-literal accents.
@@ -56,7 +76,7 @@ export default function AdminDashboardScreen() {
       title: t('admin.navManualCheckinTitle'),
       desc: t('admin.navManualCheckinDesc'),
       icon: 'qr-code-outline',
-      onPress: () => router.push('/admin/activities'),
+      onPress: handleManualCheckinPress,
     },
   ];
 
