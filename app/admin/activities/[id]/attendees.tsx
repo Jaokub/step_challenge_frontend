@@ -60,7 +60,7 @@ export default function AdminAttendeesScreen() {
     setFilter('all');
   }, [id]);
 
-  const { data: activity } = useQuery({
+  const { data: activity, isPending: isLoadingActivity } = useQuery({
     queryKey: queryKeys.activities.detail(id),
     queryFn: async () => {
       const res = await activityService.getActivityById(id);
@@ -265,24 +265,35 @@ export default function AdminAttendeesScreen() {
         />
       </SafeAreaView>
 
-      {!!activity?.title && (
-        <View
-          style={styles.activitySelectorWrap}
-          onLayout={(e: LayoutChangeEvent) =>
-            setSelectorLayout({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })
-          }
-        >
-          <TouchableOpacity
-            style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}
-            onPress={() => setShowActivityPicker((v) => !v)}
-            activeOpacity={0.7}
-          >
-            <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
-              {t('admin.attendeesActivityLabel', { title: activity.title })}
-            </AppText>
-            <Ionicons name={showActivityPicker ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
-          </TouchableOpacity>
+      {isLoadingActivity ? (
+        // Same box as the real pill below (activitySelectorWrap padding +
+        // activitySelector padding/height) so this block doesn't pop in and
+        // push the summary card/filters/search/list down once it resolves.
+        <View style={styles.activitySelectorWrap}>
+          <View style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}>
+            <Skeleton width="55%" height={16} borderRadius={4} />
+          </View>
         </View>
+      ) : (
+        !!activity?.title && (
+          <View
+            style={styles.activitySelectorWrap}
+            onLayout={(e: LayoutChangeEvent) =>
+              setSelectorLayout({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })
+            }
+          >
+            <TouchableOpacity
+              style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}
+              onPress={() => setShowActivityPicker((v) => !v)}
+              activeOpacity={0.7}
+            >
+              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
+                {t('admin.attendeesActivityLabel', { title: activity.title })}
+              </AppText>
+              <Ionicons name={showActivityPicker ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )
       )}
 
       <View style={styles.summaryWrap}>
@@ -519,7 +530,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: 18, // mockup frame 7 attendee-row radius
     borderWidth: 1,
-    marginBottom: spacing.sm,
+    // No marginBottom here — listContent's `gap` already spaces rows apart.
+    // Having both doubled the row-to-row gap vs. the searchbar-to-first-row
+    // gap (which only gets searchWrap's paddingBottom), so they visibly
+    // didn't match. Single source of spacing now.
   },
   avatar: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   actionPill: {
