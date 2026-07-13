@@ -29,9 +29,9 @@ const checkinService = {
     }
   },
 
-  async adminCheckinUser(activityId: string, userId: string): Promise<ApiResponse<CheckIn>> {
+  async adminCheckinUser(activityId: string, userId: string): Promise<ApiResponse<QRCheckinResult>> {
     try {
-      const { data } = await api.post<ApiResponse<CheckIn>>('/checkins/admin-checkin', {
+      const { data } = await api.post<ApiResponse<QRCheckinResult>>('/checkins/admin-checkin', {
         activityId,
         userId,
       });

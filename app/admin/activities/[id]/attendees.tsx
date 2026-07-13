@@ -1,28 +1,61 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../src/contexts/ThemeContext';
-import { AppText, ScreenHeader, EmptyState, ErrorState, LoadingScreen, SearchBar } from '../../../../src/components';
+import { useToast } from '../../../../src/contexts/ToastContext';
+import {
+  AppText,
+  ScreenHeader,
+  EmptyState,
+  ErrorState,
+  LoadingScreen,
+  SearchBar,
+  CustomModal,
+  PrimaryButton,
+  OutlineButton,
+  StatusBadge,
+} from '../../../../src/components';
 import { spacing, fontSize, borderRadius, gradients } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
 import checkinService from '../../../../src/features/activity/checkinService';
 import userService from '../../../../src/features/auth/userService';
 import { queryKeys } from '../../../../src/constants/queryKeys';
-import type { User } from '../../../../src/types';
+import type { CheckIn } from '../../../../src/types';
 
 type FilterKey = 'all' | 'checkedIn' | 'notCheckedIn';
+
+interface AttendeeRow {
+  key: string;
+  userId: string;
+  name?: string;
+  dept?: string | null;
+  checkedInAt: string | null;
+  checkInId: string | null;
+}
 
 export default function AdminAttendeesScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [processingUserId, setProcessingUserId] = useState<string | null>(null);
+  const [pendingUndo, setPendingUndo] = useState<AttendeeRow | null>(null);
+  const [isUndoing, setIsUndoing] = useState(false);
+  const [showActivityPicker, setShowActivityPicker] = useState(false);
+
+  // Reset local filters when switching activities via the picker below.
+  useEffect(() => {
+    setSearch('');
+    setFilter('all');
+  }, [id]);
 
   const { data: activity } = useQuery({
     queryKey: queryKeys.activities.detail(id),
@@ -49,79 +82,171 @@ export default function AdminAttendeesScreen() {
     enabled: !!id,
   });
 
-  // Only needed to compute the "ยังไม่เช็คอิน" (not checked-in) filter — the
-  // check-ins endpoint only returns who HAS checked in, so we diff against
-  // the full user list (same source admin/users already uses).
-  const { data: allUsers } = useQuery({
+  // Full roster — needed for the "ทั้งหมด" (all) tab, which mixes checked-in
+  // and not-checked-in people in one list, and for "ยังไม่เช็คอิน" (the
+  // check-ins endpoint only returns who HAS checked in).
+  const {
+    data: allUsers,
+    isPending: isLoadingUsers,
+  } = useQuery({
     queryKey: queryKeys.users.list,
     queryFn: async () => {
       const res = await userService.getAllUsers();
       if (!res.success) throw new Error(res.message);
       return res.data.users ?? [];
     },
-    enabled: filter === 'notCheckedIn',
+    enabled: !!id,
   });
 
   const checkedIn = checkinsResult?.checkIns ?? [];
   const totalCheckedIn = checkinsResult?.totalCheckIns ?? checkedIn.length;
-  const checkedInIds = useMemo(() => new Set(checkedIn.map((c) => c.userId)), [checkedIn]);
-  const notCheckedIn: User[] = useMemo(
-    () => (allUsers ?? []).filter((u) => !checkedInIds.has(u.id)),
-    [allUsers, checkedInIds],
+  const checkedInByUserId = useMemo(
+    () => new Map<string, CheckIn>(checkedIn.map((c) => [c.userId, c])),
+    [checkedIn],
+  );
+
+  const allRows: AttendeeRow[] = useMemo(
+    () =>
+      (allUsers ?? []).map((u) => {
+        const c = checkedInByUserId.get(u.id);
+        return {
+          key: u.id,
+          userId: u.id,
+          name: u.fullName,
+          dept: u.department,
+          checkedInAt: c?.checkedInAt ?? null,
+          checkInId: c?.id ?? null,
+        };
+      }),
+    [allUsers, checkedInByUserId],
   );
 
   const q = search.trim().toLowerCase();
-  const filteredCheckedIn = checkedIn.filter((c) => {
-    if (!q) return true;
-    return c.user?.fullName?.toLowerCase().includes(q) || c.user?.department?.toLowerCase().includes(q);
-  });
-  const filteredNotCheckedIn = notCheckedIn.filter((u) => {
-    if (!q) return true;
-    return u.fullName?.toLowerCase().includes(q) || u.department?.toLowerCase().includes(q);
-  });
+  const rows = useMemo(() => {
+    const base =
+      filter === 'checkedIn'
+        ? allRows.filter((r) => r.checkedInAt)
+        : filter === 'notCheckedIn'
+        ? allRows.filter((r) => !r.checkedInAt)
+        : allRows;
+    if (!q) return base;
+    return base.filter((r) => r.name?.toLowerCase().includes(q) || r.dept?.toLowerCase().includes(q));
+  }, [allRows, filter, q]);
 
-  interface AttendeeRow {
-    key: string;
-    name?: string;
-    dept?: string | null;
-    checkedInAt: string | null;
-  }
-
-  const rows: AttendeeRow[] =
-    filter === 'checkedIn'
-      ? filteredCheckedIn.map((c) => ({ key: c.id, name: c.user?.fullName, dept: c.user?.department, checkedInAt: c.checkedInAt }))
-      : filter === 'notCheckedIn'
-      ? filteredNotCheckedIn.map((u) => ({ key: u.id, name: u.fullName, dept: u.department, checkedInAt: null }))
-      : filteredCheckedIn.map((c) => ({ key: c.id, name: c.user?.fullName, dept: c.user?.department, checkedInAt: c.checkedInAt }));
-
-  const isLoading = isLoadingCheckins || (filter === 'notCheckedIn' && !allUsers);
-
-  const renderItem = ({ item }: { item: AttendeeRow }) => (
-    <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-      <View style={[styles.avatar, { backgroundColor: colors.textPrimary }]}>
-        <AppText variant="body-bold" style={{ color: colors.background, fontSize: fontSize.xs }}>
-          {(item.name || '?').charAt(0).toUpperCase()}
-        </AppText>
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
-          {item.name || t('common.error')}
-        </AppText>
-        <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
-          {item.dept || '-'}
-        </AppText>
-      </View>
-      {item.checkedInAt ? (
-        <AppText style={{ fontSize: fontSize.xs, color: colors.primary, fontWeight: '700' as any }}>
-          {new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </AppText>
-      ) : (
-        <View style={[styles.pendingPill, { backgroundColor: colors.inputBackground }]}>
-          <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }}>{t('admin.filterNotCheckedIn')}</AppText>
-        </View>
-      )}
-    </View>
+  // "เช็คอินหน้างานล่าสุด" — recent walk-in (manually-recorded) check-ins,
+  // most recent first. Real data only: derived from the same check-ins the
+  // list above already has (method === 'MANUAL'), not a separate fake feed.
+  const recentManualCheckins = useMemo(
+    () =>
+      checkedIn
+        .filter((c) => c.method === 'MANUAL')
+        .slice()
+        .sort((a, b) => new Date(b.checkedInAt).getTime() - new Date(a.checkedInAt).getTime())
+        .slice(0, 5),
+    [checkedIn],
   );
+
+  const isLoading = isLoadingCheckins || isLoadingUsers;
+
+  // Activity picker — lists other activities so the admin can jump straight
+  // to another one's attendee list without going back to /admin/activities.
+  // Fetched lazily (only while the picker is open).
+  const {
+    data: activityOptions,
+    isPending: isLoadingActivityOptions,
+    error: activityOptionsError,
+  } = useQuery({
+    queryKey: queryKeys.activities.list('admin-attendees-picker'),
+    queryFn: async () => {
+      const res = await activityService.getActivities({ limit: 100 });
+      if (!res.success) throw new Error(res.message);
+      return res.data.activities ?? [];
+    },
+    enabled: showActivityPicker,
+  });
+
+  const handleSelectActivity = (activityId: string) => {
+    setShowActivityPicker(false);
+    if (activityId === id) return;
+    router.replace(`/admin/activities/${activityId}/attendees`);
+  };
+
+  const handleCheckIn = async (row: AttendeeRow) => {
+    if (processingUserId) return;
+    setProcessingUserId(row.userId);
+    try {
+      const res = await checkinService.adminCheckinUser(id, row.userId);
+      if (!res.success) throw new Error(res.message);
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkins(id) });
+      showToast(t('admin.manualCheckinSuccess'), 'success');
+    } catch (err: any) {
+      showToast(err?.message || t('common.error'), 'error');
+    } finally {
+      setProcessingUserId(null);
+    }
+  };
+
+  const handleConfirmUndo = async () => {
+    if (!pendingUndo?.checkInId) return;
+    setIsUndoing(true);
+    try {
+      const res = await checkinService.deleteCheckin(pendingUndo.checkInId);
+      if (!res.success) throw new Error(res.message);
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkins(id) });
+      showToast(t('admin.undoCheckinSuccess'), 'success');
+      setPendingUndo(null);
+    } catch (err: any) {
+      showToast(err?.message || t('common.error'), 'error');
+    } finally {
+      setIsUndoing(false);
+    }
+  };
+
+  const renderItem = ({ item }: { item: AttendeeRow }) => {
+    const isProcessing = processingUserId === item.userId;
+    return (
+      <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.textPrimary }]}>
+          <AppText variant="body-bold" style={{ color: colors.background, fontSize: fontSize.xs }}>
+            {(item.name || '?').charAt(0).toUpperCase()}
+          </AppText>
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+            {item.name || t('common.error')}
+          </AppText>
+          <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
+            {item.dept || '-'}
+            {item.checkedInAt
+              ? ` · ${new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : ''}
+          </AppText>
+        </View>
+        {item.checkedInAt ? (
+          <TouchableOpacity
+            onPress={() => setPendingUndo(item)}
+            style={[styles.actionPill, { backgroundColor: colors.error + '1A' }]}
+          >
+            <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.error }}>
+              {t('admin.undoCheckinAction')}
+            </AppText>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => handleCheckIn(item)} disabled={isProcessing} style={{ opacity: isProcessing ? 0.6 : 1 }}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.actionPill}>
+              {isProcessing ? (
+                <ActivityIndicator size="small" color={colors.onPrimary} />
+              ) : (
+                <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.onPrimary }}>
+                  {t('admin.manualCheckinAction')}
+                </AppText>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -136,12 +261,16 @@ export default function AdminAttendeesScreen() {
 
       {!!activity?.title && (
         <View style={styles.activitySelectorWrap}>
-          <View style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}>
-            <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+          <TouchableOpacity
+            style={[styles.activitySelector, { backgroundColor: colors.inputBackground }]}
+            onPress={() => setShowActivityPicker(true)}
+            activeOpacity={0.7}
+          >
+            <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
               {t('admin.attendeesActivityLabel', { title: activity.title })}
             </AppText>
             <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
-          </View>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -208,28 +337,99 @@ export default function AdminAttendeesScreen() {
           ListEmptyComponent={
             <EmptyState icon="people-outline" title={t('admin.noAttendeesTitle')} subtitle={t('admin.noAttendeesSubtitle')} />
           }
+          ListFooterComponent={
+            recentManualCheckins.length ? (
+              <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
+                <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>
+                  {t('admin.recentManualCheckins')}
+                </AppText>
+                {recentManualCheckins.map((c) => (
+                  <View key={c.id} style={[styles.logRow, { backgroundColor: colors.inputBackground }]}>
+                    <AppText style={{ flex: 1, fontSize: fontSize.xs, fontWeight: '600' as any, color: colors.textPrimary }} numberOfLines={1}>
+                      {c.user?.fullName ?? t('common.error')}
+                    </AppText>
+                    <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }}>
+                      {new Date(c.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </AppText>
+                  </View>
+                ))}
+              </View>
+            ) : null
+          }
         />
       )}
 
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.cardBorder }]}>
-        <View style={styles.footerRow}>
-          <View style={[styles.disabledBtn, { backgroundColor: colors.inputBackground }]}>
-            <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '700' as any }}>
-              {t('admin.manualCheckinAction')}
-            </AppText>
+      <CustomModal
+        visible={!!pendingUndo}
+        onClose={() => (isUndoing ? undefined : setPendingUndo(null))}
+        title={t('admin.undoCheckinConfirmTitle')}
+        description={pendingUndo ? t('admin.undoCheckinConfirmDesc', { name: pendingUndo.name ?? '' }) : undefined}
+      >
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <OutlineButton title={t('common.cancel')} onPress={() => setPendingUndo(null)} disabled={isUndoing} />
           </View>
-          <View style={[styles.disabledBtn, { backgroundColor: colors.inputBackground }]}>
-            <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '700' as any }}>
-              {t('admin.undoCheckinAction')}
-            </AppText>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              title={isUndoing ? t('common.loading') : t('admin.undoCheckinAction')}
+              onPress={handleConfirmUndo}
+              disabled={isUndoing}
+              style={{ backgroundColor: colors.error }}
+            />
           </View>
         </View>
-        <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '1A' }]}>
-          <AppText style={{ fontSize: fontSize.xs, color: colors.warning, fontWeight: '700' as any, textAlign: 'center' }}>
-            {t('admin.manualCheckinNeedsEndpoint')}
+      </CustomModal>
+
+      <CustomModal
+        visible={showActivityPicker}
+        onClose={() => setShowActivityPicker(false)}
+        title={t('admin.selectActivityTitle')}
+      >
+        {isLoadingActivityOptions ? (
+          <ActivityIndicator color={colors.primary} style={{ paddingVertical: spacing.xl }} />
+        ) : activityOptionsError ? (
+          <AppText style={{ fontSize: fontSize.sm, color: colors.error, textAlign: 'center', paddingVertical: spacing.xl }}>
+            {(activityOptionsError as any)?.message ?? t('common.error')}
           </AppText>
-        </View>
-      </View>
+        ) : (
+          <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
+            {(activityOptions ?? []).map((a) => {
+              const isCurrent = a.id === id;
+              return (
+                <TouchableOpacity
+                  key={a.id}
+                  onPress={() => handleSelectActivity(a.id)}
+                  style={[
+                    styles.activityOption,
+                    {
+                      backgroundColor: isCurrent ? colors.primary + '14' : colors.inputBackground,
+                      borderColor: isCurrent ? colors.primary : 'transparent',
+                    },
+                  ]}
+                >
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+                      {a.title}
+                    </AppText>
+                    <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
+                      {new Date(a.startDate).toLocaleDateString()}
+                    </AppText>
+                  </View>
+                  <StatusBadge status={a.status} />
+                  {isCurrent && (
+                    <Ionicons name="checkmark-circle" size={18} color={colors.primary} style={{ marginLeft: spacing.sm }} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+            {!(activityOptions ?? []).length && (
+              <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.xl }}>
+                {t('admin.noActivitiesTitle')}
+              </AppText>
+            )}
+          </ScrollView>
+        )}
+      </CustomModal>
     </View>
   );
 }
@@ -254,7 +454,7 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
   filterChip: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm - 1, borderRadius: borderRadius.full },
   searchWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.sm },
-  listContent: { paddingHorizontal: spacing.xl, paddingBottom: 140, gap: spacing.sm },
+  listContent: { paddingHorizontal: spacing.xl, paddingBottom: 40, gap: spacing.sm },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -265,18 +465,29 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   avatar: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  pendingPill: { paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: borderRadius.sm },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.xl,
-    paddingBottom: 36,
-    borderTopWidth: 1,
-    gap: spacing.sm,
+  actionPill: {
+    minWidth: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
   },
-  footerRow: { flexDirection: 'row', gap: spacing.sm },
-  disabledBtn: { flex: 1, alignItems: 'center', paddingVertical: spacing.md, borderRadius: borderRadius.lg },
-  needsEndpointPill: { padding: spacing.sm, borderRadius: borderRadius.md },
+  logRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 1,
+    borderRadius: 14,
+  },
+  activityOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    marginBottom: spacing.sm,
+  },
 });
