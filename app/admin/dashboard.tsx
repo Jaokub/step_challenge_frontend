@@ -56,7 +56,7 @@ export default function AdminDashboardScreen() {
       title: t('admin.navManualCheckinTitle'),
       desc: t('admin.navManualCheckinDesc'),
       icon: 'qr-code-outline',
-      disabledNote: t('admin.navComingSoon'),
+      onPress: () => router.push('/admin/activities'),
     },
   ];
 
