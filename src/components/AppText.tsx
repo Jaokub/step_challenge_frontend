@@ -10,12 +10,32 @@ export interface AppTextProps extends TextProps {
   variant?: TextVariant;
 }
 
+// Thai Unicode block (0E00–0E7F). Anything in this range needs a Thai-capable
+// font regardless of the app's current UI language — user-typed content
+// (activity titles/descriptions, group names, ...) isn't translated, so it
+// can be Thai even while the app is set to English, and vice versa.
+const THAI_CHAR_REGEX = /[฀-๿]/;
+
+/** Flatten a Text node's children down to a plain string for script detection. */
+const extractText = (node: React.ReactNode): string => {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join('');
+  if (React.isValidElement(node)) {
+    const children = (node.props as { children?: React.ReactNode })?.children;
+    return children ? extractText(children) : '';
+  }
+  return '';
+};
+
 const AppText: React.FC<AppTextProps> = ({ variant = 'body-regular', style, ...props }) => {
   const { i18n } = useTranslation();
   const { colors } = useTheme();
-  
-  // Choose the font family collection based on current language
-  const fonts = i18n.language === 'th' ? thaiFonts : englishFonts;
+
+  // Base choice follows the app's UI language, but actual Thai content always
+  // wins — otherwise Thai text typed while the app is in English mode renders
+  // with no Thai glyph support at all (see AppText Thai-detection fix).
+  const fonts = i18n.language === 'th' || THAI_CHAR_REGEX.test(extractText(props.children)) ? thaiFonts : englishFonts;
   
   let fontFamily: string = fonts.body.regular;
   let lineHeight: number = 22; // default

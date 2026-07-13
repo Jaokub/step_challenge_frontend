@@ -38,12 +38,20 @@ export default function AdminActivitiesListScreen() {
         <AppText variant="body-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
           {item.title}
         </AppText>
-        <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{item.location}</AppText>
-        <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-          {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
-        </AppText>
+        <View style={styles.metaRow}>
+          <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+          <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+            {item.location}
+          </AppText>
+        </View>
+        <View style={styles.metaRow}>
+          <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
+          <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+            {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
+          </AppText>
+        </View>
         {typeof item.participantCount === 'number' && (
-          <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
+          <AppText style={{ fontSize: fontSize.sm - 1, color: colors.primary, fontWeight: '600' as any }}>
             {t('admin.checkedInCount', { count: item.participantCount })}
           </AppText>
         )}
@@ -176,5 +184,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     flexShrink: 0,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

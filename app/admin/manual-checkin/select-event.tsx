@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { AppText, ScreenHeader, EmptyState, ErrorState, Skeleton, SearchBar, StatusBadge } from '../../../src/components';
 import { useAdminActivitiesList } from '../../../src/features/admin/useAdminActivitiesList';
@@ -35,16 +36,25 @@ export default function ManualCheckinSelectEventScreen() {
   const renderCard = ({ item }: { item: Activity }) => (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <View style={styles.cardTop}>
-        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.sm + 0.5, color: colors.textPrimary }} numberOfLines={2}>
+        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md - 0.5, color: colors.textPrimary }} numberOfLines={2}>
           {item.title}
         </AppText>
         <StatusBadge status={item.status} />
       </View>
-      <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>
-        {item.location} · {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
-      </AppText>
+      <View style={styles.metaRow}>
+        <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+          {item.location}
+        </AppText>
+      </View>
+      <View style={styles.metaRow}>
+        <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
+        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+          {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
+        </AppText>
+      </View>
       {typeof item.participantCount === 'number' && (
-        <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>
+        <AppText style={{ fontSize: fontSize.sm - 1, color: colors.primary, fontWeight: '600' as any }}>
           {t('admin.checkedInCount', { count: item.participantCount })}
         </AppText>
       )}
@@ -119,7 +129,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: CARD_RADIUS,
     borderWidth: 1,
-    padding: spacing.lg,
+    paddingVertical: 14, // mockup frame 19 card padding: 14px 16px
+    paddingHorizontal: spacing.lg,
     gap: spacing.sm,
     shadowColor: adminAccents.cardShadow,
     shadowOffset: { width: 0, height: 4 },
@@ -133,9 +144,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   actionsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 6, // mockup frame 19 actions-row gap:6
     marginTop: spacing.xs,
   },
   actionBtn: {
