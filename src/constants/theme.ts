@@ -212,6 +212,17 @@ export const dashboardAccents = {
   // — a lighter grey than inputBackground so the pill still reads against
   // the settings card in both themes: mockup #3a4144 dark / #dbe4e0 light.
   switchTrackOff: { dark: '#3a4144', light: '#dbe4e0' },
+  // Amber points pill on the profile header card (mockup "★ 171 pt") — a
+  // different accent from the shared PointsBadge component's lime style
+  // (that one's shared with ActivityCard, so it stays lime everywhere else).
+  pointsBadgeAmber: {
+    bg: { dark: 'rgba(255,196,0,0.14)', light: 'rgba(232,134,43,0.14)' },
+    text: { dark: '#ffc400', light: '#e8862b' },
+  },
+  // Inactive bar fill in the weekly steps chart (profile mockup) — a touch
+  // lighter than the card itself so bars read against it: #252f31 dark /
+  // #eef2f0 light (light value matches inputBackground exactly).
+  chartBarInactive: { dark: '#252f31', light: '#eef2f0' },
 } as const;
 
 // Rotating accent set for activity list rows (date box + avatar stack dots).

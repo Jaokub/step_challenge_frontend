@@ -58,10 +58,13 @@ const SegmentedToggle: React.FC<SegmentedToggleProps> = ({ options, selectedInde
                   style={[StyleSheet.absoluteFill, { borderRadius: borderRadius.full }]}
                 />
               </Animated.View>
-              <AppText
-                variant={active ? 'body-bold' : 'body-regular'}
-                style={[styles.label, { color: active ? colors.onPrimary : colors.textSecondary }]}
-              >
+              {/*
+                Same variant/weight in both states on purpose — switching
+                between body-bold and body-regular swaps font *files* with
+                different glyph widths, which made the whole row visibly
+                jump sideways on press. Only the color animates.
+              */}
+              <AppText variant="body-semiBold" style={[styles.label, { color: active ? colors.onPrimary : colors.textSecondary }]}>
                 {label}
               </AppText>
             </View>

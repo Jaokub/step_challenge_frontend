@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AppText from './AppText';
 import { useTheme } from '../contexts/ThemeContext';
-import { borderRadius, spacing, shadows } from '../constants/theme';
+import { borderRadius, spacing, shadows, gradients, dashboardAccents } from '../constants/theme';
 
 export interface DailyStepData {
   date: string;
@@ -17,7 +18,7 @@ interface WeeklyStepsChartProps {
 }
 
 const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   if (!data || data.length === 0) {
     return null;
@@ -25,6 +26,7 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
 
   const maxSteps = Math.max(...data.map((d) => d.steps));
   const normalizedMax = maxSteps > 0 ? maxSteps : 1; // Prevent division by zero
+  const inactiveBarColor = dashboardAccents.chartBarInactive[isDark ? 'dark' : 'light'];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...shadows.card, shadowColor: colors.cardShadow }]}>
@@ -41,15 +43,16 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
           return (
             <View key={day.date} style={styles.barContainer}>
               <View style={styles.barWrapper}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: `${barHeightPercentage}%`,
-                      backgroundColor: isToday ? colors.primary : colors.primaryLight + '40', // 40 is hex opacity for ~25%
-                    },
-                  ]}
-                />
+                {isToday ? (
+                  <LinearGradient
+                    colors={gradients.primary as any}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={[styles.bar, { height: `${barHeightPercentage}%` }]}
+                  />
+                ) : (
+                  <View style={[styles.bar, { height: `${barHeightPercentage}%`, backgroundColor: inactiveBarColor }]} />
+                )}
               </View>
               <AppText style={[styles.dayLabel, { color: isToday ? colors.primary : colors.textCardSecondary, fontWeight: isToday ? 'bold' : 'normal' }]}>
                 {day.dayName}
@@ -78,26 +81,28 @@ const styles = StyleSheet.create({
   chartArea: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 120, // Total height for bars
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    height: 96, // mockup literal
   },
   barContainer: {
     alignItems: 'center',
     flex: 1,
+    height: '100%',
   },
   barWrapper: {
     flex: 1,
     justifyContent: 'flex-end',
     width: '100%',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 6, // mockup literal — gap between bar and day label
   },
   bar: {
-    width: 24,
-    borderRadius: 2,
+    width: '100%',
+    borderRadius: 8,
   },
   dayLabel: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: 11,
   },
 });
 

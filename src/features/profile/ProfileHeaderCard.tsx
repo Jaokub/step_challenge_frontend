@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { AppText, AvatarCircle, PointsBadge } from '../../components';
+import { AppText, AvatarCircle } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { gradients, dashboardAccents, spacing } from '../../constants/theme';
+import { gradients, dashboardAccents, spacing, borderRadius, fontSize } from '../../constants/theme';
 import type { User } from '../../types';
 
 interface ProfileHeaderCardProps {
@@ -20,8 +21,11 @@ interface ProfileHeaderCardProps {
 export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ profile, stats }) => {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const tone = isDark ? 'dark' : 'light';
   const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
-  const borderColor = dashboardAccents.goalCardBorder[isDark ? 'dark' : 'light'];
+  const borderColor = dashboardAccents.goalCardBorder[tone];
+  const pointsBg = dashboardAccents.pointsBadgeAmber.bg[tone];
+  const pointsText = dashboardAccents.pointsBadgeAmber.text[tone];
   const name = profile?.nickname || profile?.fullName || 'User';
 
   return (
@@ -32,14 +36,17 @@ export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ profile, s
       style={[styles.card, { borderColor }]}
     >
       <View style={styles.top}>
-        <AvatarCircle uri={profile?.avatarUrl} name={name} size={66} ringColor={colors.primary} />
+        <AvatarCircle uri={profile?.avatarUrl} name={name} size={66} squircle />
         <View style={styles.info}>
           <AppText variant="heading-sm" style={[styles.name, { color: colors.textPrimary }]}>
             {name}
           </AppText>
           <AppText style={[styles.email, { color: colors.textSecondary }]}>{profile?.email || ''}</AppText>
-          <View style={{ marginTop: spacing.sm }}>
-            <PointsBadge points={profile?.totalPoints || 0} size="sm" />
+          <View style={[styles.pointsBadge, { backgroundColor: pointsBg }]}>
+            <Ionicons name="star" size={12} color={pointsText} style={styles.pointsIcon} />
+            <AppText variant="numeric" style={[styles.pointsText, { color: pointsText }]}>
+              {(profile?.totalPoints || 0).toLocaleString()}
+            </AppText>
           </View>
         </View>
       </View>
@@ -88,6 +95,21 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 13,
     marginTop: 2,
+    marginBottom: spacing.sm,
+  },
+  pointsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  pointsIcon: {
+    marginRight: 4,
+  },
+  pointsText: {
+    fontSize: fontSize.xs,
   },
   statsRow: {
     flexDirection: 'row',

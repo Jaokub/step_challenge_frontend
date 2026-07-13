@@ -70,7 +70,13 @@ const AppText: React.FC<AppTextProps> = ({ variant = 'body-regular', style, ...p
       lineHeight = 22;
       break;
     case 'numeric':
-      fontFamily = englishFonts.body.bold; // DM Sans Bold always
+      // Numbers alone always want the crisp Latin numeral glyphs, but a
+      // numeric node can carry a Thai unit suffix in the same string (e.g.
+      // "0 ก้าว") — if we force englishFonts unconditionally there, the Thai
+      // word renders with no Thai glyph support. Same Thai-detection rule as
+      // every other variant applies here too; only the "no Thai" branch
+      // still forces the English numeral font regardless of UI language.
+      fontFamily = THAI_CHAR_REGEX.test(extractText(props.children)) ? thaiFonts.body.bold : englishFonts.body.bold;
       lineHeight = 26;
       break;
     case 'body-regular':
