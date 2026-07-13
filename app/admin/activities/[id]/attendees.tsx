@@ -13,7 +13,6 @@ import {
   ScreenHeader,
   EmptyState,
   ErrorState,
-  LoadingScreen,
   SearchBar,
   CustomModal,
   PrimaryButton,
@@ -341,7 +340,22 @@ export default function AdminAttendeesScreen() {
       </View>
 
       {isLoading ? (
-        <LoadingScreen message={t('common.loading')} />
+        // Row skeletons occupy the exact box of a real attendee row (same
+        // padding/borderRadius/borderWidth/gap/marginBottom) so the header,
+        // summary card, filter chips, and search bar all stay put — only the
+        // list body swaps from skeleton to real rows, no full-page reflow.
+        <View style={styles.listContent}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <View key={i} style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <Skeleton width={36} height={36} borderRadius={12} />
+              <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+                <Skeleton width="55%" height={14} borderRadius={4} />
+                <Skeleton width="35%" height={11} borderRadius={4} />
+              </View>
+              <Skeleton width={78} height={30} borderRadius={10} />
+            </View>
+          ))}
+        </View>
       ) : checkinsError ? (
         <ErrorState title={t('admin.loadError')} message={(checkinsError as any)?.message ?? ''} onRetry={refetchCheckins} />
       ) : (
