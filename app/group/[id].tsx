@@ -14,6 +14,7 @@ import { useGroupDetail } from '../../src/features/group/useGroupDetail';
 import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
 import { GroupSiblingsSection } from '../../src/features/group/GroupSiblingsSection';
+import EnrollActivitySheet from '../../src/features/group/EnrollActivitySheet';
 import type { GroupRankingRow } from '../../src/types';
 
 const initials = (name?: string): string =>
@@ -38,6 +39,7 @@ export default function GroupDetailScreen() {
   const [editDesc, setEditDesc] = useState('');
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
   const [confirmAction, setConfirmAction] = useState<'leave' | 'delete' | null>(null);
+  const [enrollSheetOpen, setEnrollSheetOpen] = useState(false);
 
   const {
     group,
@@ -295,18 +297,13 @@ export default function GroupDetailScreen() {
           )}
 
           {isOwner && (
-            <View style={{ opacity: 0.45 }}>
+            <TouchableOpacity onPress={() => setEnrollSheetOpen(true)}>
               <View style={[styles.enrollBtn, { backgroundColor: colors.textPrimary }]}>
                 <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.background }}>
                   {t('groups.enrollGroupIntoActivity')}
                 </AppText>
               </View>
-            </View>
-          )}
-          {isOwner && (
-            <AppText style={[styles.gapCaption, { color: colors.warning, backgroundColor: colors.warning + '1A' }]}>
-              {t('groups.featureComingSoon')}
-            </AppText>
+            </TouchableOpacity>
           )}
 
           {!isOwner && (
@@ -421,6 +418,14 @@ export default function GroupDetailScreen() {
           </View>
         </View>
       </CustomModal>
+
+      <EnrollActivitySheet
+        visible={enrollSheetOpen}
+        onClose={() => setEnrollSheetOpen(false)}
+        groupId={id}
+        groupName={group.name}
+        memberCount={group.members?.length ?? 0}
+      />
     </View>
   );
 }
@@ -488,16 +493,6 @@ const styles = StyleSheet.create({
   gapRowText: { flex: 1, fontSize: 12.5, lineHeight: 16, fontWeight: '600' as any },
   gapBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   enrollBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
-  gapCaption: {
-    fontSize: 10.5,
-    lineHeight: 13,
-    fontWeight: '700' as any,
-    textAlign: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginTop: -6,
-  },
 
   // Description card (member view)
   descCard: { borderRadius: 18, borderWidth: 1, padding: 14, gap: spacing.sm },

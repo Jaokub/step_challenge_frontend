@@ -6,6 +6,7 @@ export { default as AppCard } from './AppCard';
 export { default as GradientHeader } from './GradientHeader';
 export { default as ScreenHeader } from './ScreenHeader';
 export { default as CustomModal } from './CustomModal';
+export { default as BottomSheet } from './BottomSheet';
 export { default as WeeklyStepsChart } from './WeeklyStepsChart';
 
 // Buttons

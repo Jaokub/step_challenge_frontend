@@ -215,7 +215,12 @@
     "groupUpdated": "บันทึกการเปลี่ยนแปลงแล้ว",
     "memberRemoved": "นำสมาชิกออกจากกลุ่มแล้ว",
     "shareInviteLink": "แชร์ลิงก์เชิญ",
-    "noDescription": "ยังไม่มีคำอธิบายกลุ่ม"
+    "noDescription": "ยังไม่มีคำอธิบายกลุ่ม",
+    "searchActivityPlaceholder": "ค้นหากิจกรรมที่เปิดรับ...",
+    "enrollNote": "สมาชิก {{count}} คนจะถูกลงทะเบียนเข้ากิจกรรมนี้ (แต่ละคนยังต้องเช็คอินเองเพื่อรับคะแนน)",
+    "confirmEnrollButton": "ยืนยันการเข้าร่วม",
+    "selectChip": "เลือก",
+    "noOpenActivities": "ยังไม่มีกิจกรรมที่เปิดรับตอนนี้"
   },
   "events": {
     "title": "อีเวนต์",
@@ -501,7 +506,19 @@
     "search": "ค้นหากิจกรรม...",
     "people": "จำนวนคน",
     "allDay": "ทั้งวัน",
-    "points": "คะแนน"
+    "points": "คะแนน",
+    "metaSteps": "เป้าหมาย {{count}} ก้าว",
+    "metaDistanceKm": "{{km}} กม.",
+    "metaPoints": "{{points}} pt",
+    "groupAlreadyEnrolled": "กลุ่มของคุณเข้าร่วมแล้ว — {{groupName}}",
+    "enrollGroupButton": "พากลุ่มเข้าร่วม (ผู้ประสานงานเท่านั้น)",
+    "totalParticipants": "ผู้เข้าร่วมทั้งหมด",
+    "leaveActivityButton": "ออกจากกิจกรรม",
+    "confirmLeaveActivity": "ออกจากกิจกรรมนี้? คุณจะไม่ได้ลงทะเบียนอีกต่อไป แต่การเช็คอินและคะแนนของคุณจะยังคงอยู่",
+    "leftActivityToast": "ออกจากกิจกรรมแล้ว",
+    "pickGroupTitle": "เลือกกลุ่มที่จะพาเข้าร่วม",
+    "confirmEnrollGroupInActivity": "พา \"{{name}}\" เข้าร่วมกิจกรรมนี้? สมาชิกทั้ง {{count}} คนจะถูกลงทะเบียน",
+    "enrolledGroupToast": "ลงทะเบียนกลุ่มแล้ว — สมาชิก {{count}} คน"
   },
   "tabs": {
     "home": "หน้าแรก",

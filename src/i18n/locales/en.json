@@ -215,7 +215,12 @@
     "groupUpdated": "Changes saved",
     "memberRemoved": "Member removed",
     "shareInviteLink": "Share invite link",
-    "noDescription": "No description yet"
+    "noDescription": "No description yet",
+    "searchActivityPlaceholder": "Search open activities...",
+    "enrollNote": "{{count}} members will be registered for this activity (each still has to check in individually to earn points)",
+    "confirmEnrollButton": "Confirm enrollment",
+    "selectChip": "Select",
+    "noOpenActivities": "No open activities right now"
   },
   "events": {
     "title": "Events",
@@ -501,7 +506,19 @@
     "search": "Search activities...",
     "people": "People",
     "allDay": "All day",
-    "points": "Points"
+    "points": "Points",
+    "metaSteps": "Goal {{count}} steps",
+    "metaDistanceKm": "{{km}} km",
+    "metaPoints": "{{points}} pt",
+    "groupAlreadyEnrolled": "Your group has already joined — {{groupName}}",
+    "enrollGroupButton": "Enroll your group (coordinators only)",
+    "totalParticipants": "Total participants",
+    "leaveActivityButton": "Leave activity",
+    "confirmLeaveActivity": "Leave this activity? You'll no longer be registered, but your check-ins and points stay.",
+    "leftActivityToast": "Left the activity",
+    "pickGroupTitle": "Choose a group to enroll",
+    "confirmEnrollGroupInActivity": "Enroll \"{{name}}\" in this activity? All {{count}} members will be registered.",
+    "enrolledGroupToast": "Group enrolled — {{count}} member(s) registered"
   },
   "tabs": {
     "home": "Home",

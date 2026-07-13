@@ -17,6 +17,8 @@ export const queryKeys = {
     // list (BUILD_PLAN.md Phase 3.1); sharing one key risked the polling
     // query's truncated cache being read as fresh by the attendees screen.
     checkinsFull: (activityId: string) => ['activities', 'checkins', activityId, 'full'] as const,
+    // Registration-only cascade (Phase 4) — distinct from `checkins` above.
+    participants: (activityId: string) => ['activities', 'participants', activityId] as const,
   },
   dashboard: {
     personal: ['dashboard', 'personal'] as const,

@@ -1,36 +1,45 @@
-import { AppText } from '../../src/components';
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../src/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useToast } from '../../src/contexts/ToastContext';
 import {
-  AppCard,
-  PrimaryButton,
+  AppText,
+  ScreenHeader,
   StatusBadge,
-  PointsBadge,
-  AvatarCircle,
   LoadingScreen,
+  ErrorState,
+  CustomModal,
+  BottomSheet,
+  PrimaryButton,
+  OutlineButton,
 } from '../../src/components';
-import { spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import activityService from '../../src/features/activity/activityService';
+import { spacing } from '../../src/constants/theme';
 import { queryKeys } from '../../src/constants/queryKeys';
-import type { Activity } from '../../src/types';
+import activityService from '../../src/features/activity/activityService';
+import { useGroups } from '../../src/features/group/useGroups';
 import { formatDate } from '../../src/utils/formatDate';
+import type { Activity } from '../../src/types';
 
-const { width } = Dimensions.get('window');
-
+// Mockup frame 17 — participant view. Registration (ActivityParticipant) is
+// separate from check-ins/points: enrolling a group or joining here awards
+// nothing, members still check in via QR/manual to earn points
+// (BUILD_PLAN.md Phase 4).
 export default function ActivityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
-  const { isAdmin } = useAuth();
   const { colors } = useTheme();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data, isPending: loading, isRefetching: refreshing, refetch } = useQuery({
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [confirmGroup, setConfirmGroup] = useState<{ id: string; name: string; memberCount: number } | null>(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+
+  const { data, isPending, isRefetching, refetch } = useQuery({
     queryKey: queryKeys.activities.detail(id ?? ''),
     queryFn: async () => {
       const response = await activityService.getActivityById(id!);
@@ -39,306 +48,226 @@ export default function ActivityDetailScreen() {
     },
     enabled: !!id,
   });
-
   const activity: Activity | null = data ?? null;
 
-  const onRefresh = () => refetch();
+  // Groups the caller coordinates — only OWNERs may enroll a group.
+  const { groups } = useGroups(true);
+  const myCoordGroups = groups.filter((g) => g.myRole === 'OWNER');
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  const invalidateActivity = () => queryClient.invalidateQueries({ queryKey: queryKeys.activities.detail(id ?? '') });
+
+  const enrollMutation = useMutation({
+    mutationFn: (groupId: string) => activityService.enrollGroupIntoActivity(id!, groupId),
+  });
+  const leaveMutation = useMutation({
+    mutationFn: () => activityService.leaveActivity(id!),
+  });
+
+  const handlePickGroup = () => {
+    if (myCoordGroups.length === 1) {
+      const g = myCoordGroups[0];
+      setConfirmGroup({ id: g.id, name: g.name, memberCount: g.memberCount ?? 0 });
+    } else {
+      setPickerOpen(true);
+    }
+  };
+
+  const handleEnrollConfirm = async () => {
+    if (!confirmGroup) return;
+    try {
+      const res = await enrollMutation.mutateAsync(confirmGroup.id);
+      if (res.success) {
+        showToast(t('activity.enrolledGroupToast', { count: res.data.added }), 'success');
+        invalidateActivity();
+        setConfirmGroup(null);
+        setPickerOpen(false);
+      } else {
+        showToast(res.message || t('common.error'), 'error');
+      }
+    } catch (err: any) {
+      showToast(err?.message || t('common.error'), 'error');
+    }
+  };
+
+  const handleLeaveConfirm = async () => {
+    try {
+      const res = await leaveMutation.mutateAsync();
+      if (res.success) {
+        showToast(t('activity.leftActivityToast'), 'success');
+        invalidateActivity();
+        setLeaveConfirmOpen(false);
+      } else {
+        showToast(res.message || t('common.error'), 'error');
+      }
+    } catch (err: any) {
+      showToast(err?.message || t('common.error'), 'error');
+    }
+  };
+
+  if (isPending) return <LoadingScreen />;
 
   if (!activity) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <SafeAreaView edges={['top']} style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <AppText style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            {t('activities.title')}
-          </AppText>
-          <View style={{ width: 28 }} />
+        <SafeAreaView edges={['top']}>
+          <ScreenHeader title={t('activities.title')} onBack={() => router.back()} backChip titleSize={16} />
         </SafeAreaView>
-        <View style={styles.center}>
-          <Ionicons name="alert-circle-outline" size={64} color={colors.textSecondary} />
-          <AppText style={[styles.errorText, { color: colors.textPrimary }]}>{t('activity.notFound')}</AppText>
-        </View>
+        <ErrorState title={t('common.error')} message={t('activity.notFound')} onRetry={refetch} />
       </View>
     );
   }
 
+  const metaParts = [
+    activity.location,
+    `${formatDate(activity.startDate, i18n.language)} – ${formatDate(activity.endDate, i18n.language)}`,
+  ];
+  if (activity.expectedSteps) metaParts.push(t('activity.metaSteps', { count: activity.expectedSteps.toLocaleString() }));
+  if (activity.totalDistance) metaParts.push(t('activity.metaDistanceKm', { km: activity.totalDistance }));
+  metaParts.push(t('activity.metaPoints', { points: activity.points }));
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <AppText style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-          {activity.title}
-        </AppText>
-        {isAdmin ? (
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => router.push(`/admin/edit-activity/${activity.id}`)}
-          >
-            <Ionicons name="create-outline" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 28 }} />
-        )}
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+        <ScreenHeader
+          title={activity.title}
+          pathSubtitle={`/activity/${activity.id}`}
+          onBack={() => router.back()}
+          backChip
+          titleSize={16}
+        />
       </SafeAreaView>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
       >
-        {/* Banner Card / Top Hero Area */}
-        <AppCard style={styles.heroCard}>
-          <View style={styles.heroRow}>
-            <StatusBadge status={activity.status} />
-            <PointsBadge points={activity.points} size="md" />
+        <StatusBadge status={activity.status} />
+
+        <AppText style={[styles.meta, { color: colors.textSecondary }]}>{metaParts.join(' · ')}</AppText>
+
+        {activity.myParticipation?.groupId && (
+          <View style={[styles.enrolledBadge, { backgroundColor: colors.primary + '1A', borderColor: colors.primary + '40' }]}>
+            <AppText style={{ fontSize: 12.5, fontWeight: '700' as any, color: colors.primary }}>
+              {t('activity.groupAlreadyEnrolled', { groupName: activity.myParticipation.groupName })}
+            </AppText>
           </View>
-          <AppText style={[styles.activityTitle, { color: colors.textOnCard }]}>
-            {activity.title}
-          </AppText>
-          {activity.isCheckedIn && (
-            <View style={styles.checkedInRow}>
-              <Ionicons name="checkmark-circle" size={18} color="#4CAF50" />
-              <AppText style={styles.checkedInText}>{t('activities.checkedIn')}</AppText>
-            </View>
-          )}
-        </AppCard>
-
-        {/* Details Card */}
-        <AppCard style={styles.detailsCard}>
-          <View style={styles.detailRow}>
-            <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight + '20' }]}>
-              <Ionicons name="calendar" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.detailText}>
-              <AppText style={[styles.detailLabel, { color: colors.textCardSecondary }]}>
-                {t('activities.date')}
-              </AppText>
-              <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {t('activity.start')} {formatDate(activity.startDate, i18n.language, 'datetime')}
-              </AppText>
-              <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {t('activity.end')} {formatDate(activity.endDate, i18n.language, 'datetime')}
-              </AppText>
-            </View>
-          </View>
-
-          <View style={styles.detailRow}>
-            <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight + '20' }]}>
-              <Ionicons name="location" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.detailText}>
-              <AppText style={[styles.detailLabel, { color: colors.textCardSecondary }]}>
-                {t('activities.location')}
-              </AppText>
-              <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {activity.location}
-              </AppText>
-            </View>
-          </View>
-
-          <View style={styles.detailRow}>
-            <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight + '20' }]}>
-              <Ionicons name="people" size={20} color={colors.primary} />
-            </View>
-            <View style={styles.detailText}>
-              <AppText style={[styles.detailLabel, { color: colors.textCardSecondary }]}>
-                {t('common.participants')}
-              </AppText>
-              <AppText style={[styles.detailValue, { color: colors.textOnCard }]}>
-                {activity.participantCount ?? 0}
-                {activity.maxParticipants ? ` / ${activity.maxParticipants} ${t('activity.people')}` : t('activity.participantsUncapped')}
-              </AppText>
-            </View>
-          </View>
-        </AppCard>
-
-        {/* Description */}
-        <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-          {t('activities.description')}
-        </AppText>
-        <AppCard style={styles.descCard}>
-          <AppText style={[styles.description, { color: colors.textOnCard }]}>
-            {activity.description || t('activity.noDescription')}
-          </AppText>
-        </AppCard>
-
-        {/* Organizer */}
-        {activity.createdBy && (
-          <>
-            <AppText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{t('activity.creator')}</AppText>
-            <AppCard style={styles.organizerCard}>
-              <AvatarCircle
-                name={activity.createdBy.fullName}
-                size={40}
-                uri={activity.createdBy.avatarUrl}
-              />
-              <View style={styles.organizerInfo}>
-                <AppText style={[styles.organizerName, { color: colors.textOnCard }]}>
-                  {activity.createdBy.fullName}
-                </AppText>
-                <AppText style={[styles.organizerDept, { color: colors.textCardSecondary }]}>
-                  {activity.createdBy.department}
-                </AppText>
-              </View>
-            </AppCard>
-          </>
         )}
 
-        {/* Check-In CTA Button */}
-        {activity.status === 'ONGOING' && !activity.isCheckedIn && (
-          <PrimaryButton
-            title={t('activities.checkIn')}
-            onPress={() => router.push('/(tabs)/scan')}
-            icon="qr-code"
-            style={styles.ctaButton}
-          />
+        {myCoordGroups.length > 0 && (
+          <TouchableOpacity onPress={handlePickGroup}>
+            <View style={[styles.darkBtn, { backgroundColor: colors.textPrimary }]}>
+              <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.background }}>
+                {t('activity.enrollGroupButton')}
+              </AppText>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <View style={[styles.countCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+          <AppText style={{ fontSize: 12.5, color: colors.textSecondary }}>{t('activity.totalParticipants')}</AppText>
+          <AppText variant="heading-bold" style={{ fontSize: 16, color: colors.textPrimary }}>
+            {activity.participantCount ?? 0} {t('activity.people')}
+          </AppText>
+        </View>
+
+        {activity.myParticipation && (
+          <TouchableOpacity onPress={() => setLeaveConfirmOpen(true)}>
+            <View style={[styles.leaveBtn, { backgroundColor: colors.inputBackground }]}>
+              <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.error }}>
+                {t('activity.leaveActivityButton')}
+              </AppText>
+            </View>
+          </TouchableOpacity>
         )}
 
         <View style={{ height: spacing['4xl'] }} />
       </ScrollView>
+
+      <BottomSheet visible={pickerOpen} onClose={() => setPickerOpen(false)}>
+        <AppText variant="heading-bold" style={{ fontSize: 17, color: colors.textPrimary }}>
+          {t('activity.pickGroupTitle')}
+        </AppText>
+        <View style={{ gap: spacing.sm }}>
+          {myCoordGroups.map((g) => (
+            <TouchableOpacity
+              key={g.id}
+              onPress={() => setConfirmGroup({ id: g.id, name: g.name, memberCount: g.memberCount ?? 0 })}
+              style={[styles.pickerRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+            >
+              <AppText variant="body-bold" style={{ flex: 1, fontSize: 13.5, color: colors.textPrimary }}>
+                {g.name}
+              </AppText>
+              <AppText style={{ fontSize: 11, color: colors.textSecondary }}>
+                {t('groups.memberCountLabel', { count: g.memberCount ?? 0 })}
+              </AppText>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </BottomSheet>
+
+      <CustomModal
+        visible={!!confirmGroup}
+        onClose={() => setConfirmGroup(null)}
+        title={t('activity.enrollGroupButton')}
+        description={
+          confirmGroup
+            ? t('activity.confirmEnrollGroupInActivity', { name: confirmGroup.name, count: confirmGroup.memberCount })
+            : undefined
+        }
+      >
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <OutlineButton title={t('common.cancel')} onPress={() => setConfirmGroup(null)} disabled={enrollMutation.isPending} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              title={enrollMutation.isPending ? t('common.loading') : t('common.confirm')}
+              onPress={handleEnrollConfirm}
+              disabled={enrollMutation.isPending}
+            />
+          </View>
+        </View>
+      </CustomModal>
+
+      <CustomModal
+        visible={leaveConfirmOpen}
+        onClose={() => setLeaveConfirmOpen(false)}
+        title={t('activity.leaveActivityButton')}
+        description={t('activity.confirmLeaveActivity')}
+      >
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <OutlineButton title={t('common.cancel')} onPress={() => setLeaveConfirmOpen(false)} disabled={leaveMutation.isPending} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PrimaryButton
+              title={leaveMutation.isPending ? t('common.loading') : t('common.confirm')}
+              onPress={handleLeaveConfirm}
+              disabled={leaveMutation.isPending}
+              style={{ backgroundColor: colors.error }}
+            />
+          </View>
+        </View>
+      </CustomModal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  backButton: {
-    padding: spacing.xs,
-  },
-  editButton: {
-    padding: spacing.xs,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    textAlign: 'center',
-    flex: 1,
-    paddingHorizontal: spacing.md,
-  },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: fontSize.lg,
-    marginTop: spacing.md,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
-  },
-  heroCard: {
-    padding: spacing.xl,
-    marginBottom: spacing.lg,
-  },
-  heroRow: {
+  container: { flex: 1 },
+  content: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, gap: spacing.md },
+  meta: { fontSize: 12.5, lineHeight: 18 },
+  enrolledBadge: { borderRadius: 14, borderWidth: 1, padding: 11 },
+  darkBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
+  countCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 14,
   },
-  activityTitle: {
-    fontSize: fontSize.xl,
-    lineHeight: 28,
-  },
-  checkedInRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.md,
-    backgroundColor: 'rgba(76,175,80,0.12)',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.md,
-    alignSelf: 'flex-start',
-  },
-  checkedInText: {
-    fontSize: fontSize.sm,
-    color: '#4CAF50',
-  },
-  detailsCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    gap: spacing.md,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-  },
-  iconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detailText: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: fontSize.xs,
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: fontSize.sm,
-    lineHeight: 20,
-  },
-  sectionTitle: {
-    fontSize: fontSize.md,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  descCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  description: {
-    fontSize: fontSize.sm,
-    lineHeight: 22,
-  },
-  organizerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    marginBottom: spacing.xl,
-    gap: spacing.md,
-  },
-  organizerInfo: {
-    flex: 1,
-  },
-  organizerName: {
-    fontSize: fontSize.sm,
-  },
-  organizerDept: {
-    fontSize: fontSize.xs,
-  },
-  ctaButton: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-  },
+  leaveBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
+  pickerRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, padding: 12 },
 });

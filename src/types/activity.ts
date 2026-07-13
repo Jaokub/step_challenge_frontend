@@ -21,8 +21,23 @@ export interface Activity {
   participantCount?: number;
   createdBy?: User;
   isCheckedIn?: boolean;
+  // Registration-only cascade (BUILD_PLAN.md Phase 4) — separate from
+  // check-ins/points. Set on GET /activities/:id only. null when the caller
+  // has no ActivityParticipant row for this activity.
+  myParticipation?: { groupId: string | null; groupName: string | null } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A registered (not necessarily checked-in) member of an activity. */
+export interface ActivityParticipant {
+  id: string;
+  activityId: string;
+  userId: string;
+  groupId: string | null;
+  createdAt: string;
+  user?: User;
+  group?: { id: string; name: string } | null;
 }
 
 export interface CheckIn {
