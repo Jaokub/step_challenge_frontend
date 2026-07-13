@@ -4,9 +4,10 @@ import activityService from '../activity/activityService';
 import { queryKeys } from '../../constants/queryKeys';
 import type { Activity, ActivityStatus } from '../../types';
 
-export type AdminActivityFilter = 'all' | 'ongoing' | 'ended';
+export type AdminActivityFilter = 'all' | 'upcoming' | 'ongoing' | 'ended';
 
 const STATUS_MAP: Record<Exclude<AdminActivityFilter, 'all'>, ActivityStatus> = {
+  upcoming: 'UPCOMING',
   ongoing: 'ONGOING',
   ended: 'COMPLETED',
 };

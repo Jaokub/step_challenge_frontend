@@ -12,7 +12,7 @@ import { spacing, fontSize, borderRadius, gradients, adminAccents } from '../../
 import { formatDate } from '../../../src/utils/formatDate';
 import type { Activity } from '../../../src/types';
 
-const FILTERS: AdminActivityFilter[] = ['all', 'ongoing', 'ended'];
+const FILTERS: AdminActivityFilter[] = ['all', 'upcoming', 'ongoing', 'ended'];
 const CARD_RADIUS = 22; // mockup frame 2 card radius (not borderRadius.xl)
 
 export default function AdminActivitiesListScreen() {
@@ -21,7 +21,13 @@ export default function AdminActivitiesListScreen() {
   const { activities, filter, setFilter, loading, refreshing, refresh, error } = useAdminActivitiesList();
 
   const filterLabel = (f: AdminActivityFilter) =>
-    f === 'all' ? t('admin.filterAll') : f === 'ongoing' ? t('admin.filterOngoing') : t('admin.filterEnded');
+    f === 'all'
+      ? t('admin.filterAll')
+      : f === 'upcoming'
+      ? t('admin.filterUpcoming')
+      : f === 'ongoing'
+      ? t('admin.filterOngoing')
+      : t('admin.filterEnded');
 
   // Mockup frame 2 (latest upload): the whole card is the tap target →
   // straight to edit-activity. The per-card Edit/Attendees/QR action row is
