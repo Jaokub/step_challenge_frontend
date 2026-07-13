@@ -34,9 +34,10 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
         styles.container,
         {
           backgroundColor: colors.card,
-          // Mockup only has a hairline border on the light-theme card.
-          borderWidth: isDark ? 0 : 1,
-          borderColor: colors.cardBorder,
+          // Mockup only has a hairline border on the light-theme card, but
+          // borderWidth must stay constant (0/1 toggling resizes the box by
+          // a pixel and made the card jump on theme switch) — toggle color.
+          borderColor: isDark ? 'transparent' : colors.cardBorder,
           ...shadows.card,
           shadowColor: colors.cardShadow,
         },
@@ -80,6 +81,7 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: borderRadius.xl,
+    borderWidth: 1,
     padding: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,

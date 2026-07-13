@@ -8,8 +8,8 @@ import { gradients, borderRadius } from '../constants/theme';
 // Fixed so both segments (any two labels) are always identical width — this
 // is what makes ภาษา (ไทย/EN) and ธีม (มืด/สว่าง) the same total pill length
 // as each other, and stops the row from jumping when the selection flips.
-// 64 comfortably fits the longest label ("สว่าง") at fontSize 12.
-const SEGMENT_WIDTH = 64;
+// 58 comfortably fits the longest label ("สว่าง") at fontSize 12.
+const SEGMENT_WIDTH = 58;
 const TRACK_PADDING = 3;
 
 interface SegmentedToggleProps {
@@ -100,6 +100,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
+    // AppText's body-semiBold variant defaults to lineHeight 24 (built for
+    // regular body text), which made this whole pill nearly 35px tall —
+    // override it down to match the 12px font so the toggle reads as
+    // compact as the mockup, not a full-size text row.
+    lineHeight: 14,
   },
 });
 

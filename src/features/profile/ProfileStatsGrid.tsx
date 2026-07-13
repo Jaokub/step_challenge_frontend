@@ -27,9 +27,11 @@ const StatCell: React.FC<StatCellProps> = ({ label, value, color, unit }) => {
     <View
       style={[
         styles.cell,
-        // Mockup only puts a hairline border on the light-theme cards — dark
-        // cards already contrast against the page background on their own.
-        { backgroundColor: colors.card, borderWidth: isDark ? 0 : 1, borderColor: colors.cardBorder },
+        // Mockup only puts a hairline border on the light-theme cards, but
+        // borderWidth must stay constant (0/1 toggling resizes the box by a
+        // pixel and made the whole screen visibly jump on theme switch) —
+        // toggle the color to transparent instead.
+        { backgroundColor: colors.card, borderColor: isDark ? 'transparent' : colors.cardBorder },
       ]}
     >
       <AppText style={[styles.cellLabel, { color: colors.textSecondary }]}>{label}</AppText>
@@ -94,6 +96,7 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     borderRadius: 22,
+    borderWidth: 1,
     padding: spacing.lg,
   },
   cellLabel: {

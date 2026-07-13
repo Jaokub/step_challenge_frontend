@@ -15,6 +15,9 @@ export { default as OutlineButton } from './OutlineButton';
 export { default as QuickActionButton } from './QuickActionButton';
 export { default as HeaderIconButton } from './HeaderIconButton';
 
+// Navigation
+export { default as TabBarButton } from './TabBarButton';
+
 // Progress & Animation
 export { default as AnimatedCounter } from './AnimatedCounter';
 export { default as CircularProgress } from './CircularProgress';

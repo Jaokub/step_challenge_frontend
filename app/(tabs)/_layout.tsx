@@ -5,11 +5,11 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { LoadingScreen } from '../../src/components';
+import { LoadingScreen, TabBarButton } from '../../src/components';
 
 export default function TabsLayout() {
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -31,7 +31,7 @@ export default function TabsLayout() {
     ({ color, focused, size }: { color: string; focused: boolean; size: number }) => (
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name={(focused ? name : `${name}-outline`) as any} size={size} color={color} />
-        {focused && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
+        {focused && <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: color, position: 'absolute', bottom: -10 }} />}
       </View>
     );
 
@@ -47,15 +47,19 @@ export default function TabsLayout() {
         tabBarShowLabel: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabInactive,
+        // colors.tabBar / colors.divider are the mockup footer's literal
+        // #0f1416 / rgba(255,255,255,0.06) (dark) — previously a hardcoded
+        // translucent rgba + cardBorder, which didn't match.
         tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(39, 39, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backgroundColor: colors.tabBar,
           borderTopWidth: 1,
-          borderTopColor: colors.cardBorder,
+          borderTopColor: colors.divider,
           height: Platform.OS === 'ios' ? 85 : 65,
           paddingBottom: Platform.OS === 'ios' ? 25 : 8,
-          paddingTop: 8,
+          paddingTop: 12,
           elevation: 0,
         },
+        tabBarButton: (props: any) => <TabBarButton {...props} />,
       }}
     >
       <Tabs.Screen

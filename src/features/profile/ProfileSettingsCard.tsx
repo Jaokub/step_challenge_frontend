@@ -60,9 +60,11 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
           styles.card,
           {
             backgroundColor: colors.card,
-            // Mockup only has a hairline border on light-theme cards.
-            borderWidth: isDark ? 0 : 1,
-            borderColor: colors.cardBorder,
+            // Mockup only has a hairline border on light-theme cards, but
+            // borderWidth must stay constant — toggling 0/1 resizes the box
+            // by a pixel and made the settings card (and everything below
+            // it) visibly jump on every theme switch. Toggle color instead.
+            borderColor: isDark ? 'transparent' : colors.cardBorder,
             shadowColor: colors.cardShadow,
           },
         ]}
@@ -98,8 +100,7 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
             styles.extraCard,
             {
               backgroundColor: colors.card,
-              borderWidth: isDark ? 0 : 1,
-              borderColor: colors.cardBorder,
+              borderColor: isDark ? 'transparent' : colors.cardBorder,
               shadowColor: colors.cardShadow,
             },
           ]}
@@ -125,11 +126,13 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
     padding: spacing.sm,
     ...shadows.card,
   },
   extraCard: {
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
     paddingHorizontal: spacing.lg,
     marginTop: spacing.md,
     overflow: 'hidden',
