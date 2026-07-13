@@ -76,9 +76,12 @@ export default function AdminAttendeesScreen() {
     error: checkinsError,
     refetch: refetchCheckins,
   } = useQuery({
-    queryKey: queryKeys.activities.checkins(id),
+    queryKey: queryKeys.activities.checkinsFull(id),
     queryFn: async () => {
-      const res = await checkinService.getCheckinsByActivity(id);
+      // Paginate-until-exhausted — a single page (backend default limit=50)
+      // would silently truncate the list for any activity with >50
+      // check-ins (BUILD_PLAN.md Phase 3.1).
+      const res = await checkinService.getAllCheckinsByActivity(id);
       if (!res.success) throw new Error(res.message);
       return res.data;
     },
@@ -92,9 +95,12 @@ export default function AdminAttendeesScreen() {
     data: allUsers,
     isPending: isLoadingUsers,
   } = useQuery({
-    queryKey: queryKeys.users.list,
+    queryKey: queryKeys.users.fullList,
     queryFn: async () => {
-      const res = await userService.getAllUsers();
+      // Paginate-until-exhausted — a single page (backend default limit=20)
+      // would silently truncate the roster for basically any real faculty
+      // (BUILD_PLAN.md Phase 3.1).
+      const res = await userService.getAllUsersFull();
       if (!res.success) throw new Error(res.message);
       return res.data.users ?? [];
     },
@@ -183,7 +189,7 @@ export default function AdminAttendeesScreen() {
     try {
       const res = await checkinService.adminCheckinUser(id, row.userId);
       if (!res.success) throw new Error(res.message);
-      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkins(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkinsFull(id) });
       showToast(t('admin.manualCheckinSuccess'), 'success');
     } catch (err: any) {
       showToast(err?.message || t('common.error'), 'error');
@@ -198,7 +204,7 @@ export default function AdminAttendeesScreen() {
     try {
       const res = await checkinService.deleteCheckin(pendingUndo.checkInId);
       if (!res.success) throw new Error(res.message);
-      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkins(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkinsFull(id) });
       showToast(t('admin.undoCheckinSuccess'), 'success');
       setPendingUndo(null);
     } catch (err: any) {

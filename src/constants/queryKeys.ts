@@ -11,6 +11,12 @@ export const queryKeys = {
     list: (filter: string) => ['activities', 'list', filter] as const,
     detail: (id: string) => ['activities', 'detail', id] as const,
     checkins: (activityId: string) => ['activities', 'checkins', activityId] as const,
+    // Distinct from `checkins` — that key backs qr.tsx's single-page,
+    // 5s-polling live counter (only reads `totalCheckIns`, unaffected by
+    // truncation). This backs attendees.tsx's paginate-until-exhausted full
+    // list (BUILD_PLAN.md Phase 3.1); sharing one key risked the polling
+    // query's truncated cache being read as fresh by the attendees screen.
+    checkinsFull: (activityId: string) => ['activities', 'checkins', activityId, 'full'] as const,
   },
   dashboard: {
     personal: ['dashboard', 'personal'] as const,
@@ -51,6 +57,11 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     list: ['users', 'list'] as const,
+    // Distinct from `list` — that key backs the single-page (limit=20)
+    // admin/users.tsx query, this backs the paginate-until-exhausted full
+    // roster (BUILD_PLAN.md Phase 3.1). Sharing one key would let either
+    // screen's incomplete/complete cache leak into the other.
+    fullList: ['users', 'list', 'full'] as const,
     profile: (id: string) => ['users', 'profile', id] as const,
     me: ['users', 'me'] as const,
     profileScreen: ['users', 'profileScreen'] as const,

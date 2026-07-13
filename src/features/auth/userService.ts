@@ -82,6 +82,43 @@ const userService = {
   },
 
   /**
+   * Same as `getAllUsers` but pages through the full offset-based result
+   * (backend defaults to limit=20, capped at 100) until every user is
+   * fetched. Calling `getAllUsers()` with no params silently truncates the
+   * roster at 20 — any screen using it as the full staff list (e.g. the
+   * admin attendees roster) would show an incomplete list + wrong counts
+   * for basically any real faculty (BUILD_PLAN.md Phase 3.1).
+   */
+  async getAllUsersFull(
+    params?: Pick<GetAllUsersParams, 'search'>,
+  ): Promise<ApiResponse<{ users: User[]; pagination: PaginationInfo }>> {
+    try {
+      const limit = 100; // backend max for GET /users
+      let offset = 0;
+      let total = Infinity;
+      const users: User[] = [];
+
+      while (offset < total) {
+        const { data } = await api.get<
+          ApiResponse<{ users: User[]; pagination: PaginationInfo }>
+        >('/users', { params: { ...params, limit, offset } });
+        if (!data.success) return data;
+        users.push(...data.data.users);
+        total = data.data.pagination.total;
+        offset += limit;
+      }
+
+      return {
+        success: true,
+        data: { users, pagination: { page: 1, limit: users.length, total, totalPages: 1 } },
+        message: 'Users retrieved successfully.',
+      };
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /**
    * Admin only — grant or revoke ADMIN (gap #5, BUILD_PLAN.md Phase 2).
    */
   async updateUserRole(id: string, role: 'ADMIN' | 'STAFF'): Promise<ApiResponse<{ user: User }>> {

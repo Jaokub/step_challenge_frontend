@@ -21,9 +21,12 @@ export default function UsersManagementScreen() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
 
   const { data, isPending: loading, error: queryError, refetch: fetchUsers } = useQuery({
-    queryKey: queryKeys.users.list,
+    queryKey: queryKeys.users.fullList,
     queryFn: async () => {
-      const res = await userService.getAllUsers();
+      // Paginate-until-exhausted — a single page (backend default limit=20)
+      // silently truncated this screen's roster at 20 users for any real
+      // faculty (same bug as attendees.tsx, BUILD_PLAN.md Phase 3.1).
+      const res = await userService.getAllUsersFull();
       if (res && res.success && res.data) {
         return (res.data.users || (res.data as any)) as any[];
       }
