@@ -3,21 +3,15 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { AppText, SettingsRow, SegmentedToggle } from '../../components';
+import { AppText, SettingsRow, SegmentedToggle, SwitchToggle } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { gradients, spacing, fontSize, borderRadius, shadows } from '../../constants/theme';
+import { spacing, fontSize, borderRadius, shadows } from '../../constants/theme';
 
 interface ProfileSettingsCardProps {
   isAdmin: boolean;
   showAppleHealthSync: boolean;
   onCopySyncToken: () => void;
 }
-
-const SWITCH_WIDTH = 44;
-const SWITCH_HEIGHT = 26;
-const THUMB_SIZE = 20;
-const THUMB_MARGIN = 3;
 
 const PlainRow: React.FC<{ label: string; onPress?: () => void; children: React.ReactNode }> = ({
   label,
@@ -84,22 +78,7 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
         </PlainRow>
         <Divider />
         <PlainRow label={t('profile.notification')}>
-          <TouchableOpacity activeOpacity={0.8} onPress={() => setNotifOn((v) => !v)}>
-            {notifOn ? (
-              <LinearGradient
-                colors={gradients.primary as any}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.switchTrack}
-              >
-                <View style={[styles.switchThumb, styles.switchThumbOn]} />
-              </LinearGradient>
-            ) : (
-              <View style={[styles.switchTrack, { backgroundColor: colors.inputBackground }]}>
-                <View style={[styles.switchThumb, styles.switchThumbOff]} />
-              </View>
-            )}
-          </TouchableOpacity>
+          <SwitchToggle value={notifOn} onValueChange={setNotifOn} />
         </PlainRow>
         <Divider />
         <PlainRow label={t('profile.accountSettings')} onPress={() => router.push('/settings')}>
@@ -160,25 +139,6 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     marginHorizontal: spacing.md,
-  },
-  switchTrack: {
-    width: SWITCH_WIDTH,
-    height: SWITCH_HEIGHT,
-    borderRadius: SWITCH_HEIGHT / 2,
-    justifyContent: 'center',
-  },
-  switchThumb: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: THUMB_SIZE / 2,
-    backgroundColor: '#FFFFFF',
-    position: 'absolute',
-  },
-  switchThumbOn: {
-    right: THUMB_MARGIN,
-  },
-  switchThumbOff: {
-    left: THUMB_MARGIN,
   },
 });
 

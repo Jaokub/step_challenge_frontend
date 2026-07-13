@@ -208,6 +208,10 @@ export const dashboardAccents = {
   // event total steps) — mockup: color:#4b7d73. The mint surface itself is a
   // fixed light pastel in both themes, so this label tone doesn't split by theme.
   mintCardLabel: '#4b7d73',
+  // Off-state track for the profile settings switch (mockup "การแจ้งเตือน")
+  // — a lighter grey than inputBackground so the pill still reads against
+  // the settings card in both themes: mockup #3a4144 dark / #dbe4e0 light.
+  switchTrackOff: { dark: '#3a4144', light: '#dbe4e0' },
 } as const;
 
 // Rotating accent set for activity list rows (date box + avatar stack dots).

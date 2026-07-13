@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, TouchableOpacity, StyleSheet, StyleProp, ViewStyle, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppText from './AppText';
 import { useTheme } from '../contexts/ThemeContext';
@@ -14,13 +14,29 @@ interface SegmentedToggleProps {
 }
 
 /**
- * Two-option pill toggle (mockup: ภาษา ไทย/EN, ธีม มืด/สว่าง). Active segment
- * fills with the brand teal→lime gradient, matching the admin console's
- * ActiveBg pattern. Reusable anywhere a binary preference needs an inline
- * switcher instead of a full row + chevron.
+ * Two-option pill toggle (mockup: ภาษา ไทย/EN, ธีม มืด/สว่าง). Each segment
+ * crossfades its gradient highlight in/out on change — mirrors the mockup's
+ * `transition: all .25s ease` on the pill styles (gradients can't be
+ * interpolated directly, so we fade a LinearGradient layer in over the
+ * outgoing plain segment instead of snapping between them).
  */
 const SegmentedToggle: React.FC<SegmentedToggleProps> = ({ options, selectedIndex, onChange, style }) => {
   const { colors } = useTheme();
+  const progress = useRef(new Animated.Value(selectedIndex)).current;
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: selectedIndex,
+      duration: 250,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+  }, [selectedIndex, progress]);
+
+  const opacities = [
+    progress.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+    progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }),
+  ];
 
   return (
     <View style={[styles.track, { backgroundColor: colors.inputBackground }, style]}>
@@ -33,22 +49,22 @@ const SegmentedToggle: React.FC<SegmentedToggleProps> = ({ options, selectedInde
             onPress={() => onChange(index as 0 | 1)}
             disabled={active}
           >
-            {active ? (
-              <LinearGradient
-                colors={gradients.primary as any}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.segment}
+            <View style={styles.segment}>
+              <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacities[index] }]}>
+                <LinearGradient
+                  colors={gradients.primary as any}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[StyleSheet.absoluteFill, { borderRadius: borderRadius.full }]}
+                />
+              </Animated.View>
+              <AppText
+                variant={active ? 'body-bold' : 'body-regular'}
+                style={[styles.label, { color: active ? colors.onPrimary : colors.textSecondary }]}
               >
-                <AppText variant="body-bold" style={[styles.label, { color: colors.onPrimary }]}>
-                  {label}
-                </AppText>
-              </LinearGradient>
-            ) : (
-              <View style={styles.segment}>
-                <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
-              </View>
-            )}
+                {label}
+              </AppText>
+            </View>
           </TouchableOpacity>
         );
       })}
