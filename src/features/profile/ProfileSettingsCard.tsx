@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, SettingsRow, SegmentedToggle, SwitchToggle } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { spacing, fontSize, borderRadius, shadows } from '../../constants/theme';
+import { spacing, borderRadius, shadows } from '../../constants/theme';
 
 interface ProfileSettingsCardProps {
   isAdmin: boolean;
@@ -58,7 +58,13 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
       <View
         style={[
           styles.card,
-          { backgroundColor: colors.card, borderColor: colors.cardBorder, shadowColor: colors.cardShadow },
+          {
+            backgroundColor: colors.card,
+            // Mockup only has a hairline border on light-theme cards.
+            borderWidth: isDark ? 0 : 1,
+            borderColor: colors.cardBorder,
+            shadowColor: colors.cardShadow,
+          },
         ]}
       >
         <PlainRow label={t('profile.languageLabel')}>
@@ -90,7 +96,12 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
         <View
           style={[
             styles.extraCard,
-            { backgroundColor: colors.card, borderColor: colors.cardBorder, shadowColor: colors.cardShadow },
+            {
+              backgroundColor: colors.card,
+              borderWidth: isDark ? 0 : 1,
+              borderColor: colors.cardBorder,
+              shadowColor: colors.cardShadow,
+            },
           ]}
         >
           {isAdmin && (
@@ -114,13 +125,11 @@ export const ProfileSettingsCard: React.FC<ProfileSettingsCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
     padding: spacing.sm,
     ...shadows.card,
   },
   extraCard: {
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
     paddingHorizontal: spacing.lg,
     marginTop: spacing.md,
     overflow: 'hidden',
@@ -133,7 +142,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   plainLabel: {
-    fontSize: fontSize.md,
+    fontSize: 14, // mockup literal — fontSize.md (15) is a touch large here
     fontWeight: '600',
   },
   divider: {

@@ -16,17 +16,33 @@ interface StatCellProps {
   label: string;
   value: string;
   color?: string;
+  /** Trailing unit rendered smaller/muted next to the value (mockup: "8,780 ก้าว"). */
+  unit?: string;
 }
 
 /** Flat label-over-number cell — mockup's "สถิติเดือนนี้" grid has no icon chip. */
-const StatCell: React.FC<StatCellProps> = ({ label, value, color }) => {
-  const { colors } = useTheme();
+const StatCell: React.FC<StatCellProps> = ({ label, value, color, unit }) => {
+  const { colors, isDark } = useTheme();
   return (
-    <View style={[styles.cell, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+    <View
+      style={[
+        styles.cell,
+        // Mockup only puts a hairline border on the light-theme cards — dark
+        // cards already contrast against the page background on their own.
+        { backgroundColor: colors.card, borderWidth: isDark ? 0 : 1, borderColor: colors.cardBorder },
+      ]}
+    >
       <AppText style={[styles.cellLabel, { color: colors.textSecondary }]}>{label}</AppText>
-      <AppText variant="numeric" style={[styles.cellValue, { color: color || colors.textPrimary }]}>
-        {value}
-      </AppText>
+      <View style={styles.valueRow}>
+        <AppText variant="numeric" style={[styles.cellValue, { color: color || colors.textPrimary }]}>
+          {value}
+        </AppText>
+        {/* Mockup literal: unit suffix is its own smaller/muted span, not part
+            of the 22px value text. */}
+        {unit && (
+          <AppText style={[styles.cellUnit, { color: colors.textSecondary }]}> {unit}</AppText>
+        )}
+      </View>
     </View>
   );
 };
@@ -59,7 +75,8 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
         />
         <StatCell
           label={t('profile.avgPerDay')}
-          value={`${avgStepsPerDay.toLocaleString()} ${t('profile.stepsUnit')}`}
+          value={avgStepsPerDay.toLocaleString()}
+          unit={t('profile.stepsUnit')}
         />
       </View>
     </View>
@@ -77,15 +94,22 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     borderRadius: 22,
-    borderWidth: 1,
     padding: spacing.lg,
   },
   cellLabel: {
     fontSize: 12,
     marginBottom: spacing.sm,
   },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
   cellValue: {
     fontSize: 22,
+  },
+  cellUnit: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

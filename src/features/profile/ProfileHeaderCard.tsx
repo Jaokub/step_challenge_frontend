@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { AppText, AvatarCircle } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { gradients, dashboardAccents, spacing, borderRadius, fontSize } from '../../constants/theme';
+import { gradients, dashboardAccents, spacing, borderRadius } from '../../constants/theme';
 import type { User } from '../../types';
 
 interface ProfileHeaderCardProps {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   pointsText: {
-    fontSize: fontSize.xs,
+    fontSize: 12, // mockup literal — fontSize.xs (11) reads slightly small
   },
   statsRow: {
     flexDirection: 'row',

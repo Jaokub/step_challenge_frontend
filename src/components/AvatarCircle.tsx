@@ -49,7 +49,7 @@ const AvatarCircle: React.FC<AvatarCircleProps> = ({
         {uri ? (
           <Image source={{ uri }} style={{ width: size, height: size, borderRadius: radius }} />
         ) : (
-          <AppText style={[styles.initials, { color: colors.onPrimary, fontSize: Math.round(size * 0.32) }]}>
+          <AppText style={[styles.initials, { color: colors.onPrimary, fontSize: Math.round(size * 0.364) }]}>
             {getInitials(name)}
           </AppText>
         )}

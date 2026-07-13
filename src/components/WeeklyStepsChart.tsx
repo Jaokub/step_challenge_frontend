@@ -29,7 +29,19 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
   const inactiveBarColor = dashboardAccents.chartBarInactive[isDark ? 'dark' : 'light'];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...shadows.card, shadowColor: colors.cardShadow }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.card,
+          // Mockup only has a hairline border on the light-theme card.
+          borderWidth: isDark ? 0 : 1,
+          borderColor: colors.cardBorder,
+          ...shadows.card,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       {title && (
         <AppText variant="body-bold" style={[styles.title, { color: colors.textOnCard }]}>
           {title}
@@ -68,7 +80,6 @@ const WeeklyStepsChart: React.FC<WeeklyStepsChartProps> = ({ data, title }) => {
 const styles = StyleSheet.create({
   container: {
     borderRadius: borderRadius.xl,
-    borderWidth: 1,
     padding: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.md,
