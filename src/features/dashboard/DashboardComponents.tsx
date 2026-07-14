@@ -106,7 +106,10 @@ export const DashboardHeader = ({
       if (!scrollRef.current || timeframe !== 'Daily') return;
       const index = dayTabs.findIndex((tab: any) => tab.day === selectedDay);
       if (index < 0) return;
-      const offset = index * DAY_ITEM_STRIDE - width / 2 + DAY_ITEM_STRIDE / 2 + layout.screenPaddingX;
+      // Center on the tab's own width, not the stride (stride also counts the
+      // trailing gap, which isn't part of the tab itself — using it here was
+      // overshooting by (gap/2)px and left-biasing the centered tab).
+      const offset = index * DAY_ITEM_STRIDE - width / 2 + DAY_CELL_WIDTH / 2 + layout.screenPaddingX;
       scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
     }, 50);
     return () => clearTimeout(timer);

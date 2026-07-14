@@ -235,7 +235,12 @@ export function useDashboard(colors: any) {
     loading: dashboardQuery.isPending,
     error: dashboardQuery.isError,
     hasData: dashboardData !== null,
-    isLeaderboardLoading: leaderboardQuery.isPending || leaderboardQuery.isFetching,
+    // `isPending` only — no cached data yet for this key. Deliberately excludes
+    // `isFetching`: that's also true during a background revalidation of data we
+    // already have cached (e.g. re-selecting a group/date within staleTime), and
+    // swapping the real rows for a full skeleton on every re-visit made the 60s
+    // cache (see queryClient.ts) invisible/pointless from the UI's perspective.
+    isLeaderboardLoading: leaderboardQuery.isPending,
     isStatsLoading,
     refreshDashboard: dashboardQuery.refetch,
     currentStreak: dashboardData?.currentStreak || 0,

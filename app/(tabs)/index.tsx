@@ -7,14 +7,12 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { layout } from '../../src/constants/theme';
 import { Skeleton, ErrorState } from '../../src/components';
 import { useDashboard } from '../../src/features/dashboard/useDashboard';
-import { 
-  DashboardHeader, 
-  DashboardStats, 
-  DashboardLeaderboard, 
-  DashboardEvents 
+import {
+  DashboardHeader,
+  DashboardStats,
+  DashboardLeaderboard,
 } from '../../src/features/dashboard/DashboardComponents';
 import { googleHealthService } from '../../src/services/health/android/GoogleHealthService';
-import EventsEntryCard from '../../src/features/event/EventsEntryCard';
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -31,7 +29,6 @@ export default function DashboardScreen() {
     userGroups,
     stats,
     currentLeaderboard,
-    upcomingEvents,
     svgProps,
     loading,
     error,
@@ -112,8 +109,6 @@ export default function DashboardScreen() {
               colors={colors}
               isLoading={isLeaderboardLoading}
             />
-            <EventsEntryCard colors={colors} />
-            <DashboardEvents events={upcomingEvents} colors={colors} />
           </>
         )}
       </ScrollView>

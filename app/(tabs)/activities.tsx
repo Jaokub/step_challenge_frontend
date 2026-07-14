@@ -52,20 +52,13 @@ export default function ActivitiesScreen() {
         <ScreenHeader 
           title={t('tabs.activities')} titleSize={21}
           rightActions={
-            <>
-              <HeaderIconButton 
-                icon={isSearching ? "close-outline" : "search-outline"} 
-                onPress={() => {
-                  setIsSearching(!isSearching);
-                  if (isSearching) setSearchQuery('');
-                }} 
-              />
-              <TouchableOpacity onPress={() => {}} activeOpacity={0.85}>
-                <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.addButton}>
-                  <Ionicons name="add" size={20} color={colors.onPrimary} />
-                </LinearGradient>
-              </TouchableOpacity>
-            </>
+            <HeaderIconButton
+              icon={isSearching ? "close-outline" : "search-outline"}
+              onPress={() => {
+                setIsSearching(!isSearching);
+                if (isSearching) setSearchQuery('');
+              }}
+            />
           }
         />
 
@@ -138,13 +131,6 @@ export default function ActivitiesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
