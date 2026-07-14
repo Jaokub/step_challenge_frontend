@@ -50,7 +50,10 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const isMock = isMockActivity(activity.id);
-  const participantCount = activity.participantCount ?? 0;
+  // Registered count (ActivityParticipant — joined/enrolled), not check-ins.
+  // `activity.participantCount` is check-ins and is a different concept;
+  // this card's "People" grid/footer is about who joined the activity.
+  const participantCount = activity.registeredCount ?? 0;
   const tone = isDark ? 'dark' : 'light';
   const heroColors = isDark ? gradients.heroCard : gradients.heroCardLight;
   const badgeLabel = activity.totalDistance
