@@ -50,7 +50,7 @@ export default function ActivitiesScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader 
-          title={t('tabs.activities')}
+          title={t('tabs.activities')} titleSize={26}
           rightActions={
             <>
               <HeaderIconButton 

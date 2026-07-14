@@ -62,10 +62,16 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
   return (
     <View style={styles.grid}>
       <View style={styles.row}>
-        <StatCell label={t('profile.totalSteps')} value={totalSteps.toLocaleString()} color={colors.primary} />
+        <StatCell
+          label={t('profile.totalSteps')}
+          value={totalSteps.toLocaleString()}
+          unit={t('profile.stepsUnit')}
+          color={colors.primary}
+        />
         <StatCell
           label={t('profile.distanceKm')}
           value={distanceKm.toLocaleString()}
+          unit={t('dashboard.km')}
           color={dashboardAccents.kmIcon[tone]}
         />
       </View>
@@ -73,6 +79,7 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
         <StatCell
           label={t('profile.calories')}
           value={calories.toLocaleString()}
+          unit={t('dashboard.kcal')}
           color={dashboardAccents.kcalIcon[tone]}
         />
         <StatCell

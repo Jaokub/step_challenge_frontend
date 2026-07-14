@@ -48,7 +48,7 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
     <>
       <ScreenHeader
         title={t('groups.friendsAndGroups')}
-        titleSize={20}
+        titleSize={26}
         rightActions={
           <>
             <TouchableOpacity

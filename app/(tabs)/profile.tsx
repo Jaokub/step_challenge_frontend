@@ -97,7 +97,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
-        <SafeAreaView edges={['top']} style={{ paddingBottom: 8 }}>
+        <SafeAreaView edges={['top']}>
           <ScreenHeader title={t('profile.title')} titleColor={colors.textPrimary} titleSize={26} />
         </SafeAreaView>
 

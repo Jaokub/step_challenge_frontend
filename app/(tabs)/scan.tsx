@@ -254,6 +254,7 @@ export default function ScanScreen() {
     <>
       <ScreenHeader
         title={t('scan.scanQrCode')}
+        titleSize={26}
         subtitle={mode === "scan" ? t('scan.scanSubtitle') : t('scan.myQrSubtitle')}
       />
 

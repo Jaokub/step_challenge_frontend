@@ -133,7 +133,7 @@ export default function EnrollActivitySheet({
                     </AppText>
                   </LinearGradient>
                 ) : (
-                  <View style={[styles.pill, { backgroundColor: colors.inputBackground }]}>
+                  <View style={[styles.pill, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder}]}>
                     <AppText style={{ fontSize: 11.5, fontWeight: '700' as any, color: colors.textPrimary }}>
                       {t('groups.selectChip')}
                     </AppText>
