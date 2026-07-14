@@ -22,10 +22,10 @@ export default function DashboardScreen() {
   
   const {
     timeframe, setTimeframe,
-    selectedDate, setSelectedDate,
-    selectedWeek, setSelectedWeek,
-    refMonth, refYear, setRefMonthYear,
-    goToPrevMonth, goToNextMonth,
+    anchorDate,
+    refMonth, refYear,
+    goToPrev, goToNext,
+    setAnchorDay, setAnchorMonthYear,
     dayTabs,
     selectedGroupId, setSelectedGroupId,
     userGroups,
@@ -64,10 +64,10 @@ export default function DashboardScreen() {
       <SafeAreaView edges={['top']}>
         <DashboardHeader
           timeframe={timeframe} setTimeframe={setTimeframe}
-          selectedDate={selectedDate} setSelectedDate={setSelectedDate}
-          selectedWeek={selectedWeek} setSelectedWeek={setSelectedWeek}
-          refMonth={refMonth} refYear={refYear} setRefMonthYear={setRefMonthYear}
-          goToPrevMonth={goToPrevMonth} goToNextMonth={goToNextMonth}
+          anchorDate={anchorDate}
+          refMonth={refMonth} refYear={refYear}
+          goToPrev={goToPrev} goToNext={goToNext}
+          setAnchorDay={setAnchorDay} setAnchorMonthYear={setAnchorMonthYear}
           dayTabs={dayTabs}
           colors={colors}
           username={user?.nickname || user?.fullName?.split(' ')[0] || 'User'}

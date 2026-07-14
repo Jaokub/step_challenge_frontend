@@ -1,14 +1,40 @@
 /**
  * Calculates the start and end date strings for a given leaderboard timeframe selection.
  * This is a pure function with no side effects.
+ *
+ * Unit-aware nav: a single `anchorDate` drives all three modes. Switching modes keeps
+ * context (e.g. pick a day, then tap Weekly to see that day's week) — see useDashboard.ts.
  */
 
 export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
 
-export const MOCK_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const pad = (n: number) => n.toString().padStart(2, '0');
 const formatDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+export const addDays = (date: Date, n: number): Date => {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+};
+
+/** Monday-start week, matching the backend's getHealthSummary convention. */
+export const startOfWeek = (date: Date): Date => {
+  const day = date.getDay(); // 0=Sun ... 6=Sat
+  const mondayOffset = day === 0 ? 6 : day - 1;
+  return addDays(date, -mondayOffset);
+};
+
+/** Steps by whole months, clamping the day so e.g. Jan 31 -> Feb 28. */
+export const addMonthsClamped = (date: Date, delta: number): Date => {
+  const day = date.getDate();
+  const target = new Date(date.getFullYear(), date.getMonth() + delta, 1);
+  const daysInTarget = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  target.setDate(Math.min(day, daysInTarget));
+  return target;
+};
+
+export const sameDay = (a: Date, b: Date): boolean =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
 interface DateRange {
   startDate: string | undefined;
@@ -16,50 +42,22 @@ interface DateRange {
 }
 
 /**
- * Given a timeframe and its selection state, returns the corresponding start/end date strings.
- *
- * @param timeframe - 'Daily' | 'Weekly' | 'Monthly'
- * @param selectedDate - Day-of-month string (for Daily)
- * @param selectedWeek - 'This week' | 'Last week' (for Weekly)
- * @param refYear - Reference year the header is currently browsing
- * @param refMonth - Reference month (0-11) the header is currently browsing
- * @returns { startDate, endDate } as ISO date strings, or undefined if not applicable
+ * Given a timeframe and the anchor date the header is currently browsing, returns the
+ * corresponding start/end date strings for that unit (day / Mon-Sun week / month).
  */
-export const calculateDateRange = (
-  timeframe: Timeframe,
-  selectedDate: string,
-  selectedWeek: string,
-  refYear: number,
-  refMonth: number
-): DateRange => {
+export const calculateDateRange = (timeframe: Timeframe, anchorDate: Date): DateRange => {
   if (timeframe === 'Daily') {
-    const day = parseInt(selectedDate, 10);
-    const date = new Date(refYear, refMonth, day);
-    const nextDate = new Date(refYear, refMonth, day + 1);
-    return { startDate: formatDate(date), endDate: formatDate(nextDate) };
+    return { startDate: formatDate(anchorDate), endDate: formatDate(addDays(anchorDate, 1)) };
   }
 
   if (timeframe === 'Weekly') {
-    // Weekly is always relative to "now" (This week / Last week), independent of
-    // the month the header is browsing.
-    const now = new Date();
-    const currentDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    // Use Monday as week start to match backend getHealthSummary logic
-    const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
-    const startOfThisWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayOffset);
-
-    if (selectedWeek === 'This week') {
-      const endOfThisWeek = new Date(startOfThisWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
-      return { startDate: formatDate(startOfThisWeek), endDate: formatDate(endOfThisWeek) };
-    }
-
-    const startOfLastWeek = new Date(startOfThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000);
-    return { startDate: formatDate(startOfLastWeek), endDate: formatDate(startOfThisWeek) };
+    const start = startOfWeek(anchorDate);
+    return { startDate: formatDate(start), endDate: formatDate(addDays(start, 7)) };
   }
 
   if (timeframe === 'Monthly') {
-    const startOfMonth = new Date(refYear, refMonth, 1);
-    const endOfMonth = new Date(refYear, refMonth + 1, 1);
+    const startOfMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1);
+    const endOfMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 1, 1);
     return { startDate: formatDate(startOfMonth), endDate: formatDate(endOfMonth) };
   }
 

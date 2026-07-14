@@ -571,6 +571,15 @@
     ]
   },
   "weekdays": {
+    "full": [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
     "min": [
       "S",
       "M",

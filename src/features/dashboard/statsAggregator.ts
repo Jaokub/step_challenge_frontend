@@ -1,5 +1,6 @@
 import type { HealthRecord, HealthSummary } from '../../types';
 import type { Timeframe } from './dateRangeCalculator';
+import { addDays, startOfWeek, sameDay } from './dateRangeCalculator';
 
 interface AggregatedStats {
   steps: number;
@@ -12,35 +13,29 @@ interface AggregatedStats {
  * This is a pure function — no side effects, no API calls.
  *
  * @param timeframe - The active timeframe
- * @param selectedDate - Day-of-month string (for Daily)
- * @param selectedWeek - 'This week' | 'Last week' (for Weekly)
- * @param refYear - Reference year the header is browsing
- * @param refMonth - Reference month (0-11) the header is browsing
+ * @param anchorDate - The date the header is currently browsing (drives all three modes)
  * @param healthSummary - Pre-fetched health summary from the API
  * @param healthHistory - Pre-fetched health history records from the API
  * @returns Aggregated steps, distance (km), and calories
  */
 export const aggregateStats = (
   timeframe: Timeframe,
-  selectedDate: string,
-  selectedWeek: string,
-  refYear: number,
-  refMonth: number,
+  anchorDate: Date,
   healthSummary: HealthSummary | null,
   healthHistory: HealthRecord[]
 ): AggregatedStats => {
   const today = new Date();
 
   if (timeframe === 'Daily') {
-    return aggregateDailyStats(selectedDate, refYear, refMonth, today, healthSummary, healthHistory);
+    return aggregateDailyStats(anchorDate, today, healthSummary, healthHistory);
   }
 
   if (timeframe === 'Weekly') {
-    return aggregateWeeklyStats(selectedWeek, today, healthHistory);
+    return aggregateWeeklyStats(anchorDate, healthHistory);
   }
 
   if (timeframe === 'Monthly') {
-    return aggregateMonthlyStats(refYear, refMonth, today, healthSummary, healthHistory);
+    return aggregateMonthlyStats(anchorDate, today, healthSummary, healthHistory);
   }
 
   return { steps: 0, distance: 0, calories: 0 };
@@ -49,19 +44,12 @@ export const aggregateStats = (
 const pad = (n: number) => n.toString().padStart(2, '0');
 
 const aggregateDailyStats = (
-  selectedDate: string,
-  refYear: number,
-  refMonth: number,
+  anchorDate: Date,
   today: Date,
   healthSummary: HealthSummary | null,
   healthHistory: HealthRecord[]
 ): AggregatedStats => {
-  const isToday =
-    refYear === today.getFullYear() &&
-    refMonth === today.getMonth() &&
-    selectedDate === today.getDate().toString();
-
-  if (isToday && healthSummary?.today) {
+  if (sameDay(anchorDate, today) && healthSummary?.today) {
     return {
       steps: healthSummary.today.steps,
       distance: healthSummary.today.distanceKm,
@@ -70,45 +58,31 @@ const aggregateDailyStats = (
   }
 
   // A day can have multiple records from different sources — filter + sum.
-  const targetDateStr = `${refYear}-${pad(refMonth + 1)}-${selectedDate.padStart(2, '0')}`;
+  const targetDateStr = `${anchorDate.getFullYear()}-${pad(anchorDate.getMonth() + 1)}-${pad(anchorDate.getDate())}`;
   const records = healthHistory.filter((r) => r.recordDate?.split('T')[0] === targetDateStr);
 
   return records.length > 0 ? sumRecords(records) : { steps: 0, distance: 0, calories: 0 };
 };
 
-const aggregateWeeklyStats = (
-  selectedWeek: string,
-  today: Date,
-  healthHistory: HealthRecord[]
-): AggregatedStats => {
-  const currentDay = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-  // Use Monday as week start to match backend getHealthSummary logic
-  const mondayOffset = currentDay === 0 ? 6 : currentDay - 1;
-  const startOfThisWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset);
-
-  const startBoundary =
-    selectedWeek === 'Last week'
-      ? new Date(startOfThisWeek.getTime() - 7 * 24 * 60 * 60 * 1000)
-      : startOfThisWeek;
-
-  const endBoundary = selectedWeek === 'Last week' ? startOfThisWeek : undefined;
+const aggregateWeeklyStats = (anchorDate: Date, healthHistory: HealthRecord[]): AggregatedStats => {
+  const start = startOfWeek(anchorDate);
+  const end = addDays(start, 7);
 
   const records = healthHistory.filter((r) => {
     const rd = new Date(r.recordDate);
-    return rd >= startBoundary && (endBoundary === undefined || rd < endBoundary);
+    return rd >= start && rd < end;
   });
 
   return sumRecords(records);
 };
 
 const aggregateMonthlyStats = (
-  refYear: number,
-  refMonth: number,
+  anchorDate: Date,
   today: Date,
   healthSummary: HealthSummary | null,
   healthHistory: HealthRecord[]
 ): AggregatedStats => {
-  const isCurrentMonth = refMonth === today.getMonth() && refYear === today.getFullYear();
+  const isCurrentMonth = anchorDate.getMonth() === today.getMonth() && anchorDate.getFullYear() === today.getFullYear();
 
   if (isCurrentMonth) {
     return {
@@ -120,7 +94,7 @@ const aggregateMonthlyStats = (
 
   const records = healthHistory.filter((r) => {
     const rd = new Date(r.recordDate);
-    return rd.getMonth() === refMonth && rd.getFullYear() === refYear;
+    return rd.getMonth() === anchorDate.getMonth() && rd.getFullYear() === anchorDate.getFullYear();
   });
 
   return sumRecords(records);

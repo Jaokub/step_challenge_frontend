@@ -6,7 +6,7 @@ import healthService from '../health/healthService';
 import { syncTodayHealthData } from '../health/syncHealthData';
 import leaderboardService from '../leaderboard/leaderboardService';
 import groupService from '../group/groupService';
-import { calculateDateRange, MOCK_MONTHS } from './dateRangeCalculator';
+import { calculateDateRange, addMonthsClamped } from './dateRangeCalculator';
 import { aggregateStats } from './statsAggregator';
 import { queryKeys } from '../../constants/queryKeys';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../types';
@@ -14,9 +14,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/formatDate';
 
 export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
-
-export const MOCK_WEEKS = ['Last week', 'This week'];
-export { MOCK_MONTHS };
 
 export interface DayTab {
   day: number;
@@ -38,15 +35,16 @@ export function useDashboard(colors: any) {
   const today = new Date();
 
   // ─── Timeframe + reference-period state ───────────────────
+  // A single anchorDate drives all three modes — switching modes keeps context
+  // (e.g. pick a day, then tap Weekly to see that day's week).
   const [timeframe, setTimeframe] = useState<Timeframe>('Daily');
-  const [selectedDate, setSelectedDate] = useState(today.getDate().toString());
-  const [selectedWeek, setSelectedWeek] = useState('This week');
-  // Reference month/year the header is browsing. Default = current month.
-  const [refMonth, setRefMonth] = useState(today.getMonth());
-  const [refYear, setRefYear] = useState(today.getFullYear());
+  const [anchorDate, setAnchorDate] = useState(today);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
   const [isStatsLoading, setIsStatsLoading] = useState(false);
+
+  const refMonth = anchorDate.getMonth();
+  const refYear = anchorDate.getFullYear();
 
   // Days in the currently-browsed month, plus per-day metadata for the tab strip.
   const daysInRefMonth = new Date(refYear, refMonth + 1, 0).getDate();
@@ -65,46 +63,34 @@ export function useDashboard(colors: any) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refYear, refMonth, daysInRefMonth]);
 
-  // Clamp the selected day so it stays valid when the month shrinks.
-  const clampSelectedDay = useCallback(
-    (year: number, month: number) => {
-      const maxDay = new Date(year, month + 1, 0).getDate();
-      setSelectedDate((prev) => {
-        const d = parseInt(prev, 10);
-        return d > maxDay ? maxDay.toString() : prev;
-      });
-    },
-    []
-  );
-
-  const goToPrevMonth = useCallback(() => {
-    setRefMonth((m) => {
-      const nm = m === 0 ? 11 : m - 1;
-      const ny = m === 0 ? refYear - 1 : refYear;
-      if (m === 0) setRefYear(ny);
-      clampSelectedDay(ny, nm);
-      return nm;
+  const goToPrev = useCallback(() => {
+    setAnchorDate((prev) => {
+      if (timeframe === 'Daily') return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() - 1);
+      if (timeframe === 'Weekly') return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() - 7);
+      return addMonthsClamped(prev, -1);
     });
-  }, [refYear, clampSelectedDay]);
+  }, [timeframe]);
 
-  const goToNextMonth = useCallback(() => {
-    setRefMonth((m) => {
-      const nm = m === 11 ? 0 : m + 1;
-      const ny = m === 11 ? refYear + 1 : refYear;
-      if (m === 11) setRefYear(ny);
-      clampSelectedDay(ny, nm);
-      return nm;
+  const goToNext = useCallback(() => {
+    setAnchorDate((prev) => {
+      if (timeframe === 'Daily') return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + 1);
+      if (timeframe === 'Weekly') return new Date(prev.getFullYear(), prev.getMonth(), prev.getDate() + 7);
+      return addMonthsClamped(prev, 1);
     });
-  }, [refYear, clampSelectedDay]);
+  }, [timeframe]);
 
-  const setRefMonthYear = useCallback(
-    (month: number, year: number) => {
-      setRefMonth(month);
-      setRefYear(year);
-      clampSelectedDay(year, month);
-    },
-    [clampSelectedDay]
-  );
+  // Used by the day strip and the month/year picker — both jump within the month,
+  // clamping the day so it stays valid (e.g. picking Feb while on the 31st).
+  const setAnchorDay = useCallback((day: number) => {
+    setAnchorDate((prev) => new Date(prev.getFullYear(), prev.getMonth(), day));
+  }, []);
+
+  const setAnchorMonthYear = useCallback((month: number, year: number) => {
+    setAnchorDate((prev) => {
+      const daysInTarget = new Date(year, month + 1, 0).getDate();
+      return new Date(year, month, Math.min(prev.getDate(), daysInTarget));
+    });
+  }, []);
 
   // ─── Dashboard bundle (dashboard + health + groups) ───────
   const dashboardQuery = useQuery({
@@ -137,13 +123,7 @@ export function useDashboard(colors: any) {
 
   // ─── Leaderboard ──────────────────────────────────────────
   // Reflects the period the header is currently browsing.
-  const { startDate, endDate } = calculateDateRange(
-    timeframe,
-    selectedDate,
-    selectedWeek,
-    refYear,
-    refMonth
-  );
+  const { startDate, endDate } = calculateDateRange(timeframe, anchorDate);
   const normalizeDate = (d: string | undefined) =>
     d ? new Date(d).toISOString().split('T')[0] : undefined;
 
@@ -188,21 +168,18 @@ export function useDashboard(colors: any) {
     setIsStatsLoading(true);
     const timer = setTimeout(() => setIsStatsLoading(false), 400);
     return () => clearTimeout(timer);
-  }, [selectedDate, selectedWeek, refMonth, refYear]);
+  }, [anchorDate]);
 
   // ─── Derived stats ────────────────────────────────────────
 
   const { steps, distance, calories } = useMemo(() => {
-    const raw = aggregateStats(
-      timeframe, selectedDate, selectedWeek, refYear, refMonth,
-      healthSummary, healthHistory
-    );
+    const raw = aggregateStats(timeframe, anchorDate, healthSummary, healthHistory);
     return {
       steps: raw.steps,
       distance: parseFloat(raw.distance.toFixed(2)),
       calories: Math.round(raw.calories),
     };
-  }, [timeframe, selectedDate, selectedWeek, refYear, refMonth, healthSummary, healthHistory]);
+  }, [timeframe, anchorDate, healthSummary, healthHistory]);
 
   // ─── Display transforms ───────────────────────────────────
 
@@ -243,10 +220,10 @@ export function useDashboard(colors: any) {
 
   return {
     timeframe, setTimeframe,
-    selectedDate, setSelectedDate,
-    selectedWeek, setSelectedWeek,
-    refMonth, refYear, setRefMonthYear,
-    goToPrevMonth, goToNextMonth,
+    anchorDate,
+    refMonth, refYear,
+    goToPrev, goToNext,
+    setAnchorDay, setAnchorMonthYear,
     dayTabs,
     goal,
     selectedGroupId, setSelectedGroupId,

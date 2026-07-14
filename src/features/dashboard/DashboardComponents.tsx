@@ -3,11 +3,13 @@ import { Dimensions, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText } from '../../components';
 import { gradients, layout, dashboardAccents } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
+import { addDays, startOfWeek } from './dateRangeCalculator';
 
 const { width } = Dimensions.get('window');
 const GRAD_START = { x: 0, y: 0 };
@@ -33,37 +35,82 @@ const greetingKey = () => {
   return 'dashboard.goodEvening';
 };
 
+/** "8-14 ก.ค. 2569" when the week sits in one month, else "29 มิ.ย. - 5 ก.ค. 2569". */
+const weekRangeLabel = (weekStart: Date, weekEnd: Date, monthsShort: string[], yearSuffix: string) => {
+  if (weekStart.getMonth() === weekEnd.getMonth()) {
+    return `${weekStart.getDate()}-${weekEnd.getDate()} ${monthsShort[weekEnd.getMonth()]}${yearSuffix}`;
+  }
+  return `${weekStart.getDate()} ${monthsShort[weekStart.getMonth()]} - ${weekEnd.getDate()} ${monthsShort[weekEnd.getMonth()]}${yearSuffix}`;
+};
+
 // ── DashboardHeader ───────────────────────────────────────────
+// Unit-aware nav: the label + prev/next arrows above the day strip adapt to the
+// active timeframe (day / week / month) but are all driven by one `anchorDate`
+// (see useDashboard.ts), so switching modes keeps whatever context you were in.
 export const DashboardHeader = ({
-  timeframe, setTimeframe, selectedDate, setSelectedDate,
-  selectedWeek, setSelectedWeek, refMonth, refYear, setRefMonthYear,
-  goToPrevMonth, goToNextMonth, dayTabs, colors, username,
+  timeframe, setTimeframe, anchorDate,
+  refMonth, refYear, goToPrev, goToNext,
+  setAnchorDay, setAnchorMonthYear,
+  dayTabs, colors, username,
 }: any) => {
   const { t, i18n } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const monthsFull = t('months.full', { returnObjects: true }) as string[];
+  const monthsShort = t('months.short', { returnObjects: true }) as string[];
   const weekdayMin = t('weekdays.min', { returnObjects: true }) as string[];
-  const displayYear = i18n.language === 'th' ? refYear + 543 : refYear;
-  const monthLabel = `${monthsFull[refMonth]} ${displayYear}`;
+  const weekdayFull = t('weekdays.full', { returnObjects: true }) as string[];
+  const toDisplayYear = (y: number) => (i18n.language === 'th' ? y + 543 : y);
   const initials = (username || 'U').substring(0, 2).toUpperCase();
+
+  let topLabel: string;
+  if (timeframe === 'Weekly') {
+    const weekStart = startOfWeek(anchorDate);
+    const weekEnd = addDays(weekStart, 6);
+    topLabel = weekRangeLabel(weekStart, weekEnd, monthsShort, ` ${toDisplayYear(weekEnd.getFullYear())}`);
+  } else if (timeframe === 'Monthly') {
+    topLabel = `${monthsFull[refMonth]} ${toDisplayYear(refYear)}`;
+  } else {
+    topLabel = `${weekdayFull[anchorDate.getDay()]} ${anchorDate.getDate()} ${monthsShort[anchorDate.getMonth()]} ${toDisplayYear(anchorDate.getFullYear())}`;
+  }
+
+  // Day strip collapses/expands as `timeframe` leaves/re-enters Daily. Content stays
+  // mounted throughout (unlike the mockup's DOM, RN doesn't need the unmount timer to
+  // keep the exit symmetric with the entrance) — only the wrapper's box animates.
+  const dailyProgress = useSharedValue(timeframe === 'Daily' ? 1 : 0);
+  useEffect(() => {
+    dailyProgress.value = withTiming(timeframe === 'Daily' ? 1 : 0, {
+      duration: 340,
+      easing: Easing.bezier(0.2, 0.9, 0.3, 1),
+    });
+  }, [timeframe, dailyProgress]);
+  const dayStripAnimStyle = useAnimatedStyle(() => ({
+    maxHeight: dailyProgress.value * 64,
+    marginBottom: dailyProgress.value * layout.sectionGap,
+    opacity: dailyProgress.value,
+    transform: [
+      { scaleY: 0.6 + dailyProgress.value * 0.4 },
+      { translateY: (1 - dailyProgress.value) * -10 },
+    ],
+  }));
 
   // Scrollable strip through the whole month, auto-centered on the selected
   // day whenever it changes (including on first mount, where it lands on
-  // today — see useDashboard.ts's initial `selectedDate`).
+  // today — see useDashboard.ts's initial `anchorDate`).
   const DAY_CELL_WIDTH = 44;
   const DAY_ITEM_STRIDE = DAY_CELL_WIDTH + 8; // cell + row gap
+  const selectedDay = anchorDate.getDate();
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!scrollRef.current || timeframe !== 'Daily') return;
-      const index = dayTabs.findIndex((tab: any) => tab.day.toString() === selectedDate);
+      const index = dayTabs.findIndex((tab: any) => tab.day === selectedDay);
       if (index < 0) return;
       const offset = index * DAY_ITEM_STRIDE - width / 2 + DAY_ITEM_STRIDE / 2 + layout.screenPaddingX;
       scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
     }, 50);
     return () => clearTimeout(timer);
-  }, [timeframe, refMonth, refYear, selectedDate, dayTabs]);
+  }, [timeframe, refMonth, refYear, selectedDay, dayTabs]);
 
   return (
     <View>
@@ -78,15 +125,15 @@ export const DashboardHeader = ({
         </LinearGradient>
       </View>
 
-      {/* Month navigation */}
+      {/* Unit-aware nav — label + step size follow the active timeframe */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: layout.headerGap }}>
-        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToPrevMonth(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToPrev(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="chevron-back" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setPickerOpen(true)} activeOpacity={0.7} style={{ minWidth: 150, alignItems: 'center' }}>
-          <AppText variant="heading-bold" style={{ fontSize: 18, lineHeight: 24, color: colors.textPrimary }}>{monthLabel}</AppText>
+        <TouchableOpacity onPress={() => setPickerOpen(true)} activeOpacity={0.7} style={{ minWidth: 150, paddingHorizontal: 4, alignItems: 'center' }}>
+          <AppText variant="heading-bold" style={{ fontSize: 18, lineHeight: 24, color: colors.textPrimary, textAlign: 'center' }} numberOfLines={1}>{topLabel}</AppText>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToNextMonth(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToNext(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -109,55 +156,30 @@ export const DashboardHeader = ({
         </View>
       </View>
 
-      {/* Sub-tabs */}
-      <View style={{ marginBottom: layout.sectionGap, height: 60, justifyContent: 'center' }}>
-        {timeframe === 'Daily' && (
-          <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: layout.screenPaddingX, gap: 8, alignItems: 'center' }}>
-            {dayTabs.map((tab: any) => {
-              const isActive = tab.day.toString() === selectedDate;
-              return (
-                <TouchableOpacity key={tab.day} onPress={() => { if (!isActive) Haptics.selectionAsync(); setSelectedDate(tab.day.toString()); }} style={{ alignItems: 'center', gap: 3 }} activeOpacity={0.8}>
-                  <ActiveBg active={isActive} colors={colors} style={{ width: DAY_CELL_WIDTH, height: 56, borderRadius: 14, borderWidth: 1, borderColor: isActive ? 'transparent' : colors.cardBorder, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                    <AppText style={{ fontSize: 10, lineHeight: 12, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textSecondary) }}>{weekdayMin[tab.weekdayIndex]}</AppText>
-                    <AppText variant="body-bold" style={{ fontSize: 16, lineHeight: 20, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textPrimary) }}>{tab.day}</AppText>
-                  </ActiveBg>
-                  {tab.isToday && !isActive && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
-        {timeframe === 'Weekly' && (
-          <View style={{ flexDirection: 'row', paddingHorizontal: layout.screenPaddingX, gap: 8 }}>
-            {['Last week', 'This week'].map((wk) => {
-              const isActive = wk === selectedWeek;
-              const label = wk === 'This week' ? t('dashboard.thisWeek') : t('dashboard.lastWeek');
-              return (
-                <TouchableOpacity key={wk} style={{ flex: 1, borderRadius: 14, overflow: 'hidden' }} activeOpacity={0.8}
-                  onPress={() => { if (!isActive) Haptics.selectionAsync(); setSelectedWeek(wk); }}>
-                  <ActiveBg active={isActive} colors={colors} style={{ paddingVertical: 16, alignItems: 'center' }}>
-                    <AppText variant="body-bold" style={{ fontSize: 14, color: isActive ? colors.onPrimary : colors.textSecondary }}>{label}</AppText>
-                  </ActiveBg>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-        {timeframe === 'Monthly' && (
-          <View style={{ paddingHorizontal: layout.screenPaddingX }}>
-            <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ borderRadius: 14, paddingVertical: 16, alignItems: 'center' }}>
-              <AppText variant="body-bold" style={{ fontSize: 14, color: colors.onPrimary }}>{monthsFull[refMonth]} {displayYear}</AppText>
-            </LinearGradient>
-          </View>
-        )}
-      </View>
+      {/* Day strip — only meaningful in Daily mode; folds away for Weekly/Monthly */}
+      <Animated.View style={[{ overflow: 'hidden' }, dayStripAnimStyle]} pointerEvents={timeframe === 'Daily' ? 'auto' : 'none'}>
+        <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: layout.screenPaddingX, gap: 8, alignItems: 'center' }}>
+          {dayTabs.map((tab: any) => {
+            const isActive = tab.day === selectedDay;
+            return (
+              <TouchableOpacity key={tab.day} onPress={() => { if (!isActive) Haptics.selectionAsync(); setAnchorDay(tab.day); }} style={{ alignItems: 'center', gap: 3 }} activeOpacity={0.8}>
+                <ActiveBg active={isActive} colors={colors} style={{ width: DAY_CELL_WIDTH, height: 56, borderRadius: 14, borderWidth: 1, borderColor: isActive ? 'transparent' : colors.cardBorder, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                  <AppText style={{ fontSize: 10, lineHeight: 12, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textSecondary) }}>{weekdayMin[tab.weekdayIndex]}</AppText>
+                  <AppText variant="body-bold" style={{ fontSize: 16, lineHeight: 20, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textPrimary) }}>{tab.day}</AppText>
+                </ActiveBg>
+                {tab.isToday && !isActive && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </Animated.View>
 
       <MonthYearPicker
         visible={pickerOpen}
         initialMonth={refMonth}
         initialYear={refYear}
         onClose={() => setPickerOpen(false)}
-        onSelect={(m, y) => setRefMonthYear(m, y)}
+        onSelect={(m, y) => setAnchorMonthYear(m, y)}
       />
     </View>
   );
