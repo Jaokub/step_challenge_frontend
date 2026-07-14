@@ -41,8 +41,6 @@ export function useDashboard(colors: any) {
   const [anchorDate, setAnchorDate] = useState(today);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('friends');
 
-  const [isStatsLoading, setIsStatsLoading] = useState(false);
-
   const refMonth = anchorDate.getMonth();
   const refYear = anchorDate.getFullYear();
 
@@ -154,22 +152,6 @@ export function useDashboard(colors: any) {
     return top5;
   }, [leaderboardQuery.data, user?.id]);
 
-  // ─── Skeleton animation timers ────────────────────────────
-
-  useEffect(() => {
-    // Big tab changes -> animate the stats section
-    setIsStatsLoading(true);
-    const timer = setTimeout(() => setIsStatsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [timeframe]);
-
-  useEffect(() => {
-    // Small selection changes -> animate TOP ONLY
-    setIsStatsLoading(true);
-    const timer = setTimeout(() => setIsStatsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [anchorDate]);
-
   // ─── Derived stats ────────────────────────────────────────
 
   const { steps, distance, calories } = useMemo(() => {
@@ -241,7 +223,11 @@ export function useDashboard(colors: any) {
     // swapping the real rows for a full skeleton on every re-visit made the 60s
     // cache (see queryClient.ts) invisible/pointless from the UI's perspective.
     isLeaderboardLoading: leaderboardQuery.isPending,
-    isStatsLoading,
+    // Steps/kcal/km are a synchronous re-slice of `healthHistory`, which is
+    // already fully loaded by `dashboardQuery` — switching date/timeframe never
+    // triggers a new fetch, so there's nothing to show a skeleton for there.
+    // `isPending` only covers the one real gap: the very first load.
+    isStatsLoading: dashboardQuery.isPending,
     refreshDashboard: dashboardQuery.refetch,
     currentStreak: dashboardData?.currentStreak || 0,
   };
