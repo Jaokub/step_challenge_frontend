@@ -18,7 +18,13 @@ export interface Activity {
   points: number;
   expectedSteps?: number | null;
   totalDistance?: number | null;
+  // Checked-in count (CheckIn rows) — distinct from `registeredCount` below.
   participantCount?: number;
+  // Registered-only count (ActivityParticipant rows — enrolled via a group
+  // cascade or self-join, not necessarily checked in yet; BUILD_PLAN.md
+  // Phase 4). This is what "total participants" means on /activity/[id],
+  // since that screen is about registration, not check-in.
+  registeredCount?: number;
   createdBy?: User;
   isCheckedIn?: boolean;
   // Registration-only cascade (BUILD_PLAN.md Phase 4) — separate from

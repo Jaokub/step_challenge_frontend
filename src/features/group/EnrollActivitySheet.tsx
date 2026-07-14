@@ -133,7 +133,7 @@ export default function EnrollActivitySheet({
                     </AppText>
                   </LinearGradient>
                 ) : (
-                  <View style={[styles.pill, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder}]}>
+                  <View style={[styles.pill, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
                     <AppText style={{ fontSize: 11.5, fontWeight: '700' as any, color: colors.textPrimary }}>
                       {t('groups.selectChip')}
                     </AppText>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: { fontSize: 13.5, lineHeight: 16 },
   rowMeta: { fontSize: 11, lineHeight: 14, marginTop: 2 },
-  pill: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 10, flexShrink: 0 },
+  pill: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 10, flexShrink: 0, borderWidth: 1, borderColor: 'transparent' },
   note: { fontSize: 12.5, lineHeight: 18, borderRadius: 16, padding: 14 },
   confirmBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
 });

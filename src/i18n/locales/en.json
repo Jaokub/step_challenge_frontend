@@ -526,7 +526,11 @@
     "leftActivityToast": "Left the activity",
     "pickGroupTitle": "Choose a group to enroll",
     "confirmEnrollGroupInActivity": "Enroll \"{{name}}\" in this activity? All {{count}} members will be registered.",
-    "enrolledGroupToast": "Group enrolled — {{count}} member(s) registered"
+    "enrolledGroupToast": "Group enrolled — {{count}} member(s) registered",
+    "joinActivityButton": "Join this activity",
+    "joinedActivityToast": "Registered — check in via QR to earn points",
+    "participantsListTitle": "Member list",
+    "joinedIndividually": "Joined individually"
   },
   "tabs": {
     "home": "Home",

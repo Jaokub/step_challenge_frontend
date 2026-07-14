@@ -526,7 +526,11 @@
     "leftActivityToast": "ออกจากกิจกรรมแล้ว",
     "pickGroupTitle": "เลือกกลุ่มที่จะพาเข้าร่วม",
     "confirmEnrollGroupInActivity": "พา \"{{name}}\" เข้าร่วมกิจกรรมนี้? สมาชิกทั้ง {{count}} คนจะถูกลงทะเบียน",
-    "enrolledGroupToast": "ลงทะเบียนกลุ่มแล้ว — สมาชิก {{count}} คน"
+    "enrolledGroupToast": "ลงทะเบียนกลุ่มแล้ว — สมาชิก {{count}} คน",
+    "joinActivityButton": "เข้าร่วมกิจกรรมนี้",
+    "joinedActivityToast": "ลงทะเบียนแล้ว — เช็คอินผ่าน QR เพื่อรับคะแนน",
+    "participantsListTitle": "รายชื่อสมาชิก",
+    "joinedIndividually": "เข้าร่วมด้วยตนเอง"
   },
   "tabs": {
     "home": "หน้าแรก",

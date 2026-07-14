@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useToast } from '../../src/contexts/ToastContext';
+import { useAuth } from '../../src/contexts/AuthContext';
 import {
   AppText,
   ScreenHeader,
@@ -17,12 +19,15 @@ import {
   PrimaryButton,
   OutlineButton,
 } from '../../src/components';
-import { spacing } from '../../src/constants/theme';
+import { spacing, gradients, dashboardAccents } from '../../src/constants/theme';
 import { queryKeys } from '../../src/constants/queryKeys';
 import activityService from '../../src/features/activity/activityService';
 import { useGroups } from '../../src/features/group/useGroups';
 import { formatDate } from '../../src/utils/formatDate';
 import type { Activity } from '../../src/types';
+
+const initials = (name?: string): string =>
+  (name || '?').trim().split(/\s+/).slice(0, 2).map((p) => p.charAt(0)).join('').toUpperCase();
 
 // Mockup frame 17 — participant view. Registration (ActivityParticipant) is
 // separate from check-ins/points: enrolling a group or joining here awards
@@ -31,8 +36,9 @@ import type { Activity } from '../../src/types';
 export default function ActivityDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
+  const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
 
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -54,10 +60,31 @@ export default function ActivityDetailScreen() {
   const { groups } = useGroups(true);
   const myCoordGroups = groups.filter((g) => g.myRole === 'OWNER');
 
-  const invalidateActivity = () => queryClient.invalidateQueries({ queryKey: queryKeys.activities.detail(id ?? '') });
+  // GET /activities/:id/participants only allows admins or callers already
+  // registered for this activity (activityParticipant.controller.js) — so
+  // only fetch once the activity has loaded and that condition is known.
+  const canSeeParticipants = isAdmin || !!activity?.myParticipation;
+  const participantsQuery = useQuery({
+    queryKey: queryKeys.activities.participants(id ?? ''),
+    queryFn: async () => {
+      const res = await activityService.getActivityParticipants(id!);
+      if (!res.success) throw new Error('Failed to load participants');
+      return res.data;
+    },
+    enabled: !!id && canSeeParticipants,
+  });
+  const participants = participantsQuery.data ?? [];
+
+  const invalidateActivity = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.activities.detail(id ?? '') });
+    queryClient.invalidateQueries({ queryKey: queryKeys.activities.participants(id ?? '') });
+  };
 
   const enrollMutation = useMutation({
     mutationFn: (groupId: string) => activityService.enrollGroupIntoActivity(id!, groupId),
+  });
+  const joinMutation = useMutation({
+    mutationFn: () => activityService.joinActivity(id!),
   });
   const leaveMutation = useMutation({
     mutationFn: () => activityService.leaveActivity(id!),
@@ -81,6 +108,20 @@ export default function ActivityDetailScreen() {
         invalidateActivity();
         setConfirmGroup(null);
         setPickerOpen(false);
+      } else {
+        showToast(res.message || t('common.error'), 'error');
+      }
+    } catch (err: any) {
+      showToast(err?.message || t('common.error'), 'error');
+    }
+  };
+
+  const handleJoin = async () => {
+    try {
+      const res = await joinMutation.mutateAsync();
+      if (res.success) {
+        showToast(t('activity.joinedActivityToast'), 'success');
+        invalidateActivity();
       } else {
         showToast(res.message || t('common.error'), 'error');
       }
@@ -125,6 +166,9 @@ export default function ActivityDetailScreen() {
   if (activity.totalDistance) metaParts.push(t('activity.metaDistanceKm', { km: activity.totalDistance }));
   metaParts.push(t('activity.metaPoints', { points: activity.points }));
 
+  const isOpenForRegistration = activity.status === 'UPCOMING' || activity.status === 'ONGOING';
+  const canRegister = isOpenForRegistration && !activity.myParticipation;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
@@ -154,6 +198,21 @@ export default function ActivityDetailScreen() {
           </View>
         )}
 
+        {canRegister && (
+          <TouchableOpacity onPress={handleJoin} disabled={joinMutation.isPending}>
+            <LinearGradient
+              colors={gradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.joinBtn, { opacity: joinMutation.isPending ? 0.6 : 1 }]}
+            >
+              <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.onPrimary }}>
+                {joinMutation.isPending ? t('common.loading') : t('activity.joinActivityButton')}
+              </AppText>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
         {myCoordGroups.length > 0 && (
           <TouchableOpacity onPress={handlePickGroup}>
             <View style={[styles.darkBtn, { backgroundColor: colors.textPrimary }]}>
@@ -167,9 +226,41 @@ export default function ActivityDetailScreen() {
         <View style={[styles.countCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <AppText style={{ fontSize: 12.5, color: colors.textSecondary }}>{t('activity.totalParticipants')}</AppText>
           <AppText variant="heading-bold" style={{ fontSize: 16, color: colors.textPrimary }}>
-            {activity.participantCount ?? 0} {t('activity.people')}
+            {activity.registeredCount ?? 0} {t('activity.people')}
           </AppText>
         </View>
+
+        {canSeeParticipants && participants.length > 0 && (
+          <View style={styles.section}>
+            <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+              {t('activity.participantsListTitle')}
+            </AppText>
+            {participants.map((p) => {
+              const avatarBg = dashboardAccents.avatarMuted[isDark ? 'dark' : 'light'];
+              const avatarFg = isDark ? '#fff' : colors.textPrimary;
+              const metaText = [p.user?.department, p.group?.name ?? t('activity.joinedIndividually')]
+                .filter(Boolean)
+                .join(' · ');
+              return (
+                <View key={p.id} style={[styles.memberRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                  <View style={[styles.memberAvatar, { backgroundColor: avatarBg }]}>
+                    <AppText variant="body-bold" style={{ fontSize: 11, color: avatarFg }}>
+                      {initials(p.user?.fullName)}
+                    </AppText>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <AppText variant="body-medium" style={{ fontSize: 13, color: colors.textPrimary }} numberOfLines={1}>
+                      {p.user?.fullName}
+                    </AppText>
+                    <AppText style={{ fontSize: 11, lineHeight: 14, color: colors.textSecondary, marginTop: 1 }} numberOfLines={1}>
+                      {metaText}
+                    </AppText>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {activity.myParticipation && (
           <TouchableOpacity onPress={() => setLeaveConfirmOpen(true)}>
@@ -259,6 +350,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.xl, paddingTop: spacing.sm, gap: spacing.md },
   meta: { fontSize: 12.5, lineHeight: 18 },
   enrolledBadge: { borderRadius: 14, borderWidth: 1, padding: 11 },
+  joinBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
   darkBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
   countCard: {
     flexDirection: 'row',
@@ -270,4 +362,8 @@ const styles = StyleSheet.create({
   },
   leaveBtn: { alignItems: 'center', paddingVertical: 13, borderRadius: 16 },
   pickerRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, padding: 12 },
+  section: { gap: spacing.sm },
+  sectionTitle: { fontSize: 14, lineHeight: 17, marginTop: spacing.xs },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, borderWidth: 1, padding: 11 },
+  memberAvatar: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
 });
