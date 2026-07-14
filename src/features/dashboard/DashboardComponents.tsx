@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
@@ -40,8 +40,8 @@ export const DashboardHeader = ({
   goToPrevMonth, goToNextMonth, dayTabs, colors, username,
 }: any) => {
   const { t, i18n } = useTranslation();
-  const scrollRef = useRef<ScrollView>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const monthsFull = t('months.full', { returnObjects: true }) as string[];
   const weekdayMin = t('weekdays.min', { returnObjects: true }) as string[];
@@ -49,17 +49,21 @@ export const DashboardHeader = ({
   const monthLabel = `${monthsFull[refMonth]} ${displayYear}`;
   const initials = (username || 'U').substring(0, 2).toUpperCase();
 
+  // Scrollable strip through the whole month, auto-centered on the selected
+  // day whenever it changes (including on first mount, where it lands on
+  // today — see useDashboard.ts's initial `selectedDate`).
+  const DAY_CELL_WIDTH = 44;
+  const DAY_ITEM_STRIDE = DAY_CELL_WIDTH + 8; // cell + row gap
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!scrollRef.current || timeframe !== 'Daily') return;
-      const index = parseInt(selectedDate, 10) - 1;
+      const index = dayTabs.findIndex((tab: any) => tab.day.toString() === selectedDate);
       if (index < 0) return;
-      const itemWidth = 52;
-      const offset = index * itemWidth - width / 2 + itemWidth / 2 + layout.screenPaddingX;
+      const offset = index * DAY_ITEM_STRIDE - width / 2 + DAY_ITEM_STRIDE / 2 + layout.screenPaddingX;
       scrollRef.current.scrollTo({ x: Math.max(0, offset), animated: true });
     }, 50);
     return () => clearTimeout(timer);
-  }, [timeframe, refMonth, refYear, selectedDate]);
+  }, [timeframe, refMonth, refYear, selectedDate, dayTabs]);
 
   return (
     <View>
@@ -113,7 +117,7 @@ export const DashboardHeader = ({
               const isActive = tab.day.toString() === selectedDate;
               return (
                 <TouchableOpacity key={tab.day} onPress={() => { if (!isActive) Haptics.selectionAsync(); setSelectedDate(tab.day.toString()); }} style={{ alignItems: 'center', gap: 3 }} activeOpacity={0.8}>
-                  <ActiveBg active={isActive} colors={colors} style={{ width: 44, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                  <ActiveBg active={isActive} colors={colors} style={{ width: DAY_CELL_WIDTH, height: 56, borderRadius: 14, borderWidth: 1, borderColor: isActive ? 'transparent' : colors.cardBorder, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                     <AppText style={{ fontSize: 10, lineHeight: 12, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textSecondary) }}>{weekdayMin[tab.weekdayIndex]}</AppText>
                     <AppText variant="body-bold" style={{ fontSize: 16, lineHeight: 20, color: isActive ? colors.onPrimary : (tab.isToday ? colors.primary : colors.textPrimary) }}>{tab.day}</AppText>
                   </ActiveBg>
