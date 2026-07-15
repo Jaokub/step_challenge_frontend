@@ -69,7 +69,13 @@ export const AdminKpiGrid = ({ items, colors }: { items: KpiItem[]; colors: any 
             >
               <MaterialCommunityIcons name={kpi.icon as any} size={17} color={kpi.color} />
             </View>
-            <AppText variant="heading-bold" style={{ fontSize: fontSize.xl, color: colors.textPrimary, marginTop: spacing.sm }}>
+            {/* Mockup: font-weight:800 — heading-extraBold (Sora 800), not -bold (700).
+                lineHeight overridden — the variant's default (44) is sized for big
+                display numbers, not this compact 20px KPI figure. */}
+            <AppText
+              variant="heading-extraBold"
+              style={{ fontSize: fontSize.xl, lineHeight: 24, color: colors.textPrimary, marginTop: spacing.sm }}
+            >
               {kpi.value.toLocaleString()}
             </AppText>
             <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary, lineHeight: 15 }}>{kpi.label}</AppText>
@@ -97,8 +103,14 @@ export const AdminFacultyStepsCard = ({ colors }: any) => {
         {t('admin.facultyStepsLabel')}
       </AppText>
       {/* Mockup renders this figure as a gradient-filled number (teal→green), never
-          a solid color — pull the fill from the central `gradients.statValue` token. */}
-      <GradientText colors={gradients.statValue} variant="heading-bold" style={{ fontSize: fontSize['3xl'], marginTop: 4 }}>
+          a solid color — pull the fill from the central `gradients.statValue` token.
+          Mockup: font-size:34px;font-weight:800 — extraBold, and 34 not the 3xl
+          token's 30 (lineHeight overridden; the variant default is sized bigger). */}
+      <GradientText
+        colors={gradients.statValue}
+        variant="heading-extraBold"
+        style={{ fontSize: 34, lineHeight: 40, marginTop: 4 }}
+      >
         —
       </GradientText>
       <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '22' }]}>
@@ -119,7 +131,7 @@ interface NavCard {
   disabledNote?: string;
 }
 
-export const AdminNavGrid = ({ items, colors }: { items: NavCard[]; colors: any }) => (
+export const AdminNavGrid = ({ items, colors, isDark }: { items: NavCard[]; colors: any; isDark?: boolean }) => (
   <View style={styles.grid}>
     {pairUp(items).map((row, i) => (
       <View key={i} style={styles.gridRow}>
@@ -134,12 +146,16 @@ export const AdminNavGrid = ({ items, colors }: { items: NavCard[]; colors: any 
               style={[styles.navCard, cardShadow, { backgroundColor: colors.card, borderColor: colors.cardBorder, opacity: disabled ? 0.55 : 1 }]}
             >
               <View style={styles.navTop}>
-                <View style={[styles.navIcon, { backgroundColor: colors.inputBackground }]}>
+                {/* colors.card == colors.inputBackground in dark mode — this chip
+                    needs a distinct tone to stand out against the card (see
+                    RelationGroupCard's same fix in the group screens). */}
+                <View style={[styles.navIcon, { backgroundColor: isDark ? colors.background : colors.inputBackground }]}>
                   <Ionicons name={nav.icon as any} size={16} color={colors.primary} />
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
               </View>
-              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary, marginTop: spacing.sm }}>{nav.title}</AppText>
+              {/* Mockup: font-size:14px — not the fontSize.sm token (13px). */}
+              <AppText variant="body-bold" style={{ fontSize: 14, lineHeight: 17, color: colors.textPrimary, marginTop: spacing.sm }}>{nav.title}</AppText>
               <AppText style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 14 }}>{nav.desc}</AppText>
               {disabled && nav.disabledNote && (
                 <AppText style={{ fontSize: 10, lineHeight: 12, color: colors.warning, fontWeight: '700' as any, marginTop: 2 }}>

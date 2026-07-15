@@ -17,7 +17,7 @@ import { spacing, adminAccents } from '../../src/constants/theme';
 
 export default function AdminDashboardScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { kpis, loading } = useAdminDashboard();
 
   // Four distinct KPI accents per mockup frame 1 (teal / blue / lime / orange).
@@ -68,6 +68,7 @@ export default function AdminDashboardScreen() {
         <ScreenHeader
           title={t('admin.dashboard')}
           subtitle={t('admin.dashboardSubtitle')}
+          subtitleSize={12}
           rightActions={
             <TouchableOpacity onPress={() => router.push('/settings')} style={{ padding: 4 }}>
               <Ionicons name="settings-outline" size={22} color={colors.textPrimary} />
@@ -93,11 +94,13 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
         ) : (
-          <View style={{ gap: spacing.lg }}>
+          // Mockup: content wrapper gap:14px (not the spacing.lg=16 token — this
+          // screen's sections are pixel-matched to frame 1 directly).
+          <View style={{ gap: 14 }}>
             <AdminCoordinatorBanner colors={colors} />
             <AdminKpiGrid items={kpiItems} colors={colors} />
             <AdminFacultyStepsCard colors={colors} />
-            <AdminNavGrid items={navItems} colors={colors} />
+            <AdminNavGrid items={navItems} colors={colors} isDark={isDark} />
           </View>
         )}
       </ScrollView>

@@ -22,6 +22,7 @@ interface ScreenHeaderProps {
   style?: StyleProp<ViewStyle>;
   titleColor?: string;
   titleSize?: number;
+  subtitleSize?: number;
   containerPadding?: boolean;
 }
 
@@ -35,6 +36,7 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   style,
   titleColor,
   titleSize,
+  subtitleSize,
   containerPadding = true,
 }) => {
   const { colors } = useTheme();
@@ -74,7 +76,13 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           {title}
         </AppText>
         {subtitle && (
-          <AppText style={[styles.subtitle, { color: colors.textSecondary }]}>
+          <AppText
+            style={[
+              styles.subtitle,
+              { color: colors.textSecondary },
+              subtitleSize ? { fontSize: subtitleSize } : undefined,
+            ]}
+          >
             {subtitle}
           </AppText>
         )}
