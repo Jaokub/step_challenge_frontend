@@ -56,8 +56,10 @@ export default function ActivityDetailScreen() {
   });
   const activity: Activity | null = data ?? null;
 
-  // Groups the caller coordinates — only OWNERs may enroll a group.
-  const { groups } = useGroups(true);
+  // Groups the caller coordinates — only OWNERs may enroll a group. Awaited
+  // alongside the activity query below so the "enroll group" button is
+  // present on first render instead of popping in once this fetch resolves.
+  const { groups, isLoading: isGroupsLoading } = useGroups(true);
   const myCoordGroups = groups.filter((g) => g.myRole === 'OWNER');
 
   // GET /activities/:id/participants only allows admins or callers already
@@ -145,7 +147,7 @@ export default function ActivityDetailScreen() {
     }
   };
 
-  if (isPending) return <LoadingScreen />;
+  if (isPending || isGroupsLoading) return <LoadingScreen />;
 
   if (!activity) {
     return (

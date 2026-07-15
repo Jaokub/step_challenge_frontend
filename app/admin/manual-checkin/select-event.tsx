@@ -36,7 +36,7 @@ export default function ManualCheckinSelectEventScreen() {
   const renderCard = ({ item }: { item: Activity }) => (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <View style={styles.cardTop}>
-        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary }} numberOfLines={2}>
+        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary }} numberOfLines={1}>
           {item.title}
         </AppText>
         <StatusBadge status={item.status} />

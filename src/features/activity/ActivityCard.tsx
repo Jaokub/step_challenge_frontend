@@ -101,13 +101,20 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       </LinearGradient>
 
       <View style={styles.content}>
-        <AppText
-          variant="heading-bold"
-          style={{ fontSize: 16, lineHeight: 20, color: colors.textPrimary, marginBottom: 6 }}
-          numberOfLines={1}
-        >
-          {activity.title}
-        </AppText>
+        <View style={styles.titleRow}>
+          <AppText
+            variant="heading-bold"
+            style={{ fontSize: 16, lineHeight: 20, color: colors.textPrimary, flexShrink: 1, marginRight: 8 }}
+            numberOfLines={1}
+          >
+            {activity.title}
+          </AppText>
+          <View style={[styles.daysChip, { backgroundColor: colors.primary + '1f' }]}>
+            <AppText variant="body-semiBold" style={{ fontSize: 11, color: colors.primary }} numberOfLines={1}>
+              {daysLabel}
+            </AppText>
+          </View>
+        </View>
         <View style={styles.metaRow}>
           <View style={styles.metaLeftGroup}>
             <View style={styles.metaItem}>
@@ -120,11 +127,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
                 {activity.location}
               </AppText>
             </View>
-          </View>
-          <View style={[styles.daysChip, { backgroundColor: colors.primary + '1f' }]}>
-            <AppText variant="body-semiBold" style={{ fontSize: 11, color: colors.primary }} numberOfLines={1}>
-              {daysLabel}
-            </AppText>
           </View>
         </View>
 
@@ -235,11 +237,17 @@ const styles = StyleSheet.create({
   content: {
     padding: 18,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 10,
   },
   metaLeftGroup: {
     flexDirection: 'row',
