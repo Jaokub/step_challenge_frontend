@@ -78,3 +78,47 @@ export interface SiblingGroupOverview {
   groupName: string;
   overallStats: GroupOverallStats;
 }
+
+// ─── Hierarchy request/approve + admin god-mode (BUILD_PLAN.md Phase 5) ───
+
+export type GroupParentRequestStatus = 'PENDING' | 'APPROVED' | 'DENIED';
+
+export interface GroupParentRequest {
+  id: string;
+  childGroupId: string;
+  parentGroupId: string;
+  status: GroupParentRequestStatus;
+  requestedById: string;
+  createdAt: string;
+  resolvedAt?: string | null;
+  childGroup?: ChildGroupRef;
+}
+
+export interface ParentGroupCandidate {
+  id: string;
+  name: string;
+  memberCount: number;
+  requested: boolean;
+}
+
+export interface AdminGroupTreeChild {
+  id: string;
+  name: string;
+  members: number;
+  coordinator: string | null;
+  pending: boolean;
+  pendingParent: string | null;
+  pendingRequestId: string | null;
+}
+
+export interface AdminGroupTree {
+  root: {
+    id: string;
+    name: string;
+    kind: 'PARENT' | 'STANDALONE';
+    members: number;
+    coordinator: string | null;
+    childCount: number;
+  };
+  children: AdminGroupTreeChild[];
+}

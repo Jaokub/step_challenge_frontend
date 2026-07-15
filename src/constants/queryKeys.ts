@@ -43,6 +43,10 @@ export const queryKeys = {
     qrcode: (id: string) => ['groups', 'qrcode', id] as const,
     overview: (id: string) => ['groups', 'overview', id] as const,
     siblings: (id: string) => ['groups', 'siblings', id] as const,
+    // Phase 5 — hierarchy request/approve + admin god-mode.
+    parentCandidates: (id: string, search: string) => ['groups', 'parentCandidates', id, search] as const,
+    incomingRequests: (id: string) => ['groups', 'incomingRequests', id] as const,
+    adminTree: ['groups', 'adminTree'] as const,
   },
   friends: {
     all: ['friends'] as const,

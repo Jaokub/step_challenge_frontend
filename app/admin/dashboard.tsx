@@ -51,7 +51,7 @@ export default function AdminDashboardScreen() {
       title: t('admin.navGroupsTitle'),
       desc: t('admin.navGroupsDesc'),
       icon: 'people-outline',
-      disabledNote: t('admin.navComingSoon'),
+      onPress: () => router.push('/admin/groups'),
     },
     {
       key: 'users',

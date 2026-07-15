@@ -2,7 +2,16 @@
 // Step Challenge Mobile App — Group Service
 // ============================================================
 import api from '../../services/api';
-import type { ApiResponse, AppGroup, GroupMember, GroupOverview, SiblingGroupOverview } from '../../types';
+import type {
+  ApiResponse,
+  AppGroup,
+  GroupMember,
+  GroupOverview,
+  SiblingGroupOverview,
+  GroupParentRequest,
+  ParentGroupCandidate,
+  AdminGroupTree,
+} from '../../types';
 
 // ─── Service ────────────────────────────────────────────────
 
@@ -177,6 +186,98 @@ const groupService = {
       const { data } = await api.get<ApiResponse<SiblingGroupOverview[]>>(
         `/groups/${id}/siblings`,
       );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  // ─── Hierarchy request/approve + admin god-mode (Phase 5) ───────────────
+
+  /** Candidate parent groups for the picker sheet, with a search filter. */
+  async getParentCandidates(
+    id: string,
+    search?: string,
+  ): Promise<ApiResponse<{ candidates: ParentGroupCandidate[]; pendingRequestId: string | null }>> {
+    try {
+      const { data } = await api.get<ApiResponse<{ candidates: ParentGroupCandidate[]; pendingRequestId: string | null }>>(
+        `/groups/${id}/parent-candidates`,
+        { params: search ? { search } : undefined },
+      );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Request `id` to become a child of `parentGroupId`. */
+  async requestParentGroup(id: string, parentGroupId: string): Promise<ApiResponse<GroupParentRequest>> {
+    try {
+      const { data } = await api.post<ApiResponse<GroupParentRequest>>(`/groups/${id}/parent-request`, {
+        parentGroupId,
+      });
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Incoming requests where `id` is the prospective parent. */
+  async getIncomingParentRequests(id: string): Promise<ApiResponse<GroupParentRequest[]>> {
+    try {
+      const { data } = await api.get<ApiResponse<GroupParentRequest[]>>(`/groups/${id}/parent-requests`);
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  async approveParentRequest(id: string, requestId: string): Promise<ApiResponse<GroupParentRequest>> {
+    try {
+      const { data } = await api.post<ApiResponse<GroupParentRequest>>(
+        `/groups/${id}/parent-requests/${requestId}/approve`,
+      );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  async denyParentRequest(id: string, requestId: string): Promise<ApiResponse<GroupParentRequest>> {
+    try {
+      const { data } = await api.post<ApiResponse<GroupParentRequest>>(
+        `/groups/${id}/parent-requests/${requestId}/deny`,
+      );
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Admin-only direct override: set/reassign (id) or detach (null). */
+  async setParentGroup(id: string, parentGroupId: string | null): Promise<ApiResponse<AppGroup>> {
+    try {
+      const { data } = await api.put<ApiResponse<AppGroup>>(`/groups/${id}`, { parentGroupId });
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Move the OWNER role to `userId` — coordinator-initiated or admin-override. */
+  async transferCoordinator(id: string, userId: string): Promise<ApiResponse<null>> {
+    try {
+      const { data } = await api.post<ApiResponse<null>>(`/groups/${id}/transfer-coordinator`, { userId });
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Admin god-mode: full hierarchy tree. */
+  async getAdminGroupTree(): Promise<ApiResponse<AdminGroupTree[]>> {
+    try {
+      const { data } = await api.get<ApiResponse<AdminGroupTree[]>>('/groups/admin/tree');
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

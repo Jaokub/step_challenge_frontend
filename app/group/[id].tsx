@@ -5,16 +5,22 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useToast } from '../../src/contexts/ToastContext';
 import { AppText, LoadingScreen, ErrorState, CustomModal, PrimaryButton, OutlineButton } from '../../src/components';
 import { spacing, gradients, dashboardAccents } from '../../src/constants/theme';
+import { queryKeys } from '../../src/constants/queryKeys';
 import { useGroupDetail } from '../../src/features/group/useGroupDetail';
 import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
 import { GroupSiblingsSection } from '../../src/features/group/GroupSiblingsSection';
 import EnrollActivitySheet from '../../src/features/group/EnrollActivitySheet';
+import ParentGroupPickerSheet from '../../src/features/group/ParentGroupPickerSheet';
+import TransferCoordinatorSheet from '../../src/features/group/TransferCoordinatorSheet';
+import GroupIncomingRequestsSection from '../../src/features/group/GroupIncomingRequestsSection';
+import groupService from '../../src/features/group/groupService';
 import type { GroupRankingRow } from '../../src/types';
 
 const initials = (name?: string): string =>
@@ -40,6 +46,8 @@ export default function GroupDetailScreen() {
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
   const [confirmAction, setConfirmAction] = useState<'leave' | 'delete' | null>(null);
   const [enrollSheetOpen, setEnrollSheetOpen] = useState(false);
+  const [parentPickerOpen, setParentPickerOpen] = useState(false);
+  const [transferSheetOpen, setTransferSheetOpen] = useState(false);
 
   const {
     group,
@@ -62,6 +70,21 @@ export default function GroupDetailScreen() {
 
   const hasParent = !!group?.parentGroup;
   const { overview, isOverviewLoading, siblings, isSiblingsLoading } = useGroupOverview(id, hasParent);
+
+  // Shares its cache key with ParentGroupPickerSheet's own query (same id,
+  // search='') so opening the sheet doesn't re-fetch — just to know whether
+  // to show "pending approval" on the trigger row itself.
+  const isOwnerForQuery = group?.members?.find((m) => m.user?.id === user?.id)?.role === 'OWNER';
+  const parentCandidatesQuery = useQuery({
+    queryKey: queryKeys.groups.parentCandidates(id, ''),
+    queryFn: async () => {
+      const res = await groupService.getParentCandidates(id);
+      if (!res.success) throw new Error('Failed to load candidate groups');
+      return res.data;
+    },
+    enabled: isOwnerForQuery,
+  });
+  const hasPendingParentRequest = !!parentCandidatesQuery.data?.pendingRequestId;
 
   const fallbackRanking: GroupRankingRow[] = (group?.members ?? [])
     .slice()
@@ -90,6 +113,7 @@ export default function GroupDetailScreen() {
   const currentUserRole = group.members?.find((m) => m.user?.id === user?.id)?.role;
   const isOwner = currentUserRole === 'OWNER';
   const coordinator = group.members?.find((m) => m.role === 'OWNER');
+  const eligibleTransferMembers = (group.members ?? []).filter((m) => m.role === 'MEMBER');
   const avatarBg = dashboardAccents.avatarMuted[isDark ? 'dark' : 'light'];
   const avatarFg = isDark ? '#fff' : colors.textPrimary;
 
@@ -278,22 +302,41 @@ export default function GroupDetailScreen() {
             </View>
           )}
 
+          {isOwner && <GroupIncomingRequestsSection groupId={id} />}
+
           {isOwner && (
-            <View
-              style={[
-                styles.gapRow,
-                { backgroundColor: colors.card, borderColor: colors.cardBorder },
-              ]}
-            >
-              <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
-                {t('groups.requestParentGroup')}
-              </AppText>
-              <View style={[styles.gapBadge, { backgroundColor: colors.warning + '1F' }]}>
-                <AppText style={{ fontSize: 10.5, lineHeight: 13, fontWeight: '700' as any, color: colors.warning }}>
-                  {t('groups.featureComingSoon')}
+            <TouchableOpacity onPress={() => setParentPickerOpen(true)}>
+              <View
+                style={[
+                  styles.gapRow,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                ]}
+              >
+                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
+                  {t('groups.requestParentGroup')}
                 </AppText>
+                {hasPendingParentRequest ? (
+                  <View style={[styles.gapBadge, { backgroundColor: colors.warning + '1F' }]}>
+                    <AppText style={{ fontSize: 10.5, lineHeight: 13, fontWeight: '700' as any, color: colors.warning }}>
+                      {t('groups.pendingApproval')}
+                    </AppText>
+                  </View>
+                ) : (
+                  <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+                )}
               </View>
-            </View>
+            </TouchableOpacity>
+          )}
+
+          {isOwner && (
+            <TouchableOpacity onPress={() => setTransferSheetOpen(true)}>
+              <View style={[styles.gapRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
+                  {t('groups.transferCoordinatorTitle')}
+                </AppText>
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              </View>
+            </TouchableOpacity>
           )}
 
           {isOwner && (
@@ -425,6 +468,21 @@ export default function GroupDetailScreen() {
         groupId={id}
         groupName={group.name}
         memberCount={group.members?.length ?? 0}
+      />
+
+      <ParentGroupPickerSheet
+        visible={parentPickerOpen}
+        onClose={() => setParentPickerOpen(false)}
+        groupId={id}
+        groupName={group.name}
+        memberCount={group.members?.length ?? 0}
+      />
+
+      <TransferCoordinatorSheet
+        visible={transferSheetOpen}
+        onClose={() => setTransferSheetOpen(false)}
+        groupId={id}
+        members={eligibleTransferMembers}
       />
     </View>
   );
