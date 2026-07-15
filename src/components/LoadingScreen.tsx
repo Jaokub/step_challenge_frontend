@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, RadialGradient, Stop } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,6 +26,10 @@ const RING_STROKE = 3;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const RING_ARC = RING_CIRCUMFERENCE * (250 / 360);
+
+// Glow halo — mockup: inset -24px around the 104px ring (so 152px across),
+// radial-gradient(closest-side, primary 28%, accent 8% @70%, transparent).
+const GLOW_SIZE = RING_SIZE + 48;
 
 const Dot: React.FC<{ delay: number; color: string }> = ({ delay, color }) => {
   const opacity = useSharedValue(0.25);
@@ -72,7 +76,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.iconWrap}>
-        <Animated.View style={[styles.glow, { backgroundColor: colors.primary + '38' }, glowStyle]} />
+        <Animated.View style={[styles.glow, glowStyle]}>
+          <Svg width={GLOW_SIZE} height={GLOW_SIZE}>
+            <Defs>
+              <RadialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+                <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
+                <Stop offset="0.7" stopColor={gradients.primary[1]} stopOpacity={0.08} />
+                <Stop offset="1" stopColor={gradients.primary[1]} stopOpacity={0} />
+              </RadialGradient>
+            </Defs>
+            <Circle cx={GLOW_SIZE / 2} cy={GLOW_SIZE / 2} r={GLOW_SIZE / 2} fill="url(#glowGrad)" />
+          </Svg>
+        </Animated.View>
 
         <Animated.View style={[styles.ringWrap, spinStyle]}>
           <Svg width={RING_SIZE} height={RING_SIZE}>
@@ -145,9 +160,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -24,
     left: -24,
-    right: -24,
-    bottom: -24,
-    borderRadius: 9999,
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
   },
   ringWrap: {
     position: 'absolute',

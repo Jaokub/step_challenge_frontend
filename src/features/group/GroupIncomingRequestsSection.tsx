@@ -19,9 +19,12 @@ interface GroupIncomingRequestsSectionProps {
 // hits the same endpoints from /admin/groups (override-approve).
 export default function GroupIncomingRequestsSection({ groupId }: GroupIncomingRequestsSectionProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  // `colors.card` == `colors.inputBackground` in dark mode — nested pills
+  // need a distinct tone to stand out against this card (see RelationGroupCard).
+  const insetBg = isDark ? colors.background : colors.inputBackground;
 
   const requestsQuery = useQuery({
     queryKey: queryKeys.groups.incomingRequests(groupId),
@@ -74,7 +77,7 @@ export default function GroupIncomingRequestsSection({ groupId }: GroupIncomingR
         <AppText variant="body-bold" style={[styles.title, { color: colors.textPrimary }]}>
           {t('groups.incomingParentRequests')}
         </AppText>
-        <View style={[styles.countBadge, { backgroundColor: colors.inputBackground }]}>
+        <View style={[styles.countBadge, { backgroundColor: insetBg }]}>
           <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.textSecondary }}>
             {requests.length}
           </AppText>
@@ -107,7 +110,7 @@ export default function GroupIncomingRequestsSection({ groupId }: GroupIncomingR
             <TouchableOpacity
               onPress={() => denyMutation.mutate(r.id)}
               disabled={busy}
-              style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
+              style={[styles.actionBtn, { backgroundColor: insetBg }]}
             >
               <AppText style={{ fontSize: 11, fontWeight: '700' as any, color: colors.textSecondary }}>
                 {t('groups.denyAction')}

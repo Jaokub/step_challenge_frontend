@@ -29,7 +29,12 @@ interface RelationGroupCardProps {
 // child groups, Top-3 SUB-GROUPS + "ดูทั้งหมด". Same card template either way.
 export default function RelationGroupCard({ title, stats, top3Label, top3, onPress, onViewAll }: RelationGroupCardProps) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  // `colors.card` and `colors.inputBackground` are the same value in dark
+  // mode (see ActivityCard's statChipBg comment) — the nested inset boxes
+  // below need their own tone-aware background to actually stand out
+  // against this card, same fix as the stat chips there.
+  const insetBg = isDark ? colors.background : colors.inputBackground;
 
   const Wrapper = onPress ? TouchableOpacity : View;
 
@@ -42,7 +47,7 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
         {title}
       </AppText>
 
-      <View style={[styles.statRow, { backgroundColor: colors.inputBackground }]}>
+      <View style={[styles.statRow, { backgroundColor: insetBg }]}>
         {(['today', 'week', 'month'] as const).map((period) => (
           <View key={period} style={styles.statCol}>
             <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>
@@ -70,7 +75,7 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
           <RowWrapper
             key={row.rank}
             {...(row.onPress ? { onPress: row.onPress, activeOpacity: 0.7 } : {})}
-            style={[styles.top3Row, { backgroundColor: colors.inputBackground }]}
+            style={[styles.top3Row, { backgroundColor: insetBg }]}
           >
             <AppText variant="body-bold" style={[styles.top3Rank, { color: colors.textSecondary }]}>
               {row.rank}

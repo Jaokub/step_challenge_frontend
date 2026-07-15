@@ -31,9 +31,12 @@ export default function EnrollActivitySheet({
   memberCount,
 }: EnrollActivitySheetProps) {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  // `colors.card` == `colors.inputBackground` in dark mode — the unselected
+  // pill needs a distinct tone to stand out against the row (see RelationGroupCard).
+  const insetBg = isDark ? colors.background : colors.inputBackground;
 
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -138,7 +141,7 @@ export default function EnrollActivitySheet({
                     </AppText>
                   </LinearGradient>
                 ) : (
-                  <View style={[styles.pill, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}>
+                  <View style={[styles.pill, { backgroundColor: insetBg, borderColor: colors.cardBorder }]}>
                     <AppText style={{ fontSize: 11.5, fontWeight: '700' as any, color: colors.textPrimary }}>
                       {t('groups.selectChip')}
                     </AppText>

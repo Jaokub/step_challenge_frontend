@@ -293,7 +293,10 @@ export default function GroupDetailScreen() {
                   {m.role !== 'OWNER' && m.user && (
                     <TouchableOpacity
                       onPress={() => setRemoveTarget({ id: m.user!.id, name: m.user!.fullName })}
-                      style={[styles.removeChip, { backgroundColor: colors.inputBackground }]}
+                      // colors.card == colors.inputBackground in dark mode — this chip sits
+                      // inside a colors.card memberRow, so it needs a distinct tone to
+                      // actually be visible (same fix as ActivityCard's statChipBg).
+                      style={[styles.removeChip, { backgroundColor: isDark ? colors.background : colors.inputBackground }]}
                     >
                       <AppText style={{ fontSize: 13, lineHeight: 15, color: colors.textSecondary }}>✕</AppText>
                     </TouchableOpacity>
@@ -444,14 +447,18 @@ export default function GroupDetailScreen() {
             />
           )}
 
-          <TouchableOpacity
-            onPress={() => setConfirmAction('leave')}
-            style={[styles.leaveBtn, { backgroundColor: colors.inputBackground }]}
-          >
-            <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.error }}>
-              {t('groups.leaveGroup')}
-            </AppText>
-          </TouchableOpacity>
+          {/* Mockup: frame 13 (coordinator) has no leave button — owners use
+              "ลบกลุ่ม" in settings instead; only frame 15 (member) shows this. */}
+          {!isOwner && (
+            <TouchableOpacity
+              onPress={() => setConfirmAction('leave')}
+              style={[styles.leaveBtn, { backgroundColor: colors.inputBackground }]}
+            >
+              <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.error }}>
+                {t('groups.leaveGroup')}
+              </AppText>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
 
