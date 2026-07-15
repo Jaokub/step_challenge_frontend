@@ -42,7 +42,7 @@ export default function AdminGroupTreeCard({ tree, ...actions }: AdminGroupTreeC
             {tree.name}
           </AppText>
           <View style={[styles.kindBadge, { backgroundColor: adminAccents.onDark + '24' }]}>
-            <AppText style={{ fontSize: 9.5, fontWeight: '700' as any, color: adminAccents.onDark }}>
+            <AppText style={styles.kindBadgeText}>
               {tree.kind === 'PARENT' ? t('admin.groupKindParent') : t('admin.groupKindStandalone')}
             </AppText>
           </View>
@@ -116,21 +116,21 @@ function ChildCard({ node, onMoveParent, onDetach, onReassignCoordinator, onDele
         <AppText variant="body-bold" style={[styles.childName, { color: colors.textPrimary }]} numberOfLines={1}>
           {node.name}
         </AppText>
-        <AppText style={{ fontSize: 11, color: colors.textSecondary }}>
+        <AppText style={[styles.memberCount, { color: colors.textSecondary }]}>
           {t('groups.memberCountLabel', { count: node.members })}
         </AppText>
       </View>
-      <AppText style={{ fontSize: 11.5, color: colors.textSecondary }}>
+      <AppText style={[styles.coordinatorLine, { color: colors.textSecondary }]}>
         {t('admin.coordinatorInline', { name: node.coordinator ?? '-' })}
       </AppText>
 
       {node.pending && (
         <View style={[styles.pendingRow, { backgroundColor: colors.warning + '1A' }]}>
-          <AppText style={{ flex: 1, fontSize: 10.5, fontWeight: '600' as any, color: colors.warning }}>
+          <AppText style={[styles.pendingText, { color: colors.warning }]}>
             {t('admin.pendingChildOf', { name: node.pendingParent ?? '-' })}
           </AppText>
           <TouchableOpacity disabled={busy} onPress={onOverridePress} style={[styles.miniBtn, { backgroundColor: colors.primary }]}>
-            <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: adminAccents.onDark }}>
+            <AppText style={[styles.miniBtnText, { color: adminAccents.onDark }]}>
               {t('admin.overrideApprove')}
             </AppText>
           </TouchableOpacity>
@@ -139,16 +139,16 @@ function ChildCard({ node, onMoveParent, onDetach, onReassignCoordinator, onDele
 
       <View style={styles.actionRow}>
         <TouchableOpacity disabled={busy} onPress={() => onMoveParent(ref)} style={[styles.actionChip, { backgroundColor: colors.inputBackground }]}>
-          <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.textPrimary }}>{t('admin.actionMoveParent')}</AppText>
+          <AppText style={[styles.actionChipText, { color: colors.textPrimary }]}>{t('admin.actionMoveParent')}</AppText>
         </TouchableOpacity>
         <TouchableOpacity disabled={busy} onPress={() => onDetach(ref)} style={[styles.actionChip, { backgroundColor: colors.inputBackground }]}>
-          <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.textPrimary }}>{t('admin.actionDetachParent')}</AppText>
+          <AppText style={[styles.actionChipText, { color: colors.textPrimary }]}>{t('admin.actionDetachParent')}</AppText>
         </TouchableOpacity>
         <TouchableOpacity disabled={busy} onPress={() => onReassignCoordinator(ref)} style={[styles.actionChip, { backgroundColor: colors.inputBackground }]}>
-          <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.textPrimary }}>{t('admin.actionReassignCoordinator')}</AppText>
+          <AppText style={[styles.actionChipText, { color: colors.textPrimary }]}>{t('admin.actionReassignCoordinator')}</AppText>
         </TouchableOpacity>
         <TouchableOpacity disabled={busy} onPress={() => onDelete(ref)} style={[styles.actionChip, { backgroundColor: colors.error + '1A' }]}>
-          <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.error }}>{t('admin.actionDeleteGroup')}</AppText>
+          <AppText style={[styles.actionChipText, { color: colors.error }]}>{t('admin.actionDeleteGroup')}</AppText>
         </TouchableOpacity>
       </View>
     </View>
@@ -162,7 +162,12 @@ const styles = StyleSheet.create({
   rootHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
   rootName: { flex: 1, fontSize: 15, lineHeight: 18 },
   kindBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, flexShrink: 0 },
-  rootMeta: { fontSize: 11.5, marginTop: 3 },
+  kindBadgeText: { fontSize: 9.5, lineHeight: 12, fontWeight: '700' as any, color: adminAccents.onDark },
+  // AppText's default (unspecified) lineHeight is a flat 22px regardless of
+  // variant/fontSize — every small caption below explicitly overrides it,
+  // otherwise a 10-11.5px line renders with ~2x its font-size in vertical
+  // padding, which is what was bloating the card spacing vs the mockup.
+  rootMeta: { fontSize: 11.5, lineHeight: 14, marginTop: 3 },
   childRow: { flexDirection: 'row', gap: 10, paddingLeft: 6 },
   childCol: { flex: 1, gap: 10 },
   // Mockup: width:14px;border-left:2px solid rgba(20,32,29,0.12);
@@ -183,10 +188,15 @@ const styles = StyleSheet.create({
   childCard: { borderRadius: 18, borderWidth: 1, paddingVertical: 13, paddingHorizontal: 14, gap: 6 },
   childHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   childName: { fontSize: 13.5, lineHeight: 16 },
+  memberCount: { fontSize: 11, lineHeight: 13 },
+  coordinatorLine: { fontSize: 11.5, lineHeight: 14 },
   // Mockup: border-radius:10px;padding:6px 10px;justify-content:space-between
   pendingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 10 },
+  pendingText: { flex: 1, fontSize: 10.5, lineHeight: 13, fontWeight: '600' as any },
   // Mockup: padding:4px 9px;border-radius:8px
   miniBtn: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+  miniBtnText: { fontSize: 10, lineHeight: 12, fontWeight: '700' as any },
   actionRow: { flexDirection: 'row', gap: 6, marginTop: 2, flexWrap: 'wrap' },
   actionChip: { flexGrow: 1, minWidth: 78, alignItems: 'center', paddingVertical: 6, borderRadius: 10 },
+  actionChipText: { fontSize: 10, lineHeight: 12, fontWeight: '700' as any },
 });

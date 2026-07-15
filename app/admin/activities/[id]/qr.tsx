@@ -76,7 +76,7 @@ export default function ActivityQrScreen() {
         </View>
 
         <View style={{ alignItems: 'center' }}>
-          <AppText variant="body-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary, textAlign: 'center' }}>
+          <AppText variant="body-bold" style={{ fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary, textAlign: 'center' }}>
             {t('admin.qrSubtitle')}
           </AppText>
         </View>
@@ -87,10 +87,10 @@ export default function ActivityQrScreen() {
           end={{ x: 1, y: 1 }}
           style={[styles.liveCard, { borderColor: colors.primary + '2E' }]}
         >
-          <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.textPrimary }}>
+          <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], lineHeight: 28, color: colors.textPrimary }}>
             {t('admin.qrLiveCount', { count: liveCount })}
           </AppText>
-          <AppText style={{ fontSize: fontSize.sm, color: colors.primary, marginTop: 2 }}>
+          <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.primary, marginTop: 2 }}>
             {t('admin.qrLiveLabel')}
           </AppText>
         </LinearGradient>
@@ -100,13 +100,13 @@ export default function ActivityQrScreen() {
             style={[styles.viewAttendeesBtn, { backgroundColor: colors.textPrimary }]}
             onPress={() => router.push(`/admin/activities/${id}/attendees`)}
           >
-            <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: colors.background }}>
+            <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, fontWeight: '700' as any, color: colors.background }}>
               {t('admin.qrViewAttendees')}
             </AppText>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleShare} style={styles.shareBtn}>
             <Ionicons name="share-outline" size={16} color={colors.textSecondary} />
-            <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }}>{t('admin.qrShare')}</AppText>
+            <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textSecondary }}>{t('admin.qrShare')}</AppText>
           </TouchableOpacity>
         </View>
       </View>

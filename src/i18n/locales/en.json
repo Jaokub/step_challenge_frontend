@@ -5,6 +5,7 @@
     "retry": "Try again",
     "cancel": "Cancel",
     "save": "Save",
+    "selectDate": "Select date",
     "delete": "Delete",
     "edit": "Edit",
     "confirm": "Confirm",
@@ -377,6 +378,7 @@
   "admin": {
     "dashboard": "Admin Dashboard",
     "createActivity": "Create Activity",
+    "createActivityTitle": "Create New Activity",
     "editActivity": "Edit Activity",
     "totalUsers": "Total Users",
     "totalActivities": "Total Activities",

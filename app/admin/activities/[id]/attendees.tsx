@@ -219,15 +219,15 @@ export default function AdminAttendeesScreen() {
     return (
       <View style={[styles.row, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={[styles.avatar, { backgroundColor: colors.textPrimary }]}>
-          <AppText variant="body-bold" style={{ color: colors.background, fontSize: fontSize.xs }}>
+          <AppText variant="body-bold" style={{ color: colors.background, fontSize: fontSize.xs, lineHeight: 14 }}>
             {(item.name || '?').charAt(0).toUpperCase()}
           </AppText>
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary }} numberOfLines={1}>
             {item.name || t('common.error')}
           </AppText>
-          <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
+          <AppText style={{ fontSize: fontSize.xs, lineHeight: 14, color: colors.textSecondary }} numberOfLines={1}>
             {item.dept || '-'}
             {item.checkedInAt
               ? ` · ${new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
@@ -239,7 +239,7 @@ export default function AdminAttendeesScreen() {
             onPress={() => setPendingUndo(item)}
             style={[styles.actionPill, { backgroundColor: colors.error + '1A' }]}
           >
-            <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.error }}>
+            <AppText style={{ fontSize: fontSize.xs, lineHeight: 14, fontWeight: '700' as any, color: colors.error }}>
               {t('admin.undoCheckinAction')}
             </AppText>
           </TouchableOpacity>
@@ -249,7 +249,7 @@ export default function AdminAttendeesScreen() {
               {isProcessing ? (
                 <ActivityIndicator size="small" color={colors.onPrimary} />
               ) : (
-                <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: colors.onPrimary }}>
+                <AppText style={{ fontSize: fontSize.xs, lineHeight: 14, fontWeight: '700' as any, color: colors.onPrimary }}>
                   {t('admin.manualCheckinAction')}
                 </AppText>
               )}
@@ -293,7 +293,7 @@ export default function AdminAttendeesScreen() {
               onPress={() => setShowActivityPicker((v) => !v)}
               activeOpacity={0.7}
             >
-              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
+              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary, flex: 1 }} numberOfLines={1}>
                 {t('admin.attendeesActivityLabel', { title: activity.title })}
               </AppText>
               <Ionicons name={showActivityPicker ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
@@ -310,8 +310,8 @@ export default function AdminAttendeesScreen() {
           style={[styles.summaryBlock, { borderColor: colors.primary + '2E' }]}
         >
           <View style={styles.summaryTop}>
-            <AppText style={{ fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' as any }}>{t('admin.totalCheckedIn')}</AppText>
-            <AppText variant="heading-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }}>
+            <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.primary, fontWeight: '600' as any }}>{t('admin.totalCheckedIn')}</AppText>
+            <AppText variant="heading-bold" style={{ fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary }}>
               {totalPossible
                 ? t('admin.checkedInProgress', { checked: totalCheckedIn, total: totalPossible })
                 : t('admin.checkedInCount', { count: totalCheckedIn })}
@@ -344,7 +344,7 @@ export default function AdminAttendeesScreen() {
               onPress={() => setFilter(f)}
               style={[styles.filterChip, { backgroundColor: active ? colors.textPrimary : colors.inputBackground }]}
             >
-              <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: active ? colors.background : colors.textSecondary }}>
+              <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, fontWeight: '700' as any, color: active ? colors.background : colors.textSecondary }}>
                 {label}
               </AppText>
             </TouchableOpacity>
@@ -387,15 +387,15 @@ export default function AdminAttendeesScreen() {
           ListFooterComponent={
             recentManualCheckins.length ? (
               <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
-                <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }}>
+                <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary }}>
                   {t('admin.recentManualCheckins')}
                 </AppText>
                 {recentManualCheckins.map((c) => (
                   <View key={c.id} style={[styles.logRow, { backgroundColor: colors.inputBackground }]}>
-                    <AppText style={{ flex: 1, fontSize: fontSize.xs, fontWeight: '600' as any, color: colors.textPrimary }} numberOfLines={1}>
+                    <AppText style={{ flex: 1, fontSize: fontSize.xs, lineHeight: 14, fontWeight: '600' as any, color: colors.textPrimary }} numberOfLines={1}>
                       {c.user?.fullName ?? t('common.error')}
                     </AppText>
-                    <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }}>
+                    <AppText style={{ fontSize: fontSize.xs, lineHeight: 14, color: colors.textSecondary }}>
                       {new Date(c.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </AppText>
                   </View>
@@ -460,7 +460,7 @@ export default function AdminAttendeesScreen() {
                 ))}
               </View>
             ) : activityOptionsError ? (
-              <AppText style={{ fontSize: fontSize.sm, color: colors.error, textAlign: 'center', paddingVertical: spacing.lg }}>
+              <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.error, textAlign: 'center', paddingVertical: spacing.lg }}>
                 {(activityOptionsError as any)?.message ?? t('common.error')}
               </AppText>
             ) : (
@@ -480,10 +480,10 @@ export default function AdminAttendeesScreen() {
                       ]}
                     >
                       <View style={{ flex: 1, minWidth: 0 }}>
-                        <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary }} numberOfLines={1}>
+                        <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary }} numberOfLines={1}>
                           {a.title}
                         </AppText>
-                        <AppText style={{ fontSize: fontSize.xs, color: colors.textSecondary }} numberOfLines={1}>
+                        <AppText style={{ fontSize: fontSize.xs, lineHeight: 14, color: colors.textSecondary }} numberOfLines={1}>
                           {new Date(a.startDate).toLocaleDateString()}
                         </AppText>
                       </View>
@@ -495,7 +495,7 @@ export default function AdminAttendeesScreen() {
                   );
                 })}
                 {!(activityOptions ?? []).length && (
-                  <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg }}>
+                  <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg }}>
                     {t('admin.noActivitiesTitle')}
                   </AppText>
                 )}

@@ -5,6 +5,7 @@
     "retry": "ลองอีกครั้ง",
     "cancel": "ยกเลิก",
     "save": "บันทึก",
+    "selectDate": "เลือกวันที่",
     "delete": "ลบ",
     "edit": "แก้ไข",
     "confirm": "ยืนยัน",
@@ -377,6 +378,7 @@
   "admin": {
     "dashboard": "แดชบอร์ดแอดมิน",
     "createActivity": "สร้างกิจกรรม",
+    "createActivityTitle": "สร้างกิจกรรมใหม่",
     "editActivity": "แก้ไขกิจกรรม",
     "totalUsers": "ผู้ใช้ทั้งหมด",
     "totalActivities": "กิจกรรมทั้งหมด",

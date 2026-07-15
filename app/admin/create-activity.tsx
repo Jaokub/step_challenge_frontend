@@ -12,7 +12,7 @@ import activityService from '../../src/features/activity/activityService';
 import { queryKeys } from '../../src/constants/queryKeys';
 import { AppText, ScreenHeader } from '../../src/components';
 import { LinearGradient } from 'expo-linear-gradient';
-import { spacing, fontSize, gradients } from '../../src/constants/theme';
+import { gradients } from '../../src/constants/theme';
 
 interface CreateActivityForm {
   title: string;
@@ -100,7 +100,7 @@ export default function CreateActivityScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
         <ScreenHeader
-          title={t('admin.createActivity')}
+          title={t('admin.createActivityTitle')}
           titleSize={17}
           pathSubtitle="/admin/create-activity"
           backChip
@@ -115,7 +115,7 @@ export default function CreateActivityScreen() {
           rules={{ required: true }}
           render={({ field: { value, onChange } }) => (
             <FormInput
-              label={t('admin.activityTitle') + ' *'}
+              label={t('admin.activityTitle')}
               value={value}
               onChangeText={onChange}
               placeholder={t('admin.egCampusRun')}
@@ -145,7 +145,7 @@ export default function CreateActivityScreen() {
           rules={{ required: true }}
           render={({ field: { value, onChange } }) => (
             <FormInput
-              label={t('admin.activityLocation') + ' *'}
+              label={t('admin.activityLocation')}
               value={value}
               onChangeText={onChange}
               placeholder={t('admin.egLocation')}
@@ -213,7 +213,7 @@ export default function CreateActivityScreen() {
               name="startDate"
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
-                <FormDateField label={t('admin.startDate') + ' *'} value={value} onChange={onChange} colors={colors} />
+                <FormDateField label={t('admin.startDate')} value={value} onChange={onChange} colors={colors} />
               )}
             />
           </View>
@@ -228,7 +228,7 @@ export default function CreateActivityScreen() {
               }}
               render={({ field: { value, onChange } }) => (
                 <FormDateField
-                  label={t('admin.endDate') + ' *'}
+                  label={t('admin.endDate')}
                   value={value}
                   onChange={onChange}
                   minimumDate={startDateValue ? new Date(startDateValue) : undefined}
@@ -246,13 +246,13 @@ export default function CreateActivityScreen() {
             onPress={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
             disabled={isSubmitting}
           >
-            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.textPrimary }}>
+            <AppText style={{ fontSize: 14, fontWeight: '700' as any, color: colors.textPrimary }}>
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
           <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={submit} disabled={isSubmitting}>
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createBtn}>
-              <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
+              <AppText style={{ fontSize: 14, fontWeight: '700' as any, color: colors.onPrimary }}>
                 {isSubmitting ? t('admin.creating') : t('admin.createActivity')}
               </AppText>
             </LinearGradient>
@@ -266,20 +266,20 @@ export default function CreateActivityScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  row: { flexDirection: 'row', gap: spacing.md },
-  btnRow: { flexDirection: 'row', gap: spacing.md, marginTop: 24 },
+  row: { flexDirection: 'row', gap: 10 },
+  btnRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
   cancelBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
+    paddingVertical: 14,
     borderRadius: 16,
   },
   createBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
+    paddingVertical: 14,
     borderRadius: 16,
   },
 });

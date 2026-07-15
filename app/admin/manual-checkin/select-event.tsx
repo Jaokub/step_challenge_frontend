@@ -36,25 +36,25 @@ export default function ManualCheckinSelectEventScreen() {
   const renderCard = ({ item }: { item: Activity }) => (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <View style={styles.cardTop}>
-        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
+        <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary }} numberOfLines={2}>
           {item.title}
         </AppText>
         <StatusBadge status={item.status} />
       </View>
       <View style={styles.metaRow}>
         <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
-        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, lineHeight: 15, color: colors.textSecondary }} numberOfLines={1}>
           {item.location}
         </AppText>
       </View>
       <View style={styles.metaRow}>
         <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
-        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
+        <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, lineHeight: 15, color: colors.textSecondary }} numberOfLines={1}>
           {formatDate(item.startDate, i18n.language)} – {formatDate(item.endDate, i18n.language)}
         </AppText>
       </View>
       {typeof item.participantCount === 'number' && (
-        <AppText style={{ fontSize: fontSize.sm - 1, color: colors.primary, fontWeight: '600' as any }}>
+        <AppText style={{ fontSize: fontSize.sm - 1, lineHeight: 15, color: colors.primary, fontWeight: '600' as any }}>
           {t('admin.checkedInCount', { count: item.participantCount })}
         </AppText>
       )}
@@ -63,7 +63,7 @@ export default function ManualCheckinSelectEventScreen() {
           style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
           onPress={() => router.push(`/admin/activities/${item.id}/attendees`)}
         >
-          <AppText style={{ fontSize: fontSize.xs + 0.5, fontWeight: '700' as any, color: colors.textPrimary }}>
+          <AppText style={{ fontSize: fontSize.xs + 0.5, lineHeight: 14, fontWeight: '700' as any, color: colors.textPrimary }}>
             {t('admin.manualCheckinPill')}
           </AppText>
         </TouchableOpacity>
@@ -71,7 +71,7 @@ export default function ManualCheckinSelectEventScreen() {
           style={[styles.actionBtn, { backgroundColor: colors.inputBackground }]}
           onPress={() => router.push(`/admin/activities/${item.id}/qr`)}
         >
-          <AppText style={{ fontSize: fontSize.xs + 0.5, fontWeight: '700' as any, color: colors.textPrimary }}>
+          <AppText style={{ fontSize: fontSize.xs + 0.5, lineHeight: 14, fontWeight: '700' as any, color: colors.textPrimary }}>
             {t('admin.actionQr')}
           </AppText>
         </TouchableOpacity>

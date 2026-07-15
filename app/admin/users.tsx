@@ -68,29 +68,29 @@ export default function UsersManagementScreen() {
         style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
       >
         <View style={[styles.avatar, { backgroundColor: adminAccents.avatarBg }]}>
-          <AppText variant="heading-bold" style={{ color: adminAccents.onDark, fontSize: fontSize.xs }}>
+          <AppText variant="heading-bold" style={{ color: adminAccents.onDark, fontSize: fontSize.xs, lineHeight: 14 }}>
             {item.fullName.charAt(0)}
           </AppText>
         </View>
         <View style={styles.userInfo}>
-          <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: 13.5 }} numberOfLines={1}>
+          <AppText variant="body-bold" style={{ color: colors.textPrimary, fontSize: 13.5, lineHeight: 16 }} numberOfLines={1}>
             {item.fullName}
           </AppText>
-          <AppText style={{ color: colors.textSecondary, fontSize: fontSize.xs }} numberOfLines={1}>
+          <AppText style={{ color: colors.textSecondary, fontSize: fontSize.xs, lineHeight: 14 }} numberOfLines={1}>
             {deptLine}
           </AppText>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 5 }}>
           {isAdmin ? (
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.roleBadge}>
-              <AppText style={{ color: colors.onPrimary, fontSize: 10, fontWeight: '700' as any }}>{roleLabel}</AppText>
+              <AppText style={{ color: colors.onPrimary, fontSize: 10, lineHeight: 12, fontWeight: '700' as any }}>{roleLabel}</AppText>
             </LinearGradient>
           ) : (
             <View style={[styles.roleBadge, { backgroundColor: colors.inputBackground }]}>
-              <AppText style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '700' as any }}>{roleLabel}</AppText>
+              <AppText style={{ color: colors.textSecondary, fontSize: 10, lineHeight: 12, fontWeight: '700' as any }}>{roleLabel}</AppText>
             </View>
           )}
-          <AppText style={{ fontSize: 10, color: colors.primary, fontWeight: '700' as any }}>
+          <AppText style={{ fontSize: 10, lineHeight: 12, color: colors.primary, fontWeight: '700' as any }}>
             {isAdmin ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
           </AppText>
         </View>
@@ -137,7 +137,7 @@ export default function UsersManagementScreen() {
               onPress={() => setRoleFilter(f)}
               style={[styles.filterChip, { backgroundColor: active ? colors.textPrimary : colors.inputBackground }]}
             >
-              <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: active ? colors.background : colors.textSecondary }}>
+              <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, fontWeight: '700' as any, color: active ? colors.background : colors.textSecondary }}>
                 {label}
               </AppText>
             </TouchableOpacity>

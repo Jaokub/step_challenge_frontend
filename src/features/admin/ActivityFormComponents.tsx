@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 import { AppText } from '../../components';
-import { spacing, borderRadius, fontSize } from '../../constants/theme';
 
 // Format a Date as a local YYYY-MM-DD string (avoids UTC off-by-one from toISOString)
 const toDateString = (d: Date) => {
@@ -13,19 +12,23 @@ const toDateString = (d: Date) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+// Mockup frames 3/4 (create/edit activity) — every field shares this same
+// label + grey-groove-box shape: label 12px/700/#6f7d78 marginBottom:6,
+// box background:#eef2f0 border-radius:16px padding:13px 15px. No calendar
+// icon on the date fields in the mockup — plain text box, same as every
+// other input.
 export const FormInput = ({ label, value, onChangeText, placeholder, multiline, keyboardType, colors }: any) => (
   <View style={styles.inputContainer}>
-    <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>{label}</AppText>
+    <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
     <TextInput
       style={[
         styles.textInput,
-        { 
-          backgroundColor: colors.inputBackground || colors.card, 
-          borderColor: colors.inputBorder || colors.cardBorder,
+        {
+          backgroundColor: colors.inputBackground || colors.card,
           color: colors.inputText || colors.textPrimary,
-          height: multiline ? 100 : 50,
-          textAlignVertical: multiline ? 'top' : 'center'
-        }
+          minHeight: multiline ? 64 : undefined,
+          textAlignVertical: multiline ? 'top' : 'center',
+        },
       ]}
       value={value}
       onChangeText={onChangeText}
@@ -37,24 +40,10 @@ export const FormInput = ({ label, value, onChangeText, placeholder, multiline, 
   </View>
 );
 
-export const FormDatePicker = ({ label, value, onPress, colors }: any) => (
-  <View style={styles.inputContainer}>
-    <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>{label}</AppText>
-    <TouchableOpacity 
-      style={[styles.dateInput, { backgroundColor: colors.inputBackground || colors.card, borderColor: colors.inputBorder || colors.cardBorder }]}
-      onPress={onPress}
-    >
-      <AppText style={{ color: value ? (colors.inputText || colors.textPrimary) : (colors.inputPlaceholder || colors.textSecondary) }}>
-        {value || 'Select Date'}
-      </AppText>
-      <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-    </TouchableOpacity>
-  </View>
-);
-
 // Real date field backed by the native OS date picker.
 // value/onChange use a 'YYYY-MM-DD' string.
 export const FormDateField = ({ label, value, onChange, colors, minimumDate }: any) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
 
   const parsed = value ? new Date(value) : new Date();
@@ -69,15 +58,14 @@ export const FormDateField = ({ label, value, onChange, colors, minimumDate }: a
 
   return (
     <View style={styles.inputContainer}>
-      <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>{label}</AppText>
+      <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
       <TouchableOpacity
-        style={[styles.dateInput, { backgroundColor: colors.inputBackground || colors.card, borderColor: colors.inputBorder || colors.cardBorder }]}
+        style={[styles.dateInput, { backgroundColor: colors.inputBackground || colors.card }]}
         onPress={() => setShow(true)}
       >
-        <AppText style={{ color: value ? (colors.inputText || colors.textPrimary) : (colors.inputPlaceholder || colors.textSecondary) }}>
-          {value || 'Select Date'}
+        <AppText style={[styles.dateText, { color: value ? (colors.inputText || colors.textPrimary) : (colors.inputPlaceholder || colors.textSecondary) }]}>
+          {value || t('common.selectDate')}
         </AppText>
-        <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
       </TouchableOpacity>
       {show && (
         <DateTimePicker
@@ -93,22 +81,22 @@ export const FormDateField = ({ label, value, onChange, colors, minimumDate }: a
 };
 
 const styles = StyleSheet.create({
-  inputContainer: { marginBottom: spacing.lg },
+  // Mockup: gap:14px between fields — this component owns its own bottom
+  // margin instead since fields are declared one at a time by the caller.
+  inputContainer: { marginBottom: 14 },
+  label: { fontSize: 12, lineHeight: 15, fontWeight: '700' as any, marginBottom: 6 },
   textInput: {
-    borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: fontSize.md,
-    fontFamily: 'Sora_400Regular',
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    fontSize: 13.5,
+    lineHeight: 17,
   },
   dateInput: {
-    borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.lg,
-    height: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  }
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    justifyContent: 'center',
+  },
+  dateText: { fontSize: 13.5, lineHeight: 17 },
 });

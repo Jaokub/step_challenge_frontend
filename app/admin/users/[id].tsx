@@ -80,14 +80,14 @@ export default function AdminUserProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.identity}>
           <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatar}>
-            <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], color: colors.onPrimary }}>
+            <AppText variant="heading-bold" style={{ fontSize: fontSize['2xl'], lineHeight: 28, color: colors.onPrimary }}>
               {initials}
             </AppText>
           </LinearGradient>
-          <AppText variant="heading-bold" style={{ fontSize: 19, color: colors.textPrimary }}>
+          <AppText variant="heading-bold" style={{ fontSize: 19, lineHeight: 23, color: colors.textPrimary }}>
             {user.fullName}
           </AppText>
-          <AppText style={{ fontSize: 12.5, color: colors.textSecondary }}>
+          <AppText style={{ fontSize: 12.5, lineHeight: 16, color: colors.textSecondary }}>
             {user.email} · {user.department || t('admin.filterNoDept')}
           </AppText>
         </View>
@@ -102,16 +102,16 @@ export default function AdminUserProfileScreen() {
 
         <View style={[styles.permCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <View style={styles.permTop}>
-            <AppText variant="body-bold" style={{ fontSize: 14, color: colors.textPrimary }}>
+            <AppText variant="body-bold" style={{ fontSize: 14, lineHeight: 17, color: colors.textPrimary }}>
               {t('admin.permissionLabel')}
             </AppText>
             {isAdmin ? (
               <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.rolePill}>
-                <AppText style={{ fontSize: 10.5, fontWeight: '700' as any, color: colors.onPrimary }}>{user.role}</AppText>
+                <AppText style={{ fontSize: 10.5, lineHeight: 13, fontWeight: '700' as any, color: colors.onPrimary }}>{user.role}</AppText>
               </LinearGradient>
             ) : (
               <View style={[styles.rolePill, { backgroundColor: colors.inputBackground }]}>
-                <AppText style={{ fontSize: 10.5, fontWeight: '700' as any, color: colors.textSecondary }}>{user.role}</AppText>
+                <AppText style={{ fontSize: 10.5, lineHeight: 13, fontWeight: '700' as any, color: colors.textSecondary }}>{user.role}</AppText>
               </View>
             )}
           </View>
@@ -122,7 +122,7 @@ export default function AdminUserProfileScreen() {
             style={[styles.toggleBtn, { backgroundColor: colors.inputBackground }]}
             onPress={() => setShowConfirm(true)}
           >
-            <AppText style={{ fontWeight: '700' as any, fontSize: 13, color: isAdmin ? colors.error : colors.primary }}>
+            <AppText style={{ fontWeight: '700' as any, fontSize: 13, lineHeight: 16, color: isAdmin ? colors.error : colors.primary }}>
               {isAdmin ? t('admin.revokeAdminAction') : t('admin.grantAdminAction')}
             </AppText>
           </TouchableOpacity>

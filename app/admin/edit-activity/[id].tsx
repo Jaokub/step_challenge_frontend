@@ -179,7 +179,7 @@ export default function EditActivityScreen() {
           rules={{ required: true }}
           render={({ field: { value, onChange } }) => (
             <FormInput
-              label={t('admin.activityTitle') + ' *'}
+              label={t('admin.activityTitle')}
               value={value}
               onChangeText={onChange}
               placeholder={t('admin.egCampusRun')}
@@ -209,7 +209,7 @@ export default function EditActivityScreen() {
           rules={{ required: true }}
           render={({ field: { value, onChange } }) => (
             <FormInput
-              label={t('admin.activityLocation') + ' *'}
+              label={t('admin.activityLocation')}
               value={value}
               onChangeText={onChange}
               placeholder={t('admin.egLocation')}
@@ -277,7 +277,7 @@ export default function EditActivityScreen() {
               name="startDate"
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
-                <FormDateField label={t('admin.startDate') + ' *'} value={value} onChange={onChange} colors={colors} />
+                <FormDateField label={t('admin.startDate')} value={value} onChange={onChange} colors={colors} />
               )}
             />
           </View>
@@ -292,7 +292,7 @@ export default function EditActivityScreen() {
               }}
               render={({ field: { value, onChange } }) => (
                 <FormDateField
-                  label={t('admin.endDate') + ' *'}
+                  label={t('admin.endDate')}
                   value={value}
                   onChange={onChange}
                   minimumDate={startDateValue ? new Date(startDateValue) : undefined}
@@ -303,8 +303,8 @@ export default function EditActivityScreen() {
           </View>
         </View>
 
-        <View style={{ marginTop: spacing.sm }}>
-          <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginBottom: spacing.sm }}>
+        <View style={styles.statusSection}>
+          <AppText style={[styles.statusLabel, { color: colors.textSecondary }]}>
             {t('admin.activityStatus')}
           </AppText>
           <Controller
@@ -327,7 +327,7 @@ export default function EditActivityScreen() {
                         { backgroundColor: active ? bg : colors.inputBackground },
                       ]}
                     >
-                      <AppText style={{ fontSize: fontSize.xs, fontWeight: '700' as any, color: active ? text : colors.textSecondary }}>
+                      <AppText style={[styles.statusChipText, { color: active ? text : colors.textSecondary }]}>
                         {t(`status.${opt}`)}
                       </AppText>
                     </TouchableOpacity>
@@ -345,13 +345,13 @@ export default function EditActivityScreen() {
             onPress={() => (router.canGoBack() ? router.back() : router.push('/admin/activities'))}
             disabled={isSubmitting}
           >
-            <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.textPrimary }}>
+            <AppText style={{ fontSize: 14, fontWeight: '700' as any, color: colors.textPrimary }}>
               {t('common.cancel')}
             </AppText>
           </TouchableOpacity>
           <TouchableOpacity style={{ flex: 1, opacity: isSubmitting ? 0.6 : 1 }} onPress={submit} disabled={isSubmitting}>
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveBtn}>
-              <AppText style={{ fontSize: fontSize.md, fontWeight: '700' as any, color: colors.onPrimary }}>
+              <AppText style={{ fontSize: 14, fontWeight: '700' as any, color: colors.onPrimary }}>
                 {isSubmitting ? t('common.loading') : t('common.save')}
               </AppText>
             </LinearGradient>
@@ -396,31 +396,34 @@ export default function EditActivityScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  row: { flexDirection: 'row', gap: spacing.md },
-  statusRow: { flexDirection: 'row', gap: spacing.sm },
+  row: { flexDirection: 'row', gap: 10 },
+  statusSection: { marginBottom: 14 },
+  statusLabel: { fontSize: 12, lineHeight: 15, fontWeight: '700' as any, marginBottom: 6 },
+  statusRow: { flexDirection: 'row', gap: 8 },
   statusChip: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing.sm + 1,
+    paddingVertical: 9,
     borderRadius: 12,
   },
+  statusChipText: { fontSize: 12, lineHeight: 15, fontWeight: '700' as any },
   btnRow: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: 24,
+    gap: 10,
+    marginTop: 8,
   },
   cancelBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
+    paddingVertical: 14,
     borderRadius: 16,
   },
   saveBtn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
+    paddingVertical: 14,
     borderRadius: 16,
   },
   deleteLink: {

@@ -93,7 +93,7 @@ export const AdminFacultyStepsCard = ({ colors }: any) => {
       end={{ x: 1, y: 1 }}
       style={[styles.stepsCard, { borderColor: colors.primary + '2E' }]}
     >
-      <AppText style={{ fontSize: fontSize.sm, color: dashboardAccents.mintCardLabel, fontWeight: '600' as any }}>
+      <AppText style={{ fontSize: fontSize.sm, lineHeight: 16, color: dashboardAccents.mintCardLabel, fontWeight: '600' as any }}>
         {t('admin.facultyStepsLabel')}
       </AppText>
       {/* Mockup renders this figure as a gradient-filled number (teal→green), never
@@ -102,7 +102,7 @@ export const AdminFacultyStepsCard = ({ colors }: any) => {
         —
       </GradientText>
       <View style={[styles.needsEndpointPill, { backgroundColor: colors.warning + '22' }]}>
-        <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any }}>
+        <AppText style={{ fontSize: 10, lineHeight: 12, color: colors.warning, fontWeight: '700' as any }}>
           {t('admin.facultyStepsNeedsEndpoint')}
         </AppText>
       </View>
@@ -139,10 +139,10 @@ export const AdminNavGrid = ({ items, colors }: { items: NavCard[]; colors: any 
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
               </View>
-              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, color: colors.textPrimary, marginTop: spacing.sm }}>{nav.title}</AppText>
+              <AppText variant="body-bold" style={{ fontSize: fontSize.sm, lineHeight: 16, color: colors.textPrimary, marginTop: spacing.sm }}>{nav.title}</AppText>
               <AppText style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 14 }}>{nav.desc}</AppText>
               {disabled && nav.disabledNote && (
-                <AppText style={{ fontSize: 10, color: colors.warning, fontWeight: '700' as any, marginTop: 2 }}>
+                <AppText style={{ fontSize: 10, lineHeight: 12, color: colors.warning, fontWeight: '700' as any, marginTop: 2 }}>
                   {nav.disabledNote}
                 </AppText>
               )}
