@@ -81,6 +81,8 @@ export default function GroupIncomingRequestsSection({ groupId }: GroupIncomingR
         </View>
       </View>
 
+      <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
       {requests.map((r) => {
         const busy = approveMutation.isPending || denyMutation.isPending;
         return (
@@ -121,8 +123,9 @@ export default function GroupIncomingRequestsSection({ groupId }: GroupIncomingR
 const styles = StyleSheet.create({
   card: { borderRadius: 18, borderWidth: 1, padding: 14, gap: 10 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 13.5, lineHeight: 16 },
+  title: { fontSize: 15.5, lineHeight: 19 },
   countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  divider: { height: 1 },
   // Mockup: display:flex;align-items:center;gap:10px
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   actionBtn: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 10 },

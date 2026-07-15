@@ -85,6 +85,7 @@ export default function GroupDetailScreen() {
     enabled: isOwnerForQuery,
   });
   const hasPendingParentRequest = !!parentCandidatesQuery.data?.pendingRequestId;
+  const pendingParentCandidate = parentCandidatesQuery.data?.candidates.find((c) => c.requested);
 
   const fallbackRanking: GroupRankingRow[] = (group?.members ?? [])
     .slice()
@@ -312,8 +313,10 @@ export default function GroupDetailScreen() {
                   { backgroundColor: colors.card, borderColor: colors.cardBorder },
                 ]}
               >
-                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
-                  {t('groups.requestParentGroup')}
+                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {hasPendingParentRequest && pendingParentCandidate
+                    ? t('groups.requestParentGroupPending', { name: pendingParentCandidate.name })
+                    : t('groups.requestParentGroup')}
                 </AppText>
                 {hasPendingParentRequest ? (
                   <View style={[styles.gapBadge, { backgroundColor: colors.warning + '1F' }]}>
@@ -399,56 +402,42 @@ export default function GroupDetailScreen() {
             ))}
           </View>
 
+          {/* Mockup v6 frames 13/15: relation cards below the own-group
+              ranking — each card is self-titled ("กลุ่มแม่ · ชื่อ" etc), no
+              separate section header, cards flow directly one after another. */}
           {!!hierarchy?.parent && (
-            <View style={styles.section}>
-              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                {t('groups.parentGroupSectionTitle')}
-              </AppText>
-              <RelationGroupCard
-                title={hierarchy.parent.groupName}
-                stats={hierarchy.parent.overallStats}
-                top3Label={t('groups.top3Members')}
-                top3={hierarchy.parent.top3}
-                onPress={() =>
-                  router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
-                }
-              />
-            </View>
+            <RelationGroupCard
+              title={t('groups.parentCardTitle', { name: hierarchy.parent.groupName })}
+              stats={hierarchy.parent.overallStats}
+              top3Label={t('groups.top3Members')}
+              top3={hierarchy.parent.top3}
+              onPress={() =>
+                router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
+              }
+            />
           )}
 
-          {!!hierarchy?.siblings?.length && (
-            <View style={styles.section}>
-              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                {t('groups.siblingGroups')}
-              </AppText>
-              {hierarchy.siblings.map((sibling) => (
-                <RelationGroupCard
-                  key={sibling.groupId}
-                  title={sibling.groupName}
-                  stats={sibling.overallStats}
-                  top3Label={t('groups.top3Members')}
-                  top3={sibling.top3}
-                  onPress={() =>
-                    router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
-                  }
-                />
-              ))}
-            </View>
-          )}
+          {hierarchy?.siblings.map((sibling) => (
+            <RelationGroupCard
+              key={sibling.groupId}
+              title={t('groups.siblingCardTitle', { name: sibling.groupName })}
+              stats={sibling.overallStats}
+              top3Label={t('groups.top3Members')}
+              top3={sibling.top3}
+              onPress={() =>
+                router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
+              }
+            />
+          ))}
 
           {!!hierarchy?.children?.top3?.length && (
-            <View style={styles.section}>
-              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                {t('groups.childGroupsSectionTitle')}
-              </AppText>
-              <RelationGroupCard
-                title={t('groups.childGroupsSectionTitle')}
-                stats={hierarchy.children.stats}
-                top3Label={t('groups.top3SubGroups')}
-                top3={hierarchy.children.top3.map((row) => ({ rank: row.rank, name: row.groupName, steps: row.steps }))}
-                onViewAll={() => router.push(`/group/${id}/children`)}
-              />
-            </View>
+            <RelationGroupCard
+              title={t('groups.childGroupsSectionTitle')}
+              stats={hierarchy.children.stats}
+              top3Label={t('groups.top3SubGroups')}
+              top3={hierarchy.children.top3.map((row) => ({ rank: row.rank, name: row.groupName, steps: row.steps }))}
+              onViewAll={() => router.push(`/group/${id}/children?name=${encodeURIComponent(group.name)}`)}
+            />
           )}
 
           <TouchableOpacity

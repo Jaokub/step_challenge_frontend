@@ -202,6 +202,7 @@
     "groupSettings": "Group settings",
     "membersCount": "Members ({{count}})",
     "requestParentGroup": "Request to join a parent group...",
+    "requestParentGroupPending": "Requesting to join {{name}}",
     "enrollGroupIntoActivity": "Enroll group in an activity",
     "featureComingSoon": "Not available yet",
     "memberRanking": "Member ranking",
@@ -244,10 +245,12 @@
       "month": "This month"
     },
     "viewAll": "View all ›",
-    "parentGroupSectionTitle": "Parent group",
+    "parentCardTitle": "Parent · {{name}}",
+    "siblingCardTitle": "Sibling · {{name}}",
     "childGroupsSectionTitle": "Child groups",
     "top3Members": "Top 3 members",
     "top3SubGroups": "Top 3 sub-groups",
+    "childGroupRankingTitle": "Sub-group ranking",
     "childGroupRanking": "All child group rankings"
   },
   "events": {

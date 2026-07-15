@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   // Mockup: border-radius:14px;padding:10px 4px
   statRow: { flexDirection: 'row', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 4 },
   statCol: { flex: 1, alignItems: 'center' },
-  statLabel: { fontSize: 10, marginBottom: 2 },
+  statLabel: { fontSize: 10, marginBottom: 4 },
   statValue: { fontSize: 13, lineHeight: 16 },
   top3Header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   top3Label: { fontSize: 11, fontWeight: '600' as any },

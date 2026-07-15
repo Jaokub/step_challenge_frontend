@@ -202,6 +202,7 @@
     "groupSettings": "ตั้งค่ากลุ่ม",
     "membersCount": "สมาชิก ({{count}})",
     "requestParentGroup": "ขอเป็นกลุ่มย่อยของ...",
+    "requestParentGroupPending": "ขอเป็นกลุ่มย่อยของ {{name}}",
     "enrollGroupIntoActivity": "พากลุ่มเข้าร่วมกิจกรรม",
     "featureComingSoon": "ยังไม่พร้อมใช้งาน",
     "memberRanking": "อันดับสมาชิก",
@@ -244,10 +245,12 @@
       "month": "เดือนนี้"
     },
     "viewAll": "ดูทั้งหมด ›",
-    "parentGroupSectionTitle": "กลุ่มแม่",
+    "parentCardTitle": "กลุ่มแม่ · {{name}}",
+    "siblingCardTitle": "กลุ่มพี่น้อง · {{name}}",
     "childGroupsSectionTitle": "กลุ่มลูก",
     "top3Members": "Top 3 สมาชิก",
     "top3SubGroups": "Top 3 กลุ่มย่อย",
+    "childGroupRankingTitle": "อันดับกลุ่มย่อย",
     "childGroupRanking": "อันดับกลุ่มย่อยทั้งหมด"
   },
   "events": {

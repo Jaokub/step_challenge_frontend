@@ -41,9 +41,12 @@ export default function AdminActivitiesListScreen() {
       style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
     >
       <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
-        <AppText variant="body-bold" style={{ fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
-          {item.title}
-        </AppText>
+        <View style={styles.titleRow}>
+          <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={2}>
+            {item.title}
+          </AppText>
+          <StatusBadge status={item.status} />
+        </View>
         <View style={styles.metaRow}>
           <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
           <AppText style={{ flex: 1, fontSize: fontSize.sm - 1, color: colors.textSecondary }} numberOfLines={1}>
@@ -62,10 +65,7 @@ export default function AdminActivitiesListScreen() {
           </AppText>
         )}
       </View>
-      <View style={styles.cardRight}>
-        <StatusBadge status={item.status} />
-        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-      </View>
+      <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
     </TouchableOpacity>
   );
 
@@ -185,11 +185,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
-  cardRight: {
+  titleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: spacing.sm,
-    flexShrink: 0,
   },
   metaRow: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -104,8 +104,13 @@ export default function EnrollActivitySheet({
       />
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        {activitiesQuery.isPending ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={colors.primary} size="small" />
+          </View>
+        ) : (
         <View style={{ gap: spacing.sm }}>
-          {filtered.length === 0 && !activitiesQuery.isPending && (
+          {filtered.length === 0 && (
             <AppText style={[styles.empty, { color: colors.textSecondary }]}>
               {t('groups.noOpenActivities')}
             </AppText>
@@ -143,6 +148,7 @@ export default function EnrollActivitySheet({
             );
           })}
         </View>
+        )}
       </ScrollView>
 
       <AppText style={[styles.note, { color: colors.textPrimary, backgroundColor: colors.primary + '14' }]}>
@@ -169,6 +175,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, lineHeight: 20 },
   subtitle: { fontSize: 12, lineHeight: 15, marginTop: 2 },
   list: { maxHeight: 260 },
+  loadingBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl },
   empty: { fontSize: 12.5, textAlign: 'center', paddingVertical: spacing.lg },
   row: {
     flexDirection: 'row',

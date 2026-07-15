@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppText, BottomSheet, SearchBar } from '../../components';
@@ -111,9 +111,13 @@ export default function ParentGroupPickerSheet({
                   disabled={hasPending || requestMutation.isPending}
                   style={[styles.pill, { backgroundColor: colors.primary, opacity: hasPending ? 0.4 : 1 }]}
                 >
-                  <AppText style={{ fontSize: 11.5, fontWeight: '700' as any, color: colors.onPrimary }}>
-                    {t('groups.requestToJoin')}
-                  </AppText>
+                  {requestMutation.isPending && requestMutation.variables === g.id ? (
+                    <ActivityIndicator size="small" color={colors.onPrimary} />
+                  ) : (
+                    <AppText style={{ fontSize: 11.5, fontWeight: '700' as any, color: colors.onPrimary }}>
+                      {t('groups.requestToJoin')}
+                    </AppText>
+                  )}
                 </TouchableOpacity>
               )}
             </View>
