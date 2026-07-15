@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { AppText } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
+import { gradients, dashboardAccents } from '../../constants/theme';
 import type { PeriodBucket } from '../../types';
 
 export interface RelationTop3Item {
@@ -30,11 +32,19 @@ interface RelationGroupCardProps {
 export default function RelationGroupCard({ title, stats, top3Label, top3, onPress, onViewAll }: RelationGroupCardProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const tone = isDark ? 'dark' : 'light';
   // `colors.card` and `colors.inputBackground` are the same value in dark
   // mode (see ActivityCard's statChipBg comment) — the nested inset boxes
   // below need their own tone-aware background to actually stand out
   // against this card, same fix as the stat chips there.
   const insetBg = isDark ? colors.background : colors.inputBackground;
+  // today/week/month row uses the same theme-aware gradient surface as the
+  // dashboard ("index" tab) goal card and GroupOverallStatCard, instead of
+  // the flat insetBg used by the top3 rows below — keeps this stat row
+  // visually consistent with the rest of the app's gradient stat cards.
+  const statGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
+  const statLabelColor = dashboardAccents.goalLabel[tone];
+  const statDivider = colors.primary + '33';
 
   const Wrapper = onPress ? TouchableOpacity : View;
 
@@ -47,18 +57,21 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
         {title}
       </AppText>
 
-      <View style={[styles.statRow, { backgroundColor: insetBg }]}>
-        {(['today', 'week', 'month'] as const).map((period) => (
-          <View key={period} style={styles.statCol}>
-            <AppText style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t(`groups.period.${period}`)}
-            </AppText>
-            <AppText variant="heading-extraBold" style={[styles.statValue, { color: colors.textPrimary }]}>
-              {stats[period].steps.toLocaleString()}
-            </AppText>
-          </View>
+      <LinearGradient colors={statGradient} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.statRow}>
+        {(['today', 'week', 'month'] as const).map((period, i) => (
+          <React.Fragment key={period}>
+            <View style={styles.statCol}>
+              <AppText style={[styles.statLabel, { color: statLabelColor }]}>
+                {t(`groups.period.${period}`)}
+              </AppText>
+              <AppText variant="heading-extraBold" style={[styles.statValue, { color: colors.primary }]}>
+                {stats[period].steps.toLocaleString()}
+              </AppText>
+            </View>
+            {i < 2 && <View style={[styles.statDivider, { backgroundColor: statDivider }]} />}
+          </React.Fragment>
         ))}
-      </View>
+      </LinearGradient>
 
       <View style={styles.top3Header}>
         <AppText style={[styles.top3Label, { color: colors.textSecondary }]}>{top3Label}</AppText>
@@ -98,10 +111,11 @@ const styles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: 1, padding: 14, gap: 10 },
   title: { fontSize: 13.5, lineHeight: 16 },
   // Mockup: border-radius:14px;padding:10px 4px
-  statRow: { flexDirection: 'row', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 4 },
+  statRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingVertical: 10, paddingHorizontal: 4 },
   statCol: { flex: 1, alignItems: 'center' },
-  statLabel: { fontSize: 10, marginBottom: 4 },
-  statValue: { fontSize: 13, lineHeight: 16 },
+  statDivider: { width: 1, height: 24 },
+  statLabel: { fontSize: 11, marginBottom: 4 },
+  statValue: { fontSize: 15, lineHeight: 17 },
   top3Header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   top3Label: { fontSize: 11, fontWeight: '600' as any },
   viewAll: { fontSize: 11, fontWeight: '700' as any },

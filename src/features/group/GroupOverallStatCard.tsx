@@ -7,13 +7,14 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, gradients, dashboardAccents } from '../../constants/theme';
 import type { PeriodBucket } from '../../types';
 
-// Mockup frames 13/15's own-group stat card: mint gradient
-// (linear-gradient(150deg,#e8fbf6,#f3fbe9)) with today/week/month steps in
-// solid colors.primary (#0d9488) — the exact same treatment as the
-// parent/sibling/child relation cards (RelationGroupCard) and frame 20's
-// full-list header (children.tsx). Backed by GET /groups/:id/overview's
-// `periodStats` field (getGroupPeriodStats), the same 3-window aggregation
-// already used for those relation previews.
+// Mockup frames 13/15's own-group stat card. Uses the same theme-aware
+// surface as the dashboard's ("index" tab) goal card — dark green
+// (gradients.goalCard) in dark mode, light mint (gradients.goalCardLight)
+// in light mode — instead of a gradient fixed to the light mint palette,
+// which read as flat/washed-out against the rest of the (mostly dark) app
+// chrome. Backed by GET /groups/:id/overview's `periodStats` field
+// (getGroupPeriodStats), the same 3-window aggregation already used for the
+// relation previews (RelationGroupCard).
 interface GroupOverallStatCardProps {
   stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket } | null;
   isLoading?: boolean;
@@ -21,7 +22,12 @@ interface GroupOverallStatCardProps {
 
 export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallStatCardProps) => {
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const tone = isDark ? 'dark' : 'light';
+  const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
+  const cardBorder = dashboardAccents.goalCardBorder[tone];
+  const labelColor = dashboardAccents.goalLabel[tone];
+  const dividerColor = colors.primary + '33';
 
   if (isLoading) {
     return (
@@ -43,22 +49,22 @@ export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallS
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={gradients.mint}
+        colors={cardGradient}
         start={{ x: 0.15, y: 0 }}
         end={{ x: 0.85, y: 1 }}
-        style={[styles.card, { borderColor: colors.primary + '2E' }]}
+        style={[styles.card, { borderColor: cardBorder }]}
       >
         {(['today', 'week', 'month'] as const).map((period, i) => (
           <React.Fragment key={period}>
             <View style={styles.col}>
-              <AppText style={[styles.label, { color: dashboardAccents.mintCardLabel }]}>
+              <AppText style={[styles.label, { color: labelColor }]}>
                 {t(`groups.period.${period}`)}
               </AppText>
               <AppText variant="heading-extraBold" style={[styles.value, { color: colors.primary }]}>
                 {stats[period].steps.toLocaleString()}
               </AppText>
             </View>
-            {i < 2 && <View style={[styles.divider, { backgroundColor: colors.primary + '2E' }]} />}
+            {i < 2 && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
           </React.Fragment>
         ))}
       </LinearGradient>
@@ -67,8 +73,11 @@ export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallS
 };
 
 const styles = StyleSheet.create({
+  // No horizontal padding here — the screen's ScrollView already applies
+  // paddingHorizontal (see group/[id].tsx `content` style); adding it again
+  // here inset this card narrower than every sibling card on the same
+  // screen (member rows, ranking rows, relation cards).
   container: {
-    paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
   },
   // Mockup: border-radius:20px;padding:16px;border:1px solid rgba(13,148,136,0.18)
