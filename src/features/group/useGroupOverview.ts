@@ -3,13 +3,12 @@ import groupService from './groupService';
 import { queryKeys } from '../../constants/queryKeys';
 
 /**
- * Hierarchy-aware group stats: own full ranking + top3/top5, and (when
- * `fetchSiblings` is set) sibling groups' overall stats only.
- *
- * Both endpoints are permission-gated server-side (self / ancestor), so a
- * 403 here just means the section should render nothing.
+ * Own full ranking + top3/top5 for a group. Permission-gated server-side
+ * (self / ancestor), so a 403 here just means the section should render
+ * nothing. Sibling/parent/child relation-card data lives in
+ * useHierarchyOverview — this hook only ever covers the group's own stats.
  */
-export function useGroupOverview(groupId: string, fetchSiblings: boolean) {
+export function useGroupOverview(groupId: string) {
   const overviewQuery = useQuery({
     queryKey: queryKeys.groups.overview(groupId),
     queryFn: async () => {
@@ -20,20 +19,8 @@ export function useGroupOverview(groupId: string, fetchSiblings: boolean) {
     enabled: !!groupId,
   });
 
-  const siblingsQuery = useQuery({
-    queryKey: queryKeys.groups.siblings(groupId),
-    queryFn: async () => {
-      const res = await groupService.getGroupSiblings(groupId);
-      if (!res.success) throw new Error('Failed to load sibling groups');
-      return res.data;
-    },
-    enabled: !!groupId && fetchSiblings,
-  });
-
   return {
     overview: overviewQuery.data ?? null,
     isOverviewLoading: overviewQuery.isPending,
-    siblings: siblingsQuery.data ?? [],
-    isSiblingsLoading: siblingsQuery.isPending,
   };
 }

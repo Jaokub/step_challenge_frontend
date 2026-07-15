@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppText, GradientText } from '../../components';
 import { spacing, fontSize, gradients, dashboardAccents } from '../../constants/theme';
 
-// Frame 1 exact spec (Admin and Group Coor Console Mockups_5.dc.html):
+// Frame 1 exact spec (Admin and Group Coor Console Mockups_6.dc.html):
 // white cards radius 22 + soft shadow, KPI icon chips in four distinct accents,
 // faculty-steps card on the mint teal→lime tint. Values below are mockup-literal
 // where they aren't brand tokens (kept in one place, documented).

@@ -20,7 +20,7 @@ import { useAdminGroups } from '../../src/features/group/useAdminGroups';
 import AdminGroupTreeCard from '../../src/features/group/AdminGroupTreeCard';
 import AdminMoveParentSheet from '../../src/features/group/AdminMoveParentSheet';
 import AdminReassignCoordinatorSheet from '../../src/features/group/AdminReassignCoordinatorSheet';
-import type { AdminGroupTreeChild } from '../../src/types';
+import type { AdminGroupTreeNode } from '../../src/types';
 
 type ChildRef = { id: string; name: string };
 type ConfirmAction = { type: 'detach' | 'delete'; child: ChildRef } | null;
@@ -69,7 +69,7 @@ export default function AdminGroupsScreen() {
     }
   };
 
-  const handleOverrideApprove = async (child: AdminGroupTreeChild, parentId: string) => {
+  const handleOverrideApprove = async (child: AdminGroupTreeNode, parentId: string) => {
     if (!child.pendingRequestId) return;
     try {
       const res = await approveRequest({ parentGroupId: parentId, requestId: child.pendingRequestId });
@@ -108,7 +108,7 @@ export default function AdminGroupsScreen() {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {trees.map((tree) => (
             <AdminGroupTreeCard
-              key={tree.root.id}
+              key={tree.id}
               tree={tree}
               busy={isDeleting || isResolvingRequest}
               onMoveParent={setMoveTarget}

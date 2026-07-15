@@ -73,10 +73,59 @@ export interface GroupOverview {
   top5: GroupRankingRow[];
 }
 
+// ─── 3-window relation previews (BUILD_PLAN.md Phase 5.2) ─────────────────
+
+export interface PeriodBucket {
+  steps: number;
+  calories: number;
+  distanceKm: number;
+}
+
+export interface PeriodStats {
+  today: PeriodBucket;
+  week: PeriodBucket;
+  month: PeriodBucket;
+  memberCount: number;
+}
+
+export interface RelationTop3Row {
+  rank: number;
+  name: string;
+  steps: number;
+}
+
+// Sibling/parent relation-card data: a group's 3-window stats + a bounded
+// Top-3 MEMBERS preview (never the full ranking — D1 privacy rule).
 export interface SiblingGroupOverview {
   groupId: string;
   groupName: string;
-  overallStats: GroupOverallStats;
+  overallStats: PeriodStats;
+  top3: RelationTop3Row[];
+}
+
+export interface ChildRankingRow {
+  rank: number;
+  groupId: string;
+  groupName: string;
+  steps: number;
+}
+
+// GET /groups/:id/children — frame 20's full list.
+export interface ChildRanking {
+  stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
+  ranking: ChildRankingRow[];
+}
+
+// GET /groups/:id/hierarchy-overview — bundled relation-card data for
+// frames 13/15. `children.top3` are individual CHILD GROUPS (ranked by
+// their own steps), not members — unlike `parent`/`siblings[].top3`.
+export interface GroupHierarchyOverview {
+  parent: SiblingGroupOverview | null;
+  siblings: SiblingGroupOverview[];
+  children: {
+    stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
+    top3: ChildRankingRow[];
+  };
 }
 
 // ─── Hierarchy request/approve + admin god-mode (BUILD_PLAN.md Phase 5) ───
@@ -101,24 +150,19 @@ export interface ParentGroupCandidate {
   requested: boolean;
 }
 
-export interface AdminGroupTreeChild {
+// Phase 5.1: recursive — a node's `children` are the same node shape, N
+// levels deep (bounded by the backend's MAX_GROUP_DEPTH). Every root group
+// (parentGroupId null) gets one of these; `kind`/`pending*` apply at any
+// level, though the UI only gives level-1 (root) nodes the dark-card treatment.
+export interface AdminGroupTreeNode {
   id: string;
   name: string;
+  kind: 'PARENT' | 'STANDALONE';
   members: number;
   coordinator: string | null;
+  childCount: number;
   pending: boolean;
   pendingParent: string | null;
   pendingRequestId: string | null;
-}
-
-export interface AdminGroupTree {
-  root: {
-    id: string;
-    name: string;
-    kind: 'PARENT' | 'STANDALONE';
-    members: number;
-    coordinator: string | null;
-    childCount: number;
-  };
-  children: AdminGroupTreeChild[];
+  children: AdminGroupTreeNode[];
 }

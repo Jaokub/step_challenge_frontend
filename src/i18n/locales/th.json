@@ -237,7 +237,18 @@
     "approveAction": "อนุมัติ",
     "denyAction": "ปฏิเสธ",
     "requestApproved": "อนุมัติคำขอแล้ว",
-    "requestDenied": "ปฏิเสธคำขอแล้ว"
+    "requestDenied": "ปฏิเสธคำขอแล้ว",
+    "period": {
+      "today": "วันนี้",
+      "week": "สัปดาห์นี้",
+      "month": "เดือนนี้"
+    },
+    "viewAll": "ดูทั้งหมด ›",
+    "parentGroupSectionTitle": "กลุ่มแม่",
+    "childGroupsSectionTitle": "กลุ่มลูก",
+    "top3Members": "Top 3 สมาชิก",
+    "top3SubGroups": "Top 3 กลุ่มย่อย",
+    "childGroupRanking": "อันดับกลุ่มย่อยทั้งหมด"
   },
   "events": {
     "title": "อีเวนต์",

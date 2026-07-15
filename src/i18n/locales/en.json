@@ -237,7 +237,18 @@
     "approveAction": "Approve",
     "denyAction": "Deny",
     "requestApproved": "Request approved",
-    "requestDenied": "Request denied"
+    "requestDenied": "Request denied",
+    "period": {
+      "today": "Today",
+      "week": "This week",
+      "month": "This month"
+    },
+    "viewAll": "View all ›",
+    "parentGroupSectionTitle": "Parent group",
+    "childGroupsSectionTitle": "Child groups",
+    "top3Members": "Top 3 members",
+    "top3SubGroups": "Top 3 sub-groups",
+    "childGroupRanking": "All child group rankings"
   },
   "events": {
     "title": "Events",

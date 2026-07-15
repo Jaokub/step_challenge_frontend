@@ -25,7 +25,7 @@ export default function GroupDescendantOverviewScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
 
-  const { overview, isOverviewLoading } = useGroupOverview(id, false);
+  const { overview, isOverviewLoading } = useGroupOverview(id);
 
   const renderRow = ({ item }: { item: GroupRankingRow }) => (
     <LeaderboardItem

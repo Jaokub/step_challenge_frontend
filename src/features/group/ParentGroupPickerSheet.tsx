@@ -17,10 +17,13 @@ interface ParentGroupPickerSheetProps {
   memberCount: number;
 }
 
-// Mockup frame 14 — search root groups, "ขอเข้าร่วม" sends a parent-request
-// that the target group's coordinator (or an admin) must approve. Only
-// root groups (no parent of their own) are offered, keeping the tree the
-// documented 2 levels (BUILD_PLAN.md Phase 5).
+// Mockup frame 14 — search candidate parent groups, "ขอเข้าร่วม" sends a
+// parent-request that the target group's coordinator (or an admin) must
+// approve. Phase 5.1: candidates are no longer restricted to root groups —
+// the backend excludes only this group itself and its own descendants
+// (would cycle); the remaining MAX_GROUP_DEPTH cap is enforced at submit
+// time (a 400 surfaces via the toast if picking a candidate would make the
+// tree too deep).
 export default function ParentGroupPickerSheet({
   visible,
   onClose,

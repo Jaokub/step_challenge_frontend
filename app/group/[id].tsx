@@ -14,8 +14,9 @@ import { spacing, gradients, dashboardAccents } from '../../src/constants/theme'
 import { queryKeys } from '../../src/constants/queryKeys';
 import { useGroupDetail } from '../../src/features/group/useGroupDetail';
 import { useGroupOverview } from '../../src/features/group/useGroupOverview';
+import { useHierarchyOverview } from '../../src/features/group/useHierarchyOverview';
 import { GroupOverallStatCard } from '../../src/features/group/GroupOverallStatCard';
-import { GroupSiblingsSection } from '../../src/features/group/GroupSiblingsSection';
+import RelationGroupCard from '../../src/features/group/RelationGroupCard';
 import EnrollActivitySheet from '../../src/features/group/EnrollActivitySheet';
 import ParentGroupPickerSheet from '../../src/features/group/ParentGroupPickerSheet';
 import TransferCoordinatorSheet from '../../src/features/group/TransferCoordinatorSheet';
@@ -26,12 +27,11 @@ import type { GroupRankingRow } from '../../src/types';
 const initials = (name?: string): string =>
   (name || '?').trim().split(/\s+/).slice(0, 2).map((p) => p.charAt(0)).join('').toUpperCase();
 
-// Mockup frames 13 (coordinator view) & 15 (member view). Two real backend
-// gaps live in the coordinator body — request-parent-group approval flow
-// and activity enroll-group — neither has an endpoint yet (see
-// ADMIN_REDESIGN.md §6), so both render disabled with the same soft-amber
-// "not available yet" treatment used elsewhere in the app instead of
-// pretending they work or showing fabricated pending-request data.
+// Mockup frames 13 (coordinator view) & 15 (member view). The coordinator
+// body wires three real flows end-to-end: the parent-group request/approve
+// flow (ParentGroupPickerSheet + GroupIncomingRequestsSection, BUILD_PLAN.md
+// Phase 5), coordinator transfer (TransferCoordinatorSheet, Phase 5 gap #6),
+// and activity enroll-group (EnrollActivitySheet, Phase 4).
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -68,8 +68,8 @@ export default function GroupDetailScreen() {
     handleDeleteGroup,
   } = useGroupDetail(id);
 
-  const hasParent = !!group?.parentGroup;
-  const { overview, isOverviewLoading, siblings, isSiblingsLoading } = useGroupOverview(id, hasParent);
+  const { overview, isOverviewLoading } = useGroupOverview(id);
+  const { hierarchy } = useHierarchyOverview(id);
 
   // Shares its cache key with ParentGroupPickerSheet's own query (same id,
   // search='') so opening the sheet doesn't re-fetch — just to know whether
@@ -399,7 +399,57 @@ export default function GroupDetailScreen() {
             ))}
           </View>
 
-          {hasParent && <GroupSiblingsSection siblings={siblings} isLoading={isSiblingsLoading} />}
+          {!!hierarchy?.parent && (
+            <View style={styles.section}>
+              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                {t('groups.parentGroupSectionTitle')}
+              </AppText>
+              <RelationGroupCard
+                title={hierarchy.parent.groupName}
+                stats={hierarchy.parent.overallStats}
+                top3Label={t('groups.top3Members')}
+                top3={hierarchy.parent.top3}
+                onPress={() =>
+                  router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
+                }
+              />
+            </View>
+          )}
+
+          {!!hierarchy?.siblings?.length && (
+            <View style={styles.section}>
+              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                {t('groups.siblingGroups')}
+              </AppText>
+              {hierarchy.siblings.map((sibling) => (
+                <RelationGroupCard
+                  key={sibling.groupId}
+                  title={sibling.groupName}
+                  stats={sibling.overallStats}
+                  top3Label={t('groups.top3Members')}
+                  top3={sibling.top3}
+                  onPress={() =>
+                    router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
+                  }
+                />
+              ))}
+            </View>
+          )}
+
+          {!!hierarchy?.children?.top3?.length && (
+            <View style={styles.section}>
+              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                {t('groups.childGroupsSectionTitle')}
+              </AppText>
+              <RelationGroupCard
+                title={t('groups.childGroupsSectionTitle')}
+                stats={hierarchy.children.stats}
+                top3Label={t('groups.top3SubGroups')}
+                top3={hierarchy.children.top3.map((row) => ({ rank: row.rank, name: row.groupName, steps: row.steps }))}
+                onViewAll={() => router.push(`/group/${id}/children`)}
+              />
+            </View>
+          )}
 
           <TouchableOpacity
             onPress={() => setConfirmAction('leave')}

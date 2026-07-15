@@ -10,7 +10,9 @@ import type {
   SiblingGroupOverview,
   GroupParentRequest,
   ParentGroupCandidate,
-  AdminGroupTree,
+  AdminGroupTreeNode,
+  ChildRanking,
+  GroupHierarchyOverview,
 } from '../../types';
 
 // ─── Service ────────────────────────────────────────────────
@@ -274,10 +276,32 @@ const groupService = {
     }
   },
 
-  /** Admin god-mode: full hierarchy tree. */
-  async getAdminGroupTree(): Promise<ApiResponse<AdminGroupTree[]>> {
+  /** Admin god-mode: full hierarchy tree (recursive, Phase 5.1). */
+  async getAdminGroupTree(): Promise<ApiResponse<AdminGroupTreeNode[]>> {
     try {
-      const { data } = await api.get<ApiResponse<AdminGroupTree[]>>('/groups/admin/tree');
+      const { data } = await api.get<ApiResponse<AdminGroupTreeNode[]>>('/groups/admin/tree');
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  // ─── Hierarchy relation cards + child ranking (Phase 5.2) ────────────────
+
+  /** Direct child groups ranked by this-month steps, plus an aggregate bar — frame 20's full list. */
+  async getChildRanking(id: string): Promise<ApiResponse<ChildRanking>> {
+    try {
+      const { data } = await api.get<ApiResponse<ChildRanking>>(`/groups/${id}/children`);
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Bundled { parent, siblings, children } relation-card data for frames 13/15. */
+  async getHierarchyOverview(id: string): Promise<ApiResponse<GroupHierarchyOverview>> {
+    try {
+      const { data } = await api.get<ApiResponse<GroupHierarchyOverview>>(`/groups/${id}/hierarchy-overview`);
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

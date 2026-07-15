@@ -46,7 +46,7 @@ export default function GroupsScreen() {
   const { groups, isRefreshing: isRefreshingGroups, handleRefresh: handleRefreshGroups } = useGroups(true);
 
   const isGroupTab = activeTab !== 'friends';
-  const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '', false);
+  const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '');
 
   const friendsLeaderboard: LeaderboardMember[] = useMemo(() => {
     const rows = [...friends, user].filter(Boolean) as typeof friends;
