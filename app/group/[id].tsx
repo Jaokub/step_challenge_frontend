@@ -303,8 +303,10 @@ export default function GroupDetailScreen() {
             </View>
           )}
 
-          {isOwner && <GroupIncomingRequestsSection groupId={id} />}
-
+          {/* Mockup frame 13 order: "ขอเป็นกลุ่มย่อยของ..." row, then the
+              incoming-requests card, then the enroll button. Transfer-coordinator
+              isn't in the mockup — it's a real added feature, so it sits right
+              after (least disruptive spot, still before the mint stat card). */}
           {isOwner && (
             <TouchableOpacity onPress={() => setParentPickerOpen(true)}>
               <View
@@ -331,16 +333,7 @@ export default function GroupDetailScreen() {
             </TouchableOpacity>
           )}
 
-          {isOwner && (
-            <TouchableOpacity onPress={() => setTransferSheetOpen(true)}>
-              <View style={[styles.gapRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
-                  {t('groups.transferCoordinatorTitle')}
-                </AppText>
-                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-              </View>
-            </TouchableOpacity>
-          )}
+          {isOwner && <GroupIncomingRequestsSection groupId={id} />}
 
           {isOwner && (
             <TouchableOpacity onPress={() => setEnrollSheetOpen(true)}>
@@ -348,6 +341,17 @@ export default function GroupDetailScreen() {
                 <AppText style={{ fontWeight: '700' as any, fontSize: 13.5, color: colors.background }}>
                   {t('groups.enrollGroupIntoActivity')}
                 </AppText>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {isOwner && (
+            <TouchableOpacity onPress={() => setTransferSheetOpen(true)}>
+              <View style={[styles.gapRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]}>
+                  {t('groups.transferCoordinatorTitle')}
+                </AppText>
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
               </View>
             </TouchableOpacity>
           )}
@@ -381,7 +385,7 @@ export default function GroupDetailScreen() {
             </View>
           )}
 
-          <GroupOverallStatCard stats={overview?.overallStats ?? null} isLoading={isOverviewLoading} />
+          <GroupOverallStatCard stats={overview?.periodStats ?? null} isLoading={isOverviewLoading} />
 
           <View style={styles.section}>
             <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>

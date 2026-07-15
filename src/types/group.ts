@@ -69,6 +69,10 @@ export interface GroupOverview {
   groupId: string;
   ranking: GroupRankingRow[];
   overallStats: GroupOverallStats;
+  // Frame-13/15 mint stat card (today/week/month steps) — distinct from
+  // `overallStats` above (all-time points/steps/members, used by the
+  // separate frame-10 group-tab overview screen).
+  periodStats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
   top3: GroupRankingRow[];
   top5: GroupRankingRow[];
 }

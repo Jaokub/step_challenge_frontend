@@ -5,28 +5,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppText, Skeleton } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, gradients, dashboardAccents } from '../../constants/theme';
-import type { GroupOverallStats } from '../../types';
+import type { PeriodBucket } from '../../types';
 
-// Mockup frame 10's group-tab stat card shows today/week/month steps, which
-// the backend doesn't aggregate by time window for a group. Same mint-card
-// shape, but the three columns are real GroupOverallStats fields instead —
-// points / steps / members — rather than fabricated time-windowed numbers.
+// Mockup frames 13/15's own-group stat card: mint gradient
+// (linear-gradient(150deg,#e8fbf6,#f3fbe9)) with today/week/month steps in
+// solid colors.primary (#0d9488) — the exact same treatment as the
+// parent/sibling/child relation cards (RelationGroupCard) and frame 20's
+// full-list header (children.tsx). Backed by GET /groups/:id/overview's
+// `periodStats` field (getGroupPeriodStats), the same 3-window aggregation
+// already used for those relation previews.
 interface GroupOverallStatCardProps {
-  stats: GroupOverallStats | null;
+  stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket } | null;
   isLoading?: boolean;
 }
 
 export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallStatCardProps) => {
   const { t } = useTranslation();
-  const { colors, isDark } = useTheme();
-  const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
-  const labelColor = dashboardAccents.goalLabel[isDark ? 'dark' : 'light'];
-  const dividerColor = dashboardAccents.goalCardBorder[isDark ? 'dark' : 'light'];
+  const { colors } = useTheme();
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <View style={[styles.card, { backgroundColor: cardGradient[0] }]}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           {[0, 1, 2].map((i) => (
             <View key={i} style={styles.col}>
               <Skeleton width={40} height={11} borderRadius={4} style={{ marginBottom: 6 }} />
@@ -40,22 +40,25 @@ export const GroupOverallStatCard = ({ stats, isLoading = false }: GroupOverallS
 
   if (!stats) return null;
 
-  const columns = [
-    { label: t('common.points'), value: stats.totalPoints.toLocaleString() },
-    { label: t('health.steps'), value: stats.totalSteps.toLocaleString() },
-    { label: t('common.members'), value: stats.memberCount.toLocaleString() },
-  ];
-
   return (
     <View style={styles.container}>
-      <LinearGradient colors={cardGradient} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.card}>
-        {columns.map((col, i) => (
-          <React.Fragment key={col.label}>
+      <LinearGradient
+        colors={gradients.mint}
+        start={{ x: 0.15, y: 0 }}
+        end={{ x: 0.85, y: 1 }}
+        style={[styles.card, { borderColor: colors.primary + '2E' }]}
+      >
+        {(['today', 'week', 'month'] as const).map((period, i) => (
+          <React.Fragment key={period}>
             <View style={styles.col}>
-              <AppText style={[styles.label, { color: labelColor }]}>{col.label}</AppText>
-              <AppText variant="heading-extraBold" style={[styles.value, { color: colors.primary }]}>{col.value}</AppText>
+              <AppText style={[styles.label, { color: dashboardAccents.mintCardLabel }]}>
+                {t(`groups.period.${period}`)}
+              </AppText>
+              <AppText variant="heading-extraBold" style={[styles.value, { color: colors.primary }]}>
+                {stats[period].steps.toLocaleString()}
+              </AppText>
             </View>
-            {i < columns.length - 1 && <View style={[styles.divider, { backgroundColor: dividerColor }]} />}
+            {i < 2 && <View style={[styles.divider, { backgroundColor: colors.primary + '2E' }]} />}
           </React.Fragment>
         ))}
       </LinearGradient>
@@ -68,11 +71,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
   },
+  // Mockup: border-radius:20px;padding:16px;border:1px solid rgba(13,148,136,0.18)
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
-    borderRadius: 20, // mockup literal — no existing token matches
+    borderRadius: 20,
+    borderWidth: 1,
   },
   col: {
     flex: 1,
@@ -89,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   value: {
-    fontSize: 16,
-    lineHeight: 19,
+    fontSize: 17,
+    lineHeight: 20,
   },
 });
