@@ -18,6 +18,12 @@ export interface ActivityCheckinsResult {
   pagination?: PaginationInfo;
 }
 
+/** Shape of the current user's own check-in history response. */
+export interface CheckinHistoryResult {
+  checkIns: CheckIn[];
+  pagination?: PaginationInfo;
+}
+
 interface PageParams {
   page?: number;
   limit?: number;
@@ -51,9 +57,15 @@ const checkinService = {
     }
   },
 
-  async getCheckinHistory(): Promise<ApiResponse<CheckIn[]>> {
+  /**
+   * Fixed a pre-existing shape mismatch (BUILD_PLAN.md Phase 7 PR 2, first
+   * real caller): the backend returns `{ checkIns, pagination }`, not a bare
+   * array — this was previously typed `ApiResponse<CheckIn[]>` with no
+   * caller to notice. Now also accepts pagination params.
+   */
+  async getCheckinHistory(params?: PageParams): Promise<ApiResponse<CheckinHistoryResult>> {
     try {
-      const { data } = await api.get<ApiResponse<CheckIn[]>>('/checkins/history');
+      const { data } = await api.get<ApiResponse<CheckinHistoryResult>>('/checkins/history', { params });
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

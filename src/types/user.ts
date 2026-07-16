@@ -34,3 +34,14 @@ export interface HealthRecord {
   source: HealthSource;
   createdAt: string;
 }
+
+/**
+ * `POST /health/sync` response shape (BUILD_PLAN.md Phase 7 PR 2). Adds
+ * `awardedActivityIds` — step-gated activities newly paid out by this sync
+ * — on top of the plain HealthRecord, so the foreground poller
+ * (useActiveEventPolling) can fire a celebration toast without a second
+ * request.
+ */
+export interface HealthSyncResult extends HealthRecord {
+  awardedActivityIds: string[];
+}

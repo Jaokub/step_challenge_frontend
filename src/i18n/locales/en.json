@@ -162,7 +162,9 @@
     "shareLinkBtn": "Share",
     "friendRequestSent": "Friend request sent!",
     "pointsEarned": "+{{points}} points",
-    "shareMessage": "Add me as a friend on Step Challenge! {{link}}"
+    "shareMessage": "Add me as a friend on Step Challenge! {{link}}",
+    "walkToEarnHint": "Checked in — walk {{steps}} steps after check-in to earn points",
+    "goalReached": "Goal reached for \"{{title}}\" — points awarded!"
   },
   "groups": {
     "yesterday": "Yesterday",
@@ -415,6 +417,15 @@
     "egPoints": "e.g. 10",
     "provideStepsOrDistance": "Please provide expected steps or total distance",
     "endBeforeStart": "End date cannot be before start date",
+    "activityTypeLabel": "Activity type",
+    "activityTypeStepGated": "Walk / Run",
+    "activityTypeAttendance": "Attendance only",
+    "expectedStepsRequired": "Enter a target step count greater than 0",
+    "stepGatedHint": "Points are awarded once the participant checks in and walks the target afterward.",
+    "attendanceHint": "Points are awarded immediately at check-in.",
+    "manualCheckinSuccessPoints": "Checked in — +{{points}} points",
+    "pointsAwardedBadge": "Points awarded",
+    "pointsPendingBadge": "Goal not reached yet",
     "roleAdmin": "ADMIN",
     "statusArchived": "ARCHIVED",
     "searchUsers": "Search users or department...",

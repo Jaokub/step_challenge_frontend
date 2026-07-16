@@ -150,12 +150,20 @@ export default function ScanScreen() {
       } else {
         const response = await checkinMutation.mutateAsync(data);
         const pointsAwarded = response.data?.pointsAwarded ?? 0;
-        setResult({
-          success: true,
-          message: pointsAwarded > 0
+        // ADR-001 / BUILD_PLAN.md Phase 7: never claim "+points" for a
+        // step-gated check-in that hasn't cleared its goal yet (pointsAwarded
+        // is the real ledgered amount, 0 = not yet). Distinguish that case
+        // from an attendance-only activity legitimately worth 0 points via
+        // expectedSteps, not by re-deriving from activity type elsewhere.
+        const checkInActivity = response.data?.checkIn?.activity;
+        const isStepGated = checkInActivity?.expectedSteps != null;
+        const message =
+          pointsAwarded > 0
             ? `${t('scan.success')}  ${t('scan.pointsEarned', { points: pointsAwarded })}`
-            : t('scan.success'),
-        });
+            : isStepGated
+            ? t('scan.walkToEarnHint', { steps: checkInActivity!.expectedSteps })
+            : t('scan.success');
+        setResult({ success: true, message });
       }
     } catch (err: any) {
       const msg = err?.message || err?.data?.message || t('scan.failed');

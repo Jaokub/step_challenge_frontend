@@ -36,6 +36,10 @@ interface AttendeeRow {
   dept?: string | null;
   checkedInAt: string | null;
   checkInId: string | null;
+  // ADR-001 / BUILD_PLAN.md Phase 7 — null while checked-in-but-goal-not-met
+  // on a step-gated activity; set (attendance-only or goal cleared) once
+  // paid. Only meaningful when the activity is step-gated (see badge below).
+  pointsAwardedAt: string | null;
 }
 
 export default function AdminAttendeesScreen() {
@@ -128,10 +132,15 @@ export default function AdminAttendeesScreen() {
           dept: u.department,
           checkedInAt: c?.checkedInAt ?? null,
           checkInId: c?.id ?? null,
+          pointsAwardedAt: c?.pointsAwardedAt ?? null,
         };
       }),
     [allUsers, checkedInByUserId],
   );
+
+  // Badge only makes sense for a step-gated activity — attendance-only pays
+  // out at check-in, so every checked-in row is already "paid" by definition.
+  const isStepGatedActivity = activity?.expectedSteps != null;
 
   const q = search.trim().toLowerCase();
   const rows = useMemo(() => {
@@ -190,7 +199,14 @@ export default function AdminAttendeesScreen() {
       const res = await checkinService.adminCheckinUser(id, row.userId);
       if (!res.success) throw new Error(res.message);
       queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkinsFull(id) });
-      showToast(t('admin.manualCheckinSuccess'), 'success');
+      // ADR-001 / BUILD_PLAN.md Phase 7: pointsAwarded is the real ledgered
+      // amount (0 for a step-gated check-in whose goal isn't met yet) — show
+      // it when nonzero instead of always claiming the flat success copy.
+      const pointsAwarded = res.data?.pointsAwarded ?? 0;
+      showToast(
+        pointsAwarded > 0 ? t('admin.manualCheckinSuccessPoints', { points: pointsAwarded }) : t('admin.manualCheckinSuccess'),
+        'success',
+      );
     } catch (err: any) {
       showToast(err?.message || t('common.error'), 'error');
     } finally {
@@ -233,6 +249,20 @@ export default function AdminAttendeesScreen() {
               ? ` · ${new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
               : ''}
           </AppText>
+          {isStepGatedActivity && item.checkedInAt && (
+            <AppText
+              style={{
+                fontSize: 10.5,
+                lineHeight: 13,
+                fontWeight: '700' as any,
+                marginTop: 2,
+                color: item.pointsAwardedAt ? colors.success : colors.warning,
+              }}
+              numberOfLines={1}
+            >
+              {item.pointsAwardedAt ? t('admin.pointsAwardedBadge') : t('admin.pointsPendingBadge')}
+            </AppText>
+          )}
         </View>
         {item.checkedInAt ? (
           <TouchableOpacity

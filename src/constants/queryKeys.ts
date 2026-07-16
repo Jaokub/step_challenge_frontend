@@ -30,6 +30,13 @@ export const queryKeys = {
     history: (limit: number) => ['health', 'history', limit] as const,
     weeklyChart: ['health', 'weeklyChart'] as const,
   },
+  checkins: {
+    // BUILD_PLAN.md Phase 7 PR 2 — useActiveEventPolling's "do I have an
+    // ONGOING, step-gated, not-yet-paid check-in" list. Distinct from
+    // activities.checkinsFull (that's one activity's attendee roster; this
+    // is the current user's own check-in history).
+    activeStepGated: ['checkins', 'activeStepGated'] as const,
+  },
   leaderboard: {
     global: (limit: number) => ['leaderboard', 'global', limit] as const,
     scoped: (groupId: string, startDate?: string, endDate?: string) =>

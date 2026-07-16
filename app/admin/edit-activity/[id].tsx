@@ -8,7 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { useToast } from '../../../src/contexts/ToastContext';
-import { FormInput, FormDateField } from '../../../src/features/admin/ActivityFormComponents';
+import { FormInput, FormDateField, ActivityTypeToggle, ActivityType } from '../../../src/features/admin/ActivityFormComponents';
 import activityService from '../../../src/features/activity/activityService';
 import { queryKeys } from '../../../src/constants/queryKeys';
 import { PrimaryButton, OutlineButton, ScreenHeader, CustomModal, LoadingScreen, ErrorState, AppText, statusColors } from '../../../src/components';
@@ -22,6 +22,7 @@ interface EditActivityForm {
   description: string;
   location: string;
   points: string;
+  activityType: ActivityType;
   expectedSteps: string;
   totalDistance: string;
   startDate: string;
@@ -51,6 +52,7 @@ export default function EditActivityScreen() {
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { isSubmitting },
   } = useForm<EditActivityForm>({
     defaultValues: {
@@ -58,6 +60,7 @@ export default function EditActivityScreen() {
       description: '',
       location: '',
       points: '',
+      activityType: 'STEP_GATED',
       expectedSteps: '',
       totalDistance: '',
       startDate: '',
@@ -76,6 +79,8 @@ export default function EditActivityScreen() {
       description: activity.description ?? '',
       location: activity.location ?? '',
       points: activity.points ? String(activity.points) : '',
+      // Type is derived, not stored (ADR-001): expectedSteps set = step-gated.
+      activityType: activity.expectedSteps != null ? 'STEP_GATED' : 'ATTENDANCE',
       expectedSteps: activity.expectedSteps ? String(activity.expectedSteps) : '',
       totalDistance: activity.totalDistance ? String(activity.totalDistance) : '',
       startDate: activity.startDate ? activity.startDate.slice(0, 10) : '',
@@ -86,9 +91,21 @@ export default function EditActivityScreen() {
 
   const startDateValue = watch('startDate');
   const statusValue = watch('status');
+  const activityType = watch('activityType');
+
+  // Switching to attendance-only clears the step/distance targets so a
+  // stale value can't sneak into the payload once the fields are hidden.
+  const handleTypeChange = (next: ActivityType) => {
+    setValue('activityType', next);
+    if (next === 'ATTENDANCE') {
+      setValue('expectedSteps', '');
+      setValue('totalDistance', '');
+    }
+  };
 
   const onSubmit = async (values: EditActivityForm) => {
     try {
+      const isStepGated = values.activityType === 'STEP_GATED';
       const payload: Record<string, unknown> = {
         title: values.title,
         description: values.description,
@@ -96,8 +113,8 @@ export default function EditActivityScreen() {
         startDate: new Date(values.startDate).toISOString(),
         endDate: new Date(values.endDate).toISOString(),
         points: values.points ? parseInt(values.points, 10) : 0,
-        expectedSteps: values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
-        totalDistance: values.totalDistance ? parseFloat(values.totalDistance) : null,
+        expectedSteps: isStepGated && values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
+        totalDistance: isStepGated && values.totalDistance ? parseFloat(values.totalDistance) : null,
         status: values.status, // accepted by the backend (see updateActivity controller), not in ActivityInput's TS shape
       };
       const res = await activityService.updateActivity(id, payload as any);
@@ -112,14 +129,15 @@ export default function EditActivityScreen() {
   };
 
   // Same priority order as the old imperative checks: missing required
-  // fields first, then the steps-or-distance rule, then the date-order rule.
+  // fields first, then the step-goal rule (step-gated only), then the
+  // date-order rule.
   const onInvalid = (errors: FieldErrors<EditActivityForm>) => {
     if (errors.title || errors.location || errors.startDate || errors.endDate?.type === 'required') {
       showToast(t('admin.fillRequiredFields'), 'error');
       return;
     }
-    if (errors.expectedSteps || errors.totalDistance) {
-      showToast(t('admin.provideStepsOrDistance'), 'error');
+    if (errors.expectedSteps) {
+      showToast(t('admin.expectedStepsRequired'), 'error');
       return;
     }
     if (errors.endDate) {
@@ -218,42 +236,53 @@ export default function EditActivityScreen() {
           )}
         />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Controller
-              control={control}
-              name="expectedSteps"
-              rules={{ validate: (v, formValues) => !!v || !!formValues.totalDistance || 'stepsOrDistance' }}
-              render={({ field: { value, onChange } }) => (
-                <FormInput
-                  label={t('admin.expectedStepsLabel')}
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder={t('admin.egSteps')}
-                  keyboardType="numeric"
-                  colors={colors}
-                />
-              )}
-            />
+        <Controller
+          control={control}
+          name="activityType"
+          render={({ field: { value } }) => (
+            <ActivityTypeToggle value={value} onChange={handleTypeChange} colors={colors} />
+          )}
+        />
+
+        {activityType === 'STEP_GATED' && (
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Controller
+                control={control}
+                name="expectedSteps"
+                rules={{
+                  validate: (v) => activityType !== 'STEP_GATED' || (!!v && parseInt(v, 10) > 0) || 'expectedStepsRequired',
+                }}
+                render={({ field: { value, onChange } }) => (
+                  <FormInput
+                    label={t('admin.expectedStepsLabel')}
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder={t('admin.egSteps')}
+                    keyboardType="numeric"
+                    colors={colors}
+                  />
+                )}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Controller
+                control={control}
+                name="totalDistance"
+                render={({ field: { value, onChange } }) => (
+                  <FormInput
+                    label={t('admin.totalDistanceLabel')}
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder={t('admin.egDistance')}
+                    keyboardType="numeric"
+                    colors={colors}
+                  />
+                )}
+              />
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Controller
-              control={control}
-              name="totalDistance"
-              rules={{ validate: (v, formValues) => !!v || !!formValues.expectedSteps || 'stepsOrDistance' }}
-              render={({ field: { value, onChange } }) => (
-                <FormInput
-                  label={t('admin.totalDistanceLabel')}
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder={t('admin.egDistance')}
-                  keyboardType="numeric"
-                  colors={colors}
-                />
-              )}
-            />
-          </View>
-        </View>
+        )}
 
         <Controller
           control={control}

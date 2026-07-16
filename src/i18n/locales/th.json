@@ -162,7 +162,9 @@
     "shareLinkBtn": "แชร์",
     "friendRequestSent": "ส่งคำขอเป็นเพื่อนแล้ว!",
     "pointsEarned": "+{{points}} แต้ม",
-    "shareMessage": "มาเป็นเพื่อนกันใน Step Challenge! {{link}}"
+    "shareMessage": "มาเป็นเพื่อนกันใน Step Challenge! {{link}}",
+    "walkToEarnHint": "เช็คอินสำเร็จ · เดินอีก {{steps}} ก้าวหลังเช็คอินเพื่อรับแต้ม",
+    "goalReached": "ถึงเป้าหมายของ \"{{title}}\" แล้ว ได้รับแต้มแล้ว!"
   },
   "groups": {
     "yesterday": "เมื่อวาน",
@@ -415,6 +417,15 @@
     "egPoints": "เช่น 50 pt",
     "provideStepsOrDistance": "กรุณาระบุจำนวนก้าวหรือระยะทางรวมอย่างน้อยหนึ่งอย่าง",
     "endBeforeStart": "วันสิ้นสุดต้องไม่มาก่อนวันเริ่ม",
+    "activityTypeLabel": "ประเภทกิจกรรม",
+    "activityTypeStepGated": "เดิน-วิ่ง",
+    "activityTypeAttendance": "เข้าร่วม",
+    "expectedStepsRequired": "กรุณาระบุจำนวนก้าวเป้าหมายมากกว่า 0",
+    "stepGatedHint": "จะได้รับแต้มเมื่อเช็คอินและเดินครบเป้าหมายหลังเช็คอินแล้ว",
+    "attendanceHint": "ได้รับแต้มทันทีเมื่อเช็คอิน",
+    "manualCheckinSuccessPoints": "เช็คอินสำเร็จ · +{{points}} แต้ม",
+    "pointsAwardedBadge": "ได้แต้มแล้ว",
+    "pointsPendingBadge": "ยังไม่ถึงเป้า",
     "roleAdmin": "แอดมิน",
     "statusArchived": "เก็บถาวร",
     "searchUsers": "ค้นหาผู้ใช้หรือภาควิชา...",

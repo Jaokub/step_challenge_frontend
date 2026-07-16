@@ -54,6 +54,14 @@ export interface CheckIn {
   latitude?: number;
   longitude?: number;
   method: CheckInMethod;
+  // ADR-001 / BUILD_PLAN.md Phase 7 — step-gated activity points.
+  // stepsAtCheckIn: baseline snapshot (null for attendance-only or legacy
+  // rows). pointsAwardedAt: set once activity.points has actually hit the
+  // ledger for this check-in — null means "checked in, goal not reached
+  // yet" for a step-gated activity. Drives the attendees screen's
+  // ได้แต้มแล้ว/ยังไม่ถึงเป้า badge.
+  stepsAtCheckIn?: number | null;
+  pointsAwardedAt?: string | null;
   activity?: Activity;
   user?: User;
 }

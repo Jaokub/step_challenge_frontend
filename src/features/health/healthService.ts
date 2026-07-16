@@ -7,6 +7,7 @@ import type {
   HealthRecord,
   HealthSource,
   HealthSummary,
+  HealthSyncResult,
 } from '../../types';
 
 interface SyncHealthInput {
@@ -27,9 +28,9 @@ interface HealthHistoryParams {
 const healthService = {
   async syncHealthData(
     healthData: SyncHealthInput,
-  ): Promise<ApiResponse<HealthRecord>> {
+  ): Promise<ApiResponse<HealthSyncResult>> {
     try {
-      const { data } = await api.post<ApiResponse<HealthRecord>>(
+      const { data } = await api.post<ApiResponse<HealthSyncResult>>(
         '/health/sync',
         healthData,
       );

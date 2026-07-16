@@ -18,19 +18,29 @@ function toLocalDateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export interface SyncTodayResult {
+  awardedActivityIds: string[];
+}
+
 /**
  * Initialises Health Connect (requests permissions if needed),
  * reads today's data, then POSTs it to POST /api/v1/health/sync.
  *
  * Auth header is attached automatically by api.ts — no manual token handling needed.
  * The backend upserts, so calling this multiple times in a day is safe.
+ *
+ * Returns `awardedActivityIds` (BUILD_PLAN.md Phase 7 PR 2) — step-gated
+ * activities newly paid out by this sync — or `undefined` if the sync was
+ * skipped (no health permission) or its return value wasn't reached.
+ * `useDashboard` ignores the return value; `useActiveEventPolling` uses it
+ * to fire a celebration toast.
  */
-export async function syncTodayHealthData(): Promise<void> {
+export async function syncTodayHealthData(): Promise<SyncTodayResult | undefined> {
   // 1. Init + permission request (your function — no-ops if already granted)
   const permitted = await HealthService.init();
   if (!permitted) {
     console.warn('[syncTodayHealthData] Health permissions not granted, skipping sync.');
-    return;
+    return undefined;
   }
 
   // 2. Build time range: midnight today → now
@@ -59,4 +69,5 @@ export async function syncTodayHealthData(): Promise<void> {
   });
 
   console.log('[syncTodayHealthData] Success:', result.message);
+  return { awardedActivityIds: result.data?.awardedActivityIds ?? [] };
 }
