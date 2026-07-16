@@ -40,7 +40,7 @@ export { default as HealthStatCard } from './HealthStatCard';
 // Feedback & States
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
-export { default as AppText } from './AppText';
+export { default as AppText, THAI_CHAR_REGEX } from './AppText';
 export { default as GradientText } from './GradientText';
 export { default as LoadingScreen } from './LoadingScreen';
 export * from './Skeleton';

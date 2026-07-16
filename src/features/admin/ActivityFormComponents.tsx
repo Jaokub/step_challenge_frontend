@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
-import { AppText } from '../../components';
+import { AppText, THAI_CHAR_REGEX } from '../../components';
+import { thaiFonts, englishFonts } from '../../constants/theme';
 
 /**
  * ADR-001 / BUILD_PLAN.md Phase 7 PR 2 — an activity's type is derived
@@ -32,28 +33,39 @@ const toDateString = (d: Date) => {
 // box background:#eef2f0 border-radius:16px padding:13px 15px. No calendar
 // icon on the date fields in the mockup — plain text box, same as every
 // other input.
-export const FormInput = ({ label, value, onChangeText, placeholder, multiline, keyboardType, colors }: any) => (
-  <View style={styles.inputContainer}>
-    <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
-    <TextInput
-      style={[
-        styles.textInput,
-        {
-          backgroundColor: colors.inputBackground || colors.card,
-          color: colors.inputText || colors.textPrimary,
-          minHeight: multiline ? 64 : undefined,
-          textAlignVertical: multiline ? 'top' : 'center',
-        },
-      ]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={colors.inputPlaceholder || colors.textSecondary}
-      multiline={multiline}
-      keyboardType={keyboardType}
-    />
-  </View>
-);
+export const FormInput = ({ label, value, onChangeText, placeholder, multiline, keyboardType, colors }: any) => {
+  const { i18n } = useTranslation();
+  // Same rule as AppText: Thai content always wins regardless of UI
+  // language (a Thai-typed activity title should render with Thai glyphs
+  // even if the admin console is set to English), falling back to the UI
+  // language only while the field is empty (so the placeholder — which IS
+  // translated — still gets the right font).
+  const fonts = i18n.language === 'th' || THAI_CHAR_REGEX.test(value || '') ? thaiFonts : englishFonts;
+
+  return (
+    <View style={styles.inputContainer}>
+      <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
+      <TextInput
+        style={[
+          styles.textInput,
+          {
+            backgroundColor: colors.inputBackground || colors.card,
+            color: colors.inputText || colors.textPrimary,
+            fontFamily: fonts.body.regular,
+            minHeight: multiline ? 64 : undefined,
+            textAlignVertical: multiline ? 'top' : 'center',
+          },
+        ]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.inputPlaceholder || colors.textSecondary}
+        multiline={multiline}
+        keyboardType={keyboardType}
+      />
+    </View>
+  );
+};
 
 // Real date field. Native (iOS/Android) is backed by the OS date picker
 // dialog; `@react-native-community/datetimepicker` has no web implementation

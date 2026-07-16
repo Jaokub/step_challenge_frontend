@@ -81,14 +81,14 @@ export default function AdminDashboardScreen() {
         {loading ? (
           <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
             <Skeleton width="100%" height={60} borderRadius={16} />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <Skeleton width="47%" height={90} borderRadius={16} />
               <Skeleton width="47%" height={90} borderRadius={16} />
               <Skeleton width="47%" height={90} borderRadius={16} />
               <Skeleton width="47%" height={90} borderRadius={16} />
             </View>
             <Skeleton width="100%" height={110} borderRadius={20} />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <Skeleton width="47%" height={100} borderRadius={20} />
               <Skeleton width="47%" height={100} borderRadius={20} />
             </View>

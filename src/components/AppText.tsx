@@ -13,8 +13,11 @@ export interface AppTextProps extends TextProps {
 // Thai Unicode block (0E00–0E7F). Anything in this range needs a Thai-capable
 // font regardless of the app's current UI language — user-typed content
 // (activity titles/descriptions, group names, ...) isn't translated, so it
-// can be Thai even while the app is set to English, and vice versa.
-const THAI_CHAR_REGEX = /[฀-๿]/;
+// can be Thai even while the app is set to English, and vice versa. Exported
+// so other components that render live-typed text outside of AppText (e.g.
+// FormInput's TextInput in ActivityFormComponents.tsx) can apply the same
+// font-selection rule instead of re-deriving it.
+export const THAI_CHAR_REGEX = /[฀-๿]/;
 
 /** Flatten a Text node's children down to a plain string for script detection. */
 const extractText = (node: React.ReactNode): string => {
