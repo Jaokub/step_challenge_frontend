@@ -20,7 +20,7 @@ import RelationGroupCard from '../../src/features/group/RelationGroupCard';
 import EnrollActivitySheet from '../../src/features/group/EnrollActivitySheet';
 import ParentGroupPickerSheet from '../../src/features/group/ParentGroupPickerSheet';
 import TransferCoordinatorSheet from '../../src/features/group/TransferCoordinatorSheet';
-import GroupIncomingRequestsSection from '../../src/features/group/GroupIncomingRequestsSection';
+import IncomingParentRequestsSheet from '../../src/features/group/IncomingParentRequestsSheet';
 import groupService from '../../src/features/group/groupService';
 import type { GroupRankingRow } from '../../src/types';
 
@@ -48,6 +48,7 @@ export default function GroupDetailScreen() {
   const [enrollSheetOpen, setEnrollSheetOpen] = useState(false);
   const [parentPickerOpen, setParentPickerOpen] = useState(false);
   const [transferSheetOpen, setTransferSheetOpen] = useState(false);
+  const [incomingRequestsOpen, setIncomingRequestsOpen] = useState(false);
 
   const {
     group,
@@ -86,6 +87,20 @@ export default function GroupDetailScreen() {
   });
   const hasPendingParentRequest = !!parentCandidatesQuery.data?.pendingRequestId;
   const pendingParentCandidate = parentCandidatesQuery.data?.candidates.find((c) => c.requested);
+
+  // Shares its cache key with IncomingParentRequestsSheet's own query — kept
+  // here just for the persistent trigger row's count badge, so the row always
+  // shows (even at 0) instead of the section hiding itself when empty.
+  const incomingRequestsQuery = useQuery({
+    queryKey: queryKeys.groups.incomingRequests(id),
+    queryFn: async () => {
+      const res = await groupService.getIncomingParentRequests(id);
+      if (!res.success) throw new Error('Failed to load incoming requests');
+      return res.data;
+    },
+    enabled: isOwnerForQuery,
+  });
+  const incomingRequestsCount = incomingRequestsQuery.data?.length ?? 0;
 
   const fallbackRanking: GroupRankingRow[] = (group?.members ?? [])
     .slice()
@@ -336,7 +351,21 @@ export default function GroupDetailScreen() {
             </TouchableOpacity>
           )}
 
-          {isOwner && <GroupIncomingRequestsSection groupId={id} />}
+          {isOwner && (
+            <TouchableOpacity onPress={() => setIncomingRequestsOpen(true)}>
+              <View style={[styles.gapRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                <AppText style={[styles.gapRowText, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {t('groups.incomingParentRequests')}
+                </AppText>
+                <View style={[styles.gapBadge, { backgroundColor: isDark ? colors.background : colors.inputBackground }]}>
+                  <AppText style={{ fontSize: 10.5, lineHeight: 13, fontWeight: '700' as any, color: colors.textSecondary }}>
+                    {incomingRequestsCount}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+              </View>
+            </TouchableOpacity>
+          )}
 
           {isOwner && (
             <TouchableOpacity onPress={() => setEnrollSheetOpen(true)}>
@@ -533,6 +562,13 @@ export default function GroupDetailScreen() {
         onClose={() => setTransferSheetOpen(false)}
         groupId={id}
         members={eligibleTransferMembers}
+      />
+
+      <IncomingParentRequestsSheet
+        visible={incomingRequestsOpen}
+        onClose={() => setIncomingRequestsOpen(false)}
+        groupId={id}
+        groupName={group.name}
       />
     </View>
   );

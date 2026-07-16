@@ -37,7 +37,7 @@ export default function GroupChildrenScreen() {
             onPress={() => (router.canGoBack() ? router.back() : router.push(`/group/${id}`))}
             style={[styles.chip, { backgroundColor: colors.inputBackground }]}
           >
-            <Ionicons name="chevron-back" size={14} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={14} color={colors.textPrimary}/>
           </TouchableOpacity>
           <View style={styles.headerTitleWrap}>
             <AppText variant="heading-bold" style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
