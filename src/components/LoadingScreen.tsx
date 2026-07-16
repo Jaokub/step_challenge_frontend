@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, RadialGradient, Stop } from 'react-native-svg';
 import Animated, {
@@ -59,6 +59,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
   const spin = useSharedValue(0);
   const glow = useSharedValue(0);
 
+  // react-native-svg resolves gradient <Defs> ids globally per render surface,
+  // not scoped to each <Svg>. When more than one LoadingScreen mounts at the
+  // same time (e.g. two tabs both loading, or a stack transition briefly
+  // keeping the previous screen mounted), two SVGs sharing the literal ids
+  // "ringGrad"/"glowGrad" collide and only one instance keeps its gradient —
+  // the other renders as a plain, unanimated-looking glow with no visible
+  // arc (the reported "stuck" loading screen on some pages). Suffixing the
+  // ids with a per-instance id makes every mounted LoadingScreen unique.
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const ringGradId = `ringGrad-${uid}`;
+  const glowGradId = `glowGrad-${uid}`;
+
   useEffect(() => {
     spin.value = withRepeat(withTiming(360, { duration: 1400, easing: Easing.linear }), -1, false);
     glow.value = withRepeat(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }), -1, true);
@@ -79,20 +91,20 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
         <Animated.View style={[styles.glow, glowStyle]}>
           <Svg width={GLOW_SIZE} height={GLOW_SIZE}>
             <Defs>
-              <RadialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+              <RadialGradient id={glowGradId} cx="50%" cy="50%" r="50%">
                 <Stop offset="0" stopColor={colors.primary} stopOpacity={0.28} />
                 <Stop offset="0.7" stopColor={gradients.primary[1]} stopOpacity={0.08} />
                 <Stop offset="1" stopColor={gradients.primary[1]} stopOpacity={0} />
               </RadialGradient>
             </Defs>
-            <Circle cx={GLOW_SIZE / 2} cy={GLOW_SIZE / 2} r={GLOW_SIZE / 2} fill="url(#glowGrad)" />
+            <Circle cx={GLOW_SIZE / 2} cy={GLOW_SIZE / 2} r={GLOW_SIZE / 2} fill={`url(#${glowGradId})`} />
           </Svg>
         </Animated.View>
 
         <Animated.View style={[styles.ringWrap, spinStyle]}>
           <Svg width={RING_SIZE} height={RING_SIZE}>
             <Defs>
-              <SvgLinearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <SvgLinearGradient id={ringGradId} x1="0%" y1="0%" x2="100%" y2="100%">
                 <Stop offset="0" stopColor={gradients.primary[0]} />
                 <Stop offset="1" stopColor={gradients.primary[1]} />
               </SvgLinearGradient>
@@ -109,7 +121,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_RADIUS}
-              stroke="url(#ringGrad)"
+              stroke={`url(#${ringGradId})`}
               strokeWidth={RING_STROKE}
               strokeDasharray={[RING_ARC, RING_CIRCUMFERENCE - RING_ARC]}
               strokeLinecap="round"

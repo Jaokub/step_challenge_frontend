@@ -13,6 +13,20 @@ export interface FriendRequest extends Friendship {
   user: User; // The sender of the request
 }
 
+// Thinner than `User` — matches the backend's select() for the recipient
+// of a request I sent (no totalPoints/role/etc., just what the "คำขอที่รอ"
+// row needs).
+export interface FriendPreview {
+  id: string;
+  fullName: string;
+  avatarUrl?: string;
+  department?: string | null;
+}
+
+export interface SentFriendRequest extends Friendship {
+  friend: FriendPreview; // The recipient of the request I sent
+}
+
 const friendService = {
   async getFriendsList(): Promise<ApiResponse<User[]>> {
     try {
@@ -26,6 +40,16 @@ const friendService = {
   async getPendingRequests(): Promise<ApiResponse<FriendRequest[]>> {
     try {
       const { data } = await api.get<ApiResponse<FriendRequest[]>>('/friends/requests');
+      return data;
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /** Requests I sent that are still awaiting the other person's response. */
+  async getSentRequests(): Promise<ApiResponse<SentFriendRequest[]>> {
+    try {
+      const { data } = await api.get<ApiResponse<SentFriendRequest[]>>('/friends/sent');
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

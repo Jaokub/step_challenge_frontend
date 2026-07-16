@@ -20,6 +20,7 @@ interface GroupHeaderSectionProps {
   groups: AppGroup[];
   requestsCount: number;
   onOpenRequests: () => void;
+  onOpenAddFriend: () => void;
 }
 
 // Mockup frame 10 header: 3 icons only — my groups (new in v4, links to
@@ -28,12 +29,19 @@ interface GroupHeaderSectionProps {
 // elsewhere); it's dropped here rather than kept as an unrequested 4th icon
 // — see PROGRESS.md for the flagged gap. The JOIN modal/hook code itself is
 // untouched so it can be wired to a real entry point later.
+//
+// The add-friend icon used to `router.push('/add-friend')`, which 404'd
+// into an "Invalid user ID" error screen — that route is the deep-link
+// confirm screen (scan.tsx / shared invite links pass a real `userId`
+// param), not a general entry point. Per "Friends Popup.dc.html" it opens
+// an in-page sheet (AddFriendSheet) instead, same pattern as onOpenRequests.
 export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
   activeTab,
   setActiveTab,
   groups,
   requestsCount,
   onOpenRequests,
+  onOpenAddFriend,
 }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -71,7 +79,7 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
               )}
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('/add-friend')}
+              onPress={onOpenAddFriend}
               style={[styles.iconBtn, { backgroundColor: colors.inputBackground }]}
               accessibilityLabel={t('friend.addFriend')}
             >

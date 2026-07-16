@@ -22,6 +22,16 @@ interface UpdateProfileInput {
   avatarUrl?: string;
 }
 
+// Thinner than `User` — matches the backend's search select() (no
+// totalPoints/role/syncToken/etc.), used by the add-friend search tab.
+export interface UserSearchResult {
+  id: string;
+  fullName: string;
+  email: string;
+  department?: string | null;
+  avatarUrl?: string;
+}
+
 const userService = {
   async getLeaderboard(
     params?: LeaderboardParams,
@@ -113,6 +123,22 @@ const userService = {
         data: { users, pagination: { page: 1, limit: users.length, total, totalPages: 1 } },
         message: 'Users retrieved successfully.',
       };
+    } catch (error: any) {
+      throw error.response?.data ?? error;
+    }
+  },
+
+  /**
+   * Search users by name/email (excludes self) — powers the add-friend
+   * sheet's "ค้นหา" tab. Backend requires a non-empty `q` (400s otherwise),
+   * so callers must not fire this while the search box is empty.
+   */
+  async searchUsers(q: string): Promise<ApiResponse<UserSearchResult[]>> {
+    try {
+      const { data } = await api.get<ApiResponse<UserSearchResult[]>>('/users/search', {
+        params: { q },
+      });
+      return data;
     } catch (error: any) {
       throw error.response?.data ?? error;
     }

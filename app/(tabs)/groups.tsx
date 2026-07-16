@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { EmptyState, AppText, CustomModal } from '../../src/components';
+import { EmptyState, AppText } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 
 import { useFriends } from '../../src/features/friend/useFriends';
@@ -15,7 +15,8 @@ import { FriendCard, EmptyMemberSlot } from '../../src/features/friend/FriendCar
 import { Podium, LeaderboardMember } from '../../src/features/friend/Podium';
 import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
 import { GroupHeaderSection } from '../../src/features/group/GroupHeaderSection';
-import { RequestCard } from '../../src/features/friend/RequestCard';
+import NotificationsPanel from '../../src/features/friend/NotificationsPanel';
+import AddFriendSheet from '../../src/features/friend/AddFriendSheet';
 
 const getInitials = (name: string): string =>
   name.split(' ').map((p) => p.charAt(0)).join('').toUpperCase().slice(0, 2);
@@ -32,6 +33,7 @@ export default function GroupsScreen() {
 
   const [activeTab, setActiveTab] = useState<string>('friends');
   const [showRequests, setShowRequests] = useState(false);
+  const [showAddFriend, setShowAddFriend] = useState(false);
 
   const {
     friends,
@@ -93,6 +95,7 @@ export default function GroupsScreen() {
         groups={groups}
         requestsCount={requests.length}
         onOpenRequests={() => setShowRequests(true)}
+        onOpenAddFriend={() => setShowAddFriend(true)}
       />
       <RankSummaryCard
         rank={myEntry?.rank}
@@ -161,17 +164,15 @@ export default function GroupsScreen() {
         />
       </SafeAreaView>
 
-      <CustomModal visible={showRequests} onClose={() => setShowRequests(false)} title={t('groups.friendRequests')}>
-        {requests.length === 0 ? (
-          <AppText style={{ color: colors.textSecondary, textAlign: 'center', paddingVertical: spacing.lg }}>
-            {t('groups.noData')}
-          </AppText>
-        ) : (
-          requests.map((req) => (
-            <RequestCard key={req.id} request={req} onAccept={handleAcceptRequest} onReject={handleRejectRequest} />
-          ))
-        )}
-      </CustomModal>
+      <NotificationsPanel
+        visible={showRequests}
+        onClose={() => setShowRequests(false)}
+        requests={requests}
+        onAccept={handleAcceptRequest}
+        onReject={handleRejectRequest}
+      />
+
+      <AddFriendSheet visible={showAddFriend} onClose={() => setShowAddFriend(false)} />
     </View>
   );
 }
