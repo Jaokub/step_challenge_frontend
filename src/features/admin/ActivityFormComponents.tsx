@@ -11,6 +11,14 @@ import { AppText } from '../../components';
  */
 export type ActivityType = 'STEP_GATED' | 'ATTENDANCE';
 
+/**
+ * Whether the activity's start/end date are the same day. UI-only concept
+ * (like ActivityType) — the backend only ever sees startDate/endDate; when
+ * SINGLE_DAY the form keeps endDate equal to startDate instead of showing a
+ * second date field.
+ */
+export type EventDuration = 'SINGLE_DAY' | 'MULTI_DAY';
+
 // Format a Date as a local YYYY-MM-DD string (avoids UTC off-by-one from toISOString)
 const toDateString = (d: Date) => {
   const yyyy = d.getFullYear();
@@ -47,11 +55,44 @@ export const FormInput = ({ label, value, onChangeText, placeholder, multiline, 
   </View>
 );
 
-// Real date field backed by the native OS date picker.
-// value/onChange use a 'YYYY-MM-DD' string.
+// Real date field. Native (iOS/Android) is backed by the OS date picker
+// dialog; `@react-native-community/datetimepicker` has no web implementation
+// (renders nothing / throws), so web renders a plain HTML <input type="date">
+// instead — same value/onChange contract ('YYYY-MM-DD' string), just a
+// different picker UI supplied by the browser. value/onChange use a
+// 'YYYY-MM-DD' string either way.
 export const FormDateField = ({ label, value, onChange, colors, minimumDate }: any) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.inputContainer}>
+        <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
+        {/* Raw DOM element — react-native-web renders this app for the web
+            build (see package.json), and RN's TextInput/TouchableOpacity
+            can't host a native browser date-picker affordance. */}
+        <input
+          type="date"
+          value={value || ''}
+          min={minimumDate ? toDateString(minimumDate) : undefined}
+          onChange={(e: any) => onChange(e.target.value)}
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            backgroundColor: colors.inputBackground || colors.card,
+            color: value ? (colors.inputText || colors.textPrimary) : (colors.inputPlaceholder || colors.textSecondary),
+            border: 'none',
+            outline: 'none',
+            borderRadius: 16,
+            padding: '13px 15px',
+            fontSize: 13.5,
+            fontFamily: 'inherit',
+          }}
+        />
+      </View>
+    );
+  }
 
   const parsed = value ? new Date(value) : new Date();
   const safeValue = isNaN(parsed.getTime()) ? new Date() : parsed;
@@ -87,30 +128,33 @@ export const FormDateField = ({ label, value, onChange, colors, minimumDate }: a
   );
 };
 
-// Type toggle (เดิน-วิ่ง ↔ เข้าร่วม) — two-chip row, same visual language as
-// edit-activity's status chips (label 12px/700 + full-width equal chips).
-// Switching to ATTENDANCE should clear expectedSteps/totalDistance in the
-// caller (those fields become null on submit; this component only renders
-// the toggle itself).
-export const ActivityTypeToggle = ({
+/**
+ * Generic two-pill toggle — label + full-width equal chips, same visual
+ * language as edit-activity's status chips (label 12px/700 + chips).
+ * ActivityTypeToggle and EventDurationToggle are both thin wrappers over
+ * this so the two pill rows in the create/edit-activity forms stay
+ * pixel-identical without duplicating the layout code.
+ */
+function PillToggle<T extends string>({
+  label,
+  hint,
   value,
+  options,
   onChange,
   colors,
 }: {
-  value: ActivityType;
-  onChange: (next: ActivityType) => void;
+  label: string;
+  hint?: string;
+  value: T;
+  options: { key: T; label: string }[];
+  onChange: (next: T) => void;
   colors: any;
-}) => {
-  const { t } = useTranslation();
-  const OPTIONS: { key: ActivityType; label: string }[] = [
-    { key: 'STEP_GATED', label: t('admin.activityTypeStepGated') },
-    { key: 'ATTENDANCE', label: t('admin.activityTypeAttendance') },
-  ];
+}) {
   return (
     <View style={styles.inputContainer}>
-      <AppText style={[styles.label, { color: colors.textSecondary }]}>{t('admin.activityTypeLabel')}</AppText>
+      <AppText style={[styles.label, { color: colors.textSecondary }]}>{label}</AppText>
       <View style={styles.typeToggleRow}>
-        {OPTIONS.map((opt) => {
+        {options.map((opt) => {
           const active = opt.key === value;
           return (
             <TouchableOpacity
@@ -128,10 +172,65 @@ export const ActivityTypeToggle = ({
           );
         })}
       </View>
-      <AppText style={[styles.typeHint, { color: colors.textSecondary }]}>
-        {value === 'STEP_GATED' ? t('admin.stepGatedHint') : t('admin.attendanceHint')}
-      </AppText>
+      {!!hint && (
+        <AppText style={[styles.typeHint, { color: colors.textSecondary }]}>{hint}</AppText>
+      )}
     </View>
+  );
+}
+
+// Type toggle (เดิน-วิ่ง ↔ เข้าร่วม). Switching to ATTENDANCE should clear
+// expectedSteps/totalDistance in the caller (those fields become null on
+// submit; this component only renders the toggle itself).
+export const ActivityTypeToggle = ({
+  value,
+  onChange,
+  colors,
+}: {
+  value: ActivityType;
+  onChange: (next: ActivityType) => void;
+  colors: any;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <PillToggle<ActivityType>
+      label={t('admin.activityTypeLabel')}
+      hint={value === 'STEP_GATED' ? t('admin.stepGatedHint') : t('admin.attendanceHint')}
+      value={value}
+      onChange={onChange}
+      colors={colors}
+      options={[
+        { key: 'STEP_GATED', label: t('admin.activityTypeStepGated') },
+        { key: 'ATTENDANCE', label: t('admin.activityTypeAttendance') },
+      ]}
+    />
+  );
+};
+
+// Duration toggle (จบภายใน 1 วัน ↔ หลายวัน). SINGLE_DAY means the caller
+// shows one date field and keeps endDate synced to startDate instead of a
+// second field — this component only renders the toggle itself.
+export const EventDurationToggle = ({
+  value,
+  onChange,
+  colors,
+}: {
+  value: EventDuration;
+  onChange: (next: EventDuration) => void;
+  colors: any;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <PillToggle<EventDuration>
+      label={t('admin.eventDurationLabel')}
+      value={value}
+      onChange={onChange}
+      colors={colors}
+      options={[
+        { key: 'SINGLE_DAY', label: t('admin.eventDurationSingleDay') },
+        { key: 'MULTI_DAY', label: t('admin.eventDurationMultiDay') },
+      ]}
+    />
   );
 };
 

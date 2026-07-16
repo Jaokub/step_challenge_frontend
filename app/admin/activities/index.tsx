@@ -42,7 +42,7 @@ export default function AdminActivitiesListScreen() {
     >
       <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
         <View style={styles.titleRow}>
-          <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, lineHeight: 18, color: colors.textPrimary }} numberOfLines={1}>
+          <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary, lineHeight: 18 }} numberOfLines={1}>
             {item.title}
           </AppText>
           <StatusBadge status={item.status} />

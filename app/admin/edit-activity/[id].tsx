@@ -8,7 +8,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { useToast } from '../../../src/contexts/ToastContext';
-import { FormInput, FormDateField, ActivityTypeToggle, ActivityType } from '../../../src/features/admin/ActivityFormComponents';
+import {
+  FormInput,
+  FormDateField,
+  ActivityTypeToggle,
+  ActivityType,
+  EventDurationToggle,
+  EventDuration,
+} from '../../../src/features/admin/ActivityFormComponents';
 import activityService from '../../../src/features/activity/activityService';
 import { queryKeys } from '../../../src/constants/queryKeys';
 import { PrimaryButton, OutlineButton, ScreenHeader, CustomModal, LoadingScreen, ErrorState, AppText, statusColors } from '../../../src/components';
@@ -25,6 +32,7 @@ interface EditActivityForm {
   activityType: ActivityType;
   expectedSteps: string;
   totalDistance: string;
+  duration: EventDuration;
   startDate: string;
   endDate: string;
   status: ActivityStatus;
@@ -53,6 +61,7 @@ export default function EditActivityScreen() {
     watch,
     reset,
     setValue,
+    getValues,
     formState: { isSubmitting },
   } = useForm<EditActivityForm>({
     defaultValues: {
@@ -63,6 +72,7 @@ export default function EditActivityScreen() {
       activityType: 'STEP_GATED',
       expectedSteps: '',
       totalDistance: '',
+      duration: 'SINGLE_DAY',
       startDate: '',
       endDate: '',
       status: 'UPCOMING',
@@ -74,6 +84,8 @@ export default function EditActivityScreen() {
 
   useEffect(() => {
     if (!activity) return;
+    const startDate = activity.startDate ? activity.startDate.slice(0, 10) : '';
+    const endDate = activity.endDate ? activity.endDate.slice(0, 10) : '';
     reset({
       title: activity.title ?? '',
       description: activity.description ?? '',
@@ -83,8 +95,10 @@ export default function EditActivityScreen() {
       activityType: activity.expectedSteps != null ? 'STEP_GATED' : 'ATTENDANCE',
       expectedSteps: activity.expectedSteps ? String(activity.expectedSteps) : '',
       totalDistance: activity.totalDistance ? String(activity.totalDistance) : '',
-      startDate: activity.startDate ? activity.startDate.slice(0, 10) : '',
-      endDate: activity.endDate ? activity.endDate.slice(0, 10) : '',
+      // Duration is derived too — same date on both ends = single day.
+      duration: startDate && startDate === endDate ? 'SINGLE_DAY' : 'MULTI_DAY',
+      startDate,
+      endDate,
       status: activity.status ?? 'UPCOMING',
     });
   }, [activity, reset]);
@@ -92,6 +106,7 @@ export default function EditActivityScreen() {
   const startDateValue = watch('startDate');
   const statusValue = watch('status');
   const activityType = watch('activityType');
+  const duration = watch('duration');
 
   // Switching to attendance-only clears the step/distance targets so a
   // stale value can't sneak into the payload once the fields are hidden.
@@ -101,6 +116,21 @@ export default function EditActivityScreen() {
       setValue('expectedSteps', '');
       setValue('totalDistance', '');
     }
+  };
+
+  // Single-day keeps endDate silently in sync with startDate (no second
+  // field for the admin to forget to set); switching back to multi-day
+  // leaves that value in place as a sane starting point for endDate.
+  const handleDurationChange = (next: EventDuration) => {
+    setValue('duration', next);
+    if (next === 'SINGLE_DAY') {
+      setValue('endDate', getValues('startDate'));
+    }
+  };
+
+  const handleSingleDayDateChange = (date: string) => {
+    setValue('startDate', date);
+    setValue('endDate', date);
   };
 
   const onSubmit = async (values: EditActivityForm) => {
@@ -299,38 +329,62 @@ export default function EditActivityScreen() {
           )}
         />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Controller
-              control={control}
-              name="startDate"
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <FormDateField label={t('admin.startDate')} value={value} onChange={onChange} colors={colors} />
-              )}
-            />
+        <Controller
+          control={control}
+          name="duration"
+          render={({ field: { value } }) => (
+            <EventDurationToggle value={value} onChange={handleDurationChange} colors={colors} />
+          )}
+        />
+
+        {duration === 'SINGLE_DAY' ? (
+          <Controller
+            control={control}
+            name="startDate"
+            rules={{ required: true }}
+            render={({ field: { value } }) => (
+              <FormDateField
+                label={t('admin.eventDateLabel')}
+                value={value}
+                onChange={handleSingleDayDateChange}
+                colors={colors}
+              />
+            )}
+          />
+        ) : (
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Controller
+                control={control}
+                name="startDate"
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <FormDateField label={t('admin.startDate')} value={value} onChange={onChange} colors={colors} />
+                )}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Controller
+                control={control}
+                name="endDate"
+                rules={{
+                  required: true,
+                  validate: (v, formValues) =>
+                    !formValues.startDate || new Date(v) >= new Date(formValues.startDate) || 'endBeforeStart',
+                }}
+                render={({ field: { value, onChange } }) => (
+                  <FormDateField
+                    label={t('admin.endDate')}
+                    value={value}
+                    onChange={onChange}
+                    minimumDate={startDateValue ? new Date(startDateValue) : undefined}
+                    colors={colors}
+                  />
+                )}
+              />
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Controller
-              control={control}
-              name="endDate"
-              rules={{
-                required: true,
-                validate: (v, formValues) =>
-                  !formValues.startDate || new Date(v) >= new Date(formValues.startDate) || 'endBeforeStart',
-              }}
-              render={({ field: { value, onChange } }) => (
-                <FormDateField
-                  label={t('admin.endDate')}
-                  value={value}
-                  onChange={onChange}
-                  minimumDate={startDateValue ? new Date(startDateValue) : undefined}
-                  colors={colors}
-                />
-              )}
-            />
-          </View>
-        </View>
+        )}
 
         <View style={styles.statusSection}>
           <AppText style={[styles.statusLabel, { color: colors.textSecondary }]}>

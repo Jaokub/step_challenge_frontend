@@ -20,7 +20,12 @@ export default function GroupChildrenScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const tone = isDark ? 'dark' : 'light';
+  const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
+  const cardBorder = dashboardAccents.goalCardBorder[tone];
+  const labelColor = dashboardAccents.goalLabel[tone];
+  const dividerColor = colors.primary + '33';
 
   const { childRanking, isChildRankingLoading } = useChildRanking(id);
 
@@ -54,22 +59,22 @@ export default function GroupChildrenScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <LinearGradient
-          colors={gradients.mint}
+          colors={cardGradient}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
-          style={[styles.statCard, { borderColor: colors.primary + '2E' }]}
+          style={[styles.statCard, { borderColor: cardBorder }]}
         >
           {(['today', 'week', 'month'] as const).map((period, i) => (
             <React.Fragment key={period}>
               <View style={styles.statCol}>
-                <AppText style={[styles.statLabel, { color: dashboardAccents.mintCardLabel }]}>
+                <AppText style={[styles.statLabel, { color: labelColor }]}>
                   {t(`groups.period.${period}`)}
                 </AppText>
                 <AppText variant="heading-extraBold" style={[styles.statValue, { color: colors.primary }]}>
                   {(stats?.[period].steps ?? 0).toLocaleString()}
                 </AppText>
               </View>
-              {i < 2 && <View style={[styles.statDivider, { backgroundColor: colors.primary + '2E' }]} />}
+              {i < 2 && <View style={[styles.statDivider, { backgroundColor: dividerColor }]} />}
             </React.Fragment>
           ))}
         </LinearGradient>
