@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import AppText from './AppText';
 import MonthYearPicker from './MonthYearPicker';
 import { useTheme } from '../contexts/ThemeContext';
@@ -79,6 +80,25 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
     topLabel = `${weekdayFull[anchorDate.getDay()]} ${anchorDate.getDate()} ${monthsShort[anchorDate.getMonth()]} ${toDisplayYear(anchorDate.getFullYear())}`;
   }
 
+  // Day strip collapses/expands as `timeframe` leaves/re-enters Daily — same
+  // fold used by the home dashboard's DashboardHeader, kept in sync here.
+  const dailyProgress = useSharedValue(timeframe === 'Daily' ? 1 : 0);
+  useEffect(() => {
+    dailyProgress.value = withTiming(timeframe === 'Daily' ? 1 : 0, {
+      duration: 340,
+      easing: Easing.bezier(0.2, 0.9, 0.3, 1),
+    });
+  }, [timeframe, dailyProgress]);
+  const dayStripAnimStyle = useAnimatedStyle(() => ({
+    maxHeight: dailyProgress.value * 64,
+    marginBottom: dailyProgress.value * layout.sectionGap,
+    opacity: dailyProgress.value,
+    transform: [
+      { scaleY: 0.6 + dailyProgress.value * 0.4 },
+      { translateY: (1 - dailyProgress.value) * -10 },
+    ],
+  }));
+
   const selectedDay = anchorDate.getDate();
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -124,7 +144,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
         </View>
       </View>
 
-      {timeframe === 'Daily' && (
+      <Animated.View style={[{ overflow: 'hidden' }, dayStripAnimStyle]} pointerEvents={timeframe === 'Daily' ? 'auto' : 'none'}>
         <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
           {dayTabs.map((tab) => {
             const isActive = tab.day === selectedDay;
@@ -139,7 +159,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
             );
           })}
         </ScrollView>
-      )}
+      </Animated.View>
 
       <MonthYearPicker
         visible={pickerOpen}
@@ -202,7 +222,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPaddingX,
     gap: 8,
     alignItems: 'center',
-    marginBottom: layout.sectionGap,
   },
   dayItem: {
     alignItems: 'center',

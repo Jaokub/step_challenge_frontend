@@ -160,8 +160,16 @@ export default function GroupsScreen() {
         <FlatList
           data={isLoadingData ? ([1, 2, 3, 4] as any) : rest}
           keyExtractor={(item, index) => (isLoadingData ? index.toString() : item.id)}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
+          // Pass already-rendered elements, not the `renderHeader`/`renderFooter`
+          // function references — FlatList treats a function prop here as a
+          // component *type*, and since these arrow functions are recreated
+          // every GroupsScreen render, that type "changes" each time and
+          // forces a full unmount/remount of the header (resetting
+          // TimeframeSelector's scroll position and re-firing its mount
+          // effects — the flicker seen after each data load). Elements
+          // reconcile normally by their children's stable types instead.
+          ListHeaderComponent={renderHeader()}
+          ListFooterComponent={renderFooter()}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
