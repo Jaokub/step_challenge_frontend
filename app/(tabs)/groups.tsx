@@ -63,7 +63,7 @@ export default function GroupsScreen() {
     queryKey: queryKeys.leaderboard.scoped('friends', startDate, endDate),
     queryFn: async () => {
       const res = await leaderboardService.getFriendsLeaderboard({ startDate, endDate });
-      return (res?.data ?? []) as Array<{ id: string; fullName: string; steps?: number; distance?: number; rank: number }>;
+      return (res?.data ?? []) as Array<{ id: string; fullName: string; steps?: number; distance?: number; calories?: number; rank: number }>;
     },
     enabled: activeTab === 'friends',
   });
@@ -77,6 +77,7 @@ export default function GroupsScreen() {
         avatar: getInitials(u.fullName),
         steps: u.steps ?? 0,
         distanceKm: u.distance,
+        calories: u.calories,
         isMe: u.id === user?.id,
       })),
     [friendsLbData, user]
@@ -91,6 +92,7 @@ export default function GroupsScreen() {
         avatar: getInitials(row.fullName),
         steps: row.steps ?? 0,
         distanceKm: row.distance,
+        calories: row.calories,
         isMe: row.id === user?.id,
       })),
     [overview, user]

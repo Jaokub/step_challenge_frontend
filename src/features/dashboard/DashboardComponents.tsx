@@ -345,7 +345,9 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                   )}
                   <View style={{ flex: 1 }}>
                     <AppText variant="body-bold" style={{ fontSize: 14, lineHeight: 18, color: u.isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{u.name}{u.isMe ? ` · ${t('dashboard.you')}` : ''}</AppText>
-                    <AppText style={{ fontSize: 11, lineHeight: 15, color: colors.textSecondary }}>{Number(u.distance || 0).toFixed(1)} {t('dashboard.km')}</AppText>
+                    <AppText style={{ fontSize: 11, lineHeight: 15, color: colors.textSecondary }}>
+                      {Number(u.distance || 0).toFixed(1)} {t('dashboard.km')} · {Math.round(u.calories || 0)} {t('dashboard.kcal')}
+                    </AppText>
                   </View>
                   <StepsValue value={Number(u.steps || 0)} size={15} color={colors.textPrimary} />
                 </>

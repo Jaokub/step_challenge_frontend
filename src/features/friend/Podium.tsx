@@ -18,6 +18,7 @@ export interface LeaderboardMember {
   /** Dormant points cache; no longer displayed. */
   points?: number;
   distanceKm?: number;
+  calories?: number;
   isMe: boolean;
   /** Rank slot has no real member (group has fewer than this many people). */
   isEmpty?: boolean;
@@ -58,9 +59,10 @@ const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
   const height = RANK_HEIGHT[member.rank] ?? 42;
   const avatarSize = RANK_AVATAR[member.rank] ?? 44;
   const rankGradient = member.isEmpty ? null : RANK_GRADIENT[member.rank];
-  const statLine = !member.isEmpty && member.distanceKm != null
-    ? `${member.distanceKm.toFixed(1)} km`
-    : null;
+  const statParts: string[] = [];
+  if (!member.isEmpty && member.distanceKm != null) statParts.push(`${member.distanceKm.toFixed(1)} km`);
+  if (!member.isEmpty && member.calories != null) statParts.push(`${Math.round(member.calories)} kcal`);
+  const statLine = statParts.length > 0 ? statParts.join(' · ') : null;
 
   return (
     <View style={[styles.podiumItemContainer, member.isMe && { transform: [{ translateY: -4 }] }]}>

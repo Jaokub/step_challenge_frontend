@@ -56,7 +56,10 @@ export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
 
   if (!member) return null;
 
-  const statLine = member.distanceKm != null ? `${member.distanceKm.toFixed(1)} km` : null;
+  const statParts: string[] = [];
+  if (member.distanceKm != null) statParts.push(`${member.distanceKm.toFixed(1)} km`);
+  if (member.calories != null) statParts.push(`${Math.round(member.calories)} kcal`);
+  const statLine = statParts.length > 0 ? statParts.join(' · ') : null;
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
