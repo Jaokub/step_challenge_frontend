@@ -30,7 +30,7 @@ export default function GroupDescendantOverviewScreen() {
   const renderRow = ({ item }: { item: GroupRankingRow }) => (
     <LeaderboardItem
       rank={item.rank}
-      user={{ fullName: item.fullName, department: item.department, avatarUrl: item.avatarUrl ?? undefined, totalPoints: item.points }}
+      user={{ fullName: item.fullName, department: item.department, avatarUrl: item.avatarUrl ?? undefined, steps: item.steps ?? 0 }}
       isCurrentUser={item.id === user?.id}
     />
   );

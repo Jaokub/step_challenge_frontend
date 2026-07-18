@@ -4,7 +4,8 @@ export interface LeaderboardUser {
   id: string;
   fullName: string;
   avatarUrl: string | null;
-  totalPoints: number;
+  steps: number;
+  totalPoints?: number;
   department: string;
   rank: number;
 }

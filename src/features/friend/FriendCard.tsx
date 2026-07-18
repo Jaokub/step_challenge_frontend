@@ -56,9 +56,7 @@ export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
 
   if (!member) return null;
 
-  const statLine = member.steps != null
-    ? `${member.steps.toLocaleString()}${member.distanceKm != null ? ` · ${member.distanceKm.toFixed(1)} km` : ''}`
-    : null;
+  const statLine = member.distanceKm != null ? `${member.distanceKm.toFixed(1)} km` : null;
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
@@ -84,7 +82,7 @@ export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
       </View>
 
       <AppText variant="body-bold" style={[styles.points, { color: colors.textPrimary }]}>
-        {member.points.toLocaleString()}
+        {(member.steps ?? 0).toLocaleString()}
       </AppText>
     </View>
   );

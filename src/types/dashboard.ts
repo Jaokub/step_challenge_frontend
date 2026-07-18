@@ -49,5 +49,8 @@ export interface LeaderboardUser {
   fullName: string;
   department: string;
   avatarUrl?: string;
-  totalPoints: number;
+  /** Ranking metric — cumulative step count. */
+  steps: number;
+  /** Dormant points cache; no longer shown in the UI. */
+  totalPoints?: number;
 }

@@ -38,7 +38,7 @@ const userService = {
   ): Promise<ApiResponse<LeaderboardUser[]>> {
     try {
       const { data } = await api.get<ApiResponse<LeaderboardUser[]>>(
-        '/users/leaderboard',
+        '/leaderboard/global',
         { params },
       );
       return data;

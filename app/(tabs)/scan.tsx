@@ -148,22 +148,11 @@ export default function ScanScreen() {
         await sendFriendRequestMutation.mutateAsync(scannedUserId);
         setResult({ success: true, message: t('scan.friendRequestSent') });
       } else {
-        const response = await checkinMutation.mutateAsync(data);
-        const pointsAwarded = response.data?.pointsAwarded ?? 0;
-        // ADR-001 / BUILD_PLAN.md Phase 7: never claim "+points" for a
-        // step-gated check-in that hasn't cleared its goal yet (pointsAwarded
-        // is the real ledgered amount, 0 = not yet). Distinguish that case
-        // from an attendance-only activity legitimately worth 0 points via
-        // expectedSteps, not by re-deriving from activity type elsewhere.
-        const checkInActivity = response.data?.checkIn?.activity;
-        const isStepGated = checkInActivity?.expectedSteps != null;
-        const message =
-          pointsAwarded > 0
-            ? `${t('scan.success')}  ${t('scan.pointsEarned', { points: pointsAwarded })}`
-            : isStepGated
-            ? t('scan.walkToEarnHint', { steps: checkInActivity!.expectedSteps })
-            : t('scan.success');
-        setResult({ success: true, message });
+        // Check-in is an attendance record only — the points economy is
+        // dormant and never surfaced in the UI, so the toast just confirms
+        // the check-in.
+        await checkinMutation.mutateAsync(data);
+        setResult({ success: true, message: t('scan.success') });
       }
     } catch (err: any) {
       const msg = err?.message || err?.data?.message || t('scan.failed');

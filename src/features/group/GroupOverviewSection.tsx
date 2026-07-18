@@ -14,9 +14,8 @@ const toPodiumMember = (row: GroupRankingRow, currentUserId?: string): Leaderboa
   rank: row.rank,
   name: row.fullName,
   avatar: getInitials(row.fullName),
-  steps: row.steps,
+  steps: row.steps ?? 0,
   distanceKm: row.distance,
-  points: row.points,
   isMe: row.id === currentUserId,
 });
 

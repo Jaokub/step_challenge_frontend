@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 import { borderRadius, fontSize, shadows, spacing } from '../constants/theme';
 import StatusBadge from './StatusBadge';
-import PointsBadge from './PointsBadge';
 import { formatDate } from '../utils/formatDate';
 
 import type { Activity } from '../types';
@@ -38,7 +37,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onPress }) => {
       <View style={[styles.accentDot, { backgroundColor: colors.primary }]} />
 
       <View style={styles.content}>
-        {/* Header: Title + Points */}
+        {/* Header: Title */}
         <View style={styles.header}>
           <AppText
             style={[styles.title, { color: colors.textOnCard }]}
@@ -46,7 +45,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, onPress }) => {
           >
             {activity.title}
           </AppText>
-          <PointsBadge points={activity.points} size="sm" />
         </View>
 
         {/* Location */}

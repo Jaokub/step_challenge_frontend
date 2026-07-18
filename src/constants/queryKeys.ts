@@ -39,6 +39,7 @@ export const queryKeys = {
   },
   leaderboard: {
     global: (limit: number) => ['leaderboard', 'global', limit] as const,
+    friends: ['leaderboard', 'friends'] as const,
     scoped: (groupId: string, startDate?: string, endDate?: string) =>
       ['leaderboard', 'scoped', groupId, startDate ?? 'none', endDate ?? 'none'] as const,
   },

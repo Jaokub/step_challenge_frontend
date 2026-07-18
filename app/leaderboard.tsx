@@ -101,10 +101,10 @@ export default function LeaderboardScreen() {
             {user.department}
           </AppText>
           <AppText style={[styles.podiumPoints, { color: colors.accent }]}>
-            {user.totalPoints.toLocaleString()}
+            {(user.steps ?? 0).toLocaleString()}
           </AppText>
           <AppText style={[styles.podiumLabel, { color: colors.textCardSecondary }]}>
-            pts
+            {t('common.stepsUnit')}
           </AppText>
         </AppCard>
       </View>
@@ -159,7 +159,7 @@ export default function LeaderboardScreen() {
               fullName: item.fullName,
               department: item.department,
               avatarUrl: item.avatarUrl,
-              totalPoints: item.totalPoints,
+              steps: item.steps,
             }}
             isCurrentUser={item.id === currentUser?.id}
           />

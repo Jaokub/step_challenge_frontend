@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -9,6 +10,8 @@ import { EmptyState, AppText } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 
 import { useFriends } from '../../src/features/friend/useFriends';
+import leaderboardService from '../../src/features/leaderboard/leaderboardService';
+import { queryKeys } from '../../src/constants/queryKeys';
 import { useGroups } from '../../src/features/group/useGroups';
 import { useGroupOverview } from '../../src/features/group/useGroupOverview';
 import { FriendCard, EmptyMemberSlot } from '../../src/features/friend/FriendCard';
@@ -22,9 +25,9 @@ const getInitials = (name: string): string =>
   name.split(' ').map((p) => p.charAt(0)).join('').toUpperCase().slice(0, 2);
 
 // Mockup frame 10 "Friends & Groups". Rebuilt on real data only: friends
-// rank by real totalPoints (no steps source for friends yet, so those
-// fields are simply omitted rather than faked); group tabs pull the real
-// group-overview endpoint (steps/calories/distance/points + full ranking).
+// rank by step count via the /leaderboard/friends endpoint (which includes
+// the current user and sorts by steps); group tabs pull the real
+// group-overview endpoint (steps/calories/distance + full ranking).
 export default function GroupsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -36,9 +39,7 @@ export default function GroupsScreen() {
   const [showAddFriend, setShowAddFriend] = useState(false);
 
   const {
-    friends,
     requests,
-    isLoading: isLoadingFriends,
     isRefreshing: isRefreshingFriends,
     handleRefresh: handleRefreshFriends,
     handleAcceptRequest,
@@ -50,20 +51,27 @@ export default function GroupsScreen() {
   const isGroupTab = activeTab !== 'friends';
   const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '');
 
-  const friendsLeaderboard: LeaderboardMember[] = useMemo(() => {
-    const rows = [...friends, user].filter(Boolean) as typeof friends;
-    return rows
-      .slice()
-      .sort((a, b) => b.totalPoints - a.totalPoints)
-      .map((u, i) => ({
+  const { data: friendsLbData, isLoading: isLoadingFriendsLb } = useQuery({
+    queryKey: queryKeys.leaderboard.friends,
+    queryFn: async () => {
+      const res = await leaderboardService.getFriendsLeaderboard();
+      return (res?.data ?? []) as Array<{ id: string; fullName: string; steps?: number; rank: number }>;
+    },
+    enabled: activeTab === 'friends',
+  });
+
+  const friendsLeaderboard: LeaderboardMember[] = useMemo(
+    () =>
+      (friendsLbData ?? []).map((u) => ({
         id: u.id,
-        rank: i + 1,
-        name: u.nickname || u.fullName,
-        avatar: getInitials(u.nickname || u.fullName),
-        points: u.totalPoints,
+        rank: u.rank,
+        name: u.fullName,
+        avatar: getInitials(u.fullName),
+        steps: u.steps ?? 0,
         isMe: u.id === user?.id,
-      }));
-  }, [friends, user]);
+      })),
+    [friendsLbData, user]
+  );
 
   const groupLeaderboard: LeaderboardMember[] = useMemo(
     () =>
@@ -72,8 +80,7 @@ export default function GroupsScreen() {
         rank: row.rank,
         name: row.fullName,
         avatar: getInitials(row.fullName),
-        points: row.points,
-        steps: row.steps,
+        steps: row.steps ?? 0,
         distanceKm: row.distance,
         isMe: row.id === user?.id,
       })),
@@ -81,7 +88,7 @@ export default function GroupsScreen() {
   );
 
   const leaderboard = isGroupTab ? groupLeaderboard : friendsLeaderboard;
-  const isLoadingData = isGroupTab ? isOverviewLoading : isLoadingFriends;
+  const isLoadingData = isGroupTab ? isOverviewLoading : isLoadingFriendsLb;
 
   const myEntry = leaderboard.find((m) => m.isMe);
   const topThree = leaderboard.slice(0, 3);
@@ -99,7 +106,7 @@ export default function GroupsScreen() {
       />
       <RankSummaryCard
         rank={myEntry?.rank}
-        totalPoints={myEntry?.points}
+        steps={myEntry?.steps}
         isLoading={isLoadingData}
         label={isGroupTab ? t('groups.rankInGroup') : undefined}
       />

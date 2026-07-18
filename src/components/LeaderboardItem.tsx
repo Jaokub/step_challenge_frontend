@@ -10,7 +10,7 @@ interface LeaderboardUser {
   fullName: string;
   department: string;
   avatarUrl?: string;
-  totalPoints: number;
+  steps: number;
 }
 
 interface LeaderboardItemProps {
@@ -51,6 +51,7 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({
   index,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const medal = getMedalEmoji(rank);
   const delay = (index !== undefined ? index : rank - 1) * 100;
 
@@ -117,13 +118,13 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({
         </AppText>
       </View>
 
-      {/* Points */}
+      {/* Steps */}
       <View style={styles.pointsContainer}>
         <AppText style={[styles.points, { color: colors.accent }]}>
-          {user.totalPoints.toLocaleString()}
+          {(user.steps ?? 0).toLocaleString()}
         </AppText>
         <AppText style={[styles.pointsLabel, { color: colors.textCardSecondary }]}>
-          pts
+          {t('common.stepsUnit')}
         </AppText>
       </View>
     </>

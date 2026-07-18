@@ -14,13 +14,13 @@ import { spacing, gradients, dashboardAccents } from '../../constants/theme';
 // fake "ก้าวเดือนนี้" placeholder.
 interface RankSummaryCardProps {
   rank?: number;
-  totalPoints?: number;
+  steps?: number;
   isLoading?: boolean;
   /** Overrides the default "rank among friends" label (e.g. for group tabs). */
   label?: string;
 }
 
-export const RankSummaryCard = ({ rank, totalPoints, isLoading = false, label }: RankSummaryCardProps) => {
+export const RankSummaryCard = ({ rank, steps, isLoading = false, label }: RankSummaryCardProps) => {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
@@ -50,7 +50,7 @@ export const RankSummaryCard = ({ rank, totalPoints, isLoading = false, label }:
             {label ?? t('groups.rankAmongFriends')}
           </AppText>
           <AppText style={[styles.stat, { color: labelColor }]}>
-            {t('groups.totalPointsStat', { points: (totalPoints ?? 0).toLocaleString() })}
+            {t('groups.totalStepsStat', { steps: (steps ?? 0).toLocaleString() })}
           </AppText>
         </View>
         <AppText variant="heading-extraBold" style={[styles.rankNumber, { color: colors.primary }]}>

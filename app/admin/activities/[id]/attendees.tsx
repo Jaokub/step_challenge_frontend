@@ -199,14 +199,9 @@ export default function AdminAttendeesScreen() {
       const res = await checkinService.adminCheckinUser(id, row.userId);
       if (!res.success) throw new Error(res.message);
       queryClient.invalidateQueries({ queryKey: queryKeys.activities.checkinsFull(id) });
-      // ADR-001 / BUILD_PLAN.md Phase 7: pointsAwarded is the real ledgered
-      // amount (0 for a step-gated check-in whose goal isn't met yet) — show
-      // it when nonzero instead of always claiming the flat success copy.
-      const pointsAwarded = res.data?.pointsAwarded ?? 0;
-      showToast(
-        pointsAwarded > 0 ? t('admin.manualCheckinSuccessPoints', { points: pointsAwarded }) : t('admin.manualCheckinSuccess'),
-        'success',
-      );
+      // Check-in is an attendance record only — points are dormant and not
+      // surfaced, so the toast just confirms the manual check-in.
+      showToast(t('admin.manualCheckinSuccess'), 'success');
     } catch (err: any) {
       showToast(err?.message || t('common.error'), 'error');
     } finally {
@@ -249,20 +244,6 @@ export default function AdminAttendeesScreen() {
               ? ` · ${new Date(item.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
               : ''}
           </AppText>
-          {isStepGatedActivity && item.checkedInAt && (
-            <AppText
-              style={{
-                fontSize: 10.5,
-                lineHeight: 13,
-                fontWeight: '700' as any,
-                marginTop: 2,
-                color: item.pointsAwardedAt ? colors.success : colors.warning,
-              }}
-              numberOfLines={1}
-            >
-              {item.pointsAwardedAt ? t('admin.pointsAwardedBadge') : t('admin.pointsPendingBadge')}
-            </AppText>
-          )}
         </View>
         {item.checkedInAt ? (
           <TouchableOpacity

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { AppText, AvatarCircle } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -24,8 +23,6 @@ export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ profile, s
   const tone = isDark ? 'dark' : 'light';
   const cardGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
   const borderColor = dashboardAccents.goalCardBorder[tone];
-  const pointsBg = dashboardAccents.pointsBadgeAmber.bg[tone];
-  const pointsText = dashboardAccents.pointsBadgeAmber.text[tone];
   const name = profile?.nickname || profile?.fullName || 'User';
 
   return (
@@ -42,12 +39,6 @@ export const ProfileHeaderCard: React.FC<ProfileHeaderCardProps> = ({ profile, s
             {name}
           </AppText>
           <AppText style={[styles.email, { color: colors.textSecondary }]}>{profile?.email || ''}</AppText>
-          <View style={[styles.pointsBadge, { backgroundColor: pointsBg }]}>
-            <Ionicons name="star" size={12} color={pointsText} style={styles.pointsIcon} />
-            <AppText variant="numeric" style={[styles.pointsText, { color: pointsText }]}>
-              {(profile?.totalPoints || 0).toLocaleString()}
-            </AppText>
-          </View>
         </View>
       </View>
 

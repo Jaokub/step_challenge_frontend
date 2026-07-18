@@ -58,7 +58,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const heroColors = isDark ? gradients.heroCard : gradients.heroCardLight;
   const badgeLabel = activity.totalDistance
     ? `${activity.totalDistance} ${t('dashboard.km')}`
-    : `+${activity.points} ${t('activity.points')}`;
+    : activity.expectedSteps
+    ? `${activity.expectedSteps.toLocaleString()} ${t('common.stepsUnit')}`
+    : '';
   const avatarColors = activityAccents.dateBoxText.map((c) => c[tone]);
   // `colors.card` and `colors.inputBackground` are the same value in dark mode, so the stat
   // chips need their own tone-aware background to actually stand out against the card.
@@ -179,14 +181,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
                   </AppText>
                 </View>
               )}
-              <View style={[styles.statChip, { backgroundColor: statChipBg }]}>
-                <AppText style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 3 }}>
-                  {t('activity.points')}
-                </AppText>
-                <AppText variant="body-bold" style={{ fontSize: 14, color: colors.primary }}>
-                  +{activity.points}
-                </AppText>
-              </View>
             </View>
 
             {activity.isCheckedIn && (
