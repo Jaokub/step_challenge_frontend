@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { AppText } from '../../components';
+import { AppText, StepsValue } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { gradients, activityAccents, spacing } from '../../constants/theme';
@@ -56,11 +56,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const participantCount = activity.registeredCount ?? 0;
   const tone = isDark ? 'dark' : 'light';
   const heroColors = isDark ? gradients.heroCard : gradients.heroCardLight;
-  const badgeLabel = activity.totalDistance
+  const distanceLabel = activity.totalDistance
     ? `${activity.totalDistance} ${t('dashboard.km')}`
-    : activity.expectedSteps
-    ? `${activity.expectedSteps.toLocaleString()} ${t('common.stepsUnit')}`
-    : '';
+    : null;
   const avatarColors = activityAccents.dateBoxText.map((c) => c[tone]);
   // `colors.card` and `colors.inputBackground` are the same value in dark mode, so the stat
   // chips need their own tone-aware background to actually stand out against the card.
@@ -96,9 +94,18 @@ export function ActivityCard({ activity }: ActivityCardProps) {
           <AppText style={{ fontSize: 11, color: isDark ? '#cfe9e3' : '#3f7268' }}>{month}</AppText>
         </View>
         <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.distanceBadge}>
-          <AppText variant="body-bold" style={{ fontSize: 12, color: colors.onPrimary }}>
-            {badgeLabel}
-          </AppText>
+          {distanceLabel ? (
+            <AppText variant="body-bold" style={{ fontSize: 12, color: colors.onPrimary }}>
+              {distanceLabel}
+            </AppText>
+          ) : activity.expectedSteps ? (
+            <StepsValue
+              value={activity.expectedSteps}
+              size={12}
+              color={colors.onPrimary}
+              unitColor={colors.onPrimary}
+            />
+          ) : null}
         </LinearGradient>
       </LinearGradient>
 

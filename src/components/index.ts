@@ -26,6 +26,9 @@ export { default as AnimatedCounter } from './AnimatedCounter';
 export { default as CircularProgress } from './CircularProgress';
 export { default as ProgressBar } from './ProgressBar';
 
+// Values
+export { default as StepsValue } from './StepsValue';
+
 // Badges
 export { default as StatusBadge, statusColors } from './StatusBadge';
 export { default as RoleBadge } from './RoleBadge';
@@ -52,6 +55,7 @@ export { default as AdminGuard } from './AdminGuard';
 // Input
 export { default as SearchBar } from './SearchBar';
 export { default as MonthYearPicker } from './MonthYearPicker';
+export { default as TimeframeSelector } from './TimeframeSelector';
 
 // Settings & Preferences
 export { default as SettingsRow } from './SettingsRow';

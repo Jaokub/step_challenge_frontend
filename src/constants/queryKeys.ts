@@ -49,7 +49,8 @@ export const queryKeys = {
     detail: (id: string) => ['groups', 'detail', id] as const,
     members: (id: string) => ['groups', 'members', id] as const,
     qrcode: (id: string) => ['groups', 'qrcode', id] as const,
-    overview: (id: string) => ['groups', 'overview', id] as const,
+    overview: (id: string, startDate?: string, endDate?: string) =>
+      ['groups', 'overview', id, startDate ?? 'none', endDate ?? 'none'] as const,
     siblings: (id: string) => ['groups', 'siblings', id] as const,
     // Phase 5 — hierarchy request/approve + admin god-mode.
     parentCandidates: (id: string, search: string) => ['groups', 'parentCandidates', id, search] as const,

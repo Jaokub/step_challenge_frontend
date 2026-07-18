@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Skeleton } from '../../components';
+import { AppText, Skeleton, StepsValue } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, dashboardAccents } from '../../constants/theme';
 import { LeaderboardMember } from './Podium';
@@ -81,9 +81,7 @@ export const FriendCard = ({ member, isLoading = false }: FriendCardProps) => {
         )}
       </View>
 
-      <AppText variant="body-bold" style={[styles.points, { color: colors.textPrimary }]}>
-        {(member.steps ?? 0).toLocaleString()}
-      </AppText>
+      <StepsValue value={member.steps ?? 0} size={13} color={colors.textPrimary} />
     </View>
   );
 };

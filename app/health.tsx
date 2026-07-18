@@ -14,6 +14,7 @@ import {
   CircularProgress,
   LoadingScreen,
   EmptyState,
+  StepsValue,
 } from '../src/components';
 import { spacing, borderRadius, fontSize } from '../src/constants/theme';
 import healthService from '../src/features/health/healthService';
@@ -155,9 +156,12 @@ export default function HealthScreen() {
             <AppText style={[styles.summaryLabel, { color: colors.textCardSecondary }]}>
               {t('health.weeklyAverage')}
             </AppText>
-            <AppText style={[styles.summaryValue, { color: colors.textOnCard }]}>
-              {summary?.weeklyAverage?.steps.toLocaleString() || '0'} {t('health.stepsPerDayUnit')}
-            </AppText>
+            <StepsValue
+              value={summary?.weeklyAverage?.steps ?? 0}
+              size={fontSize.sm}
+              color={colors.textOnCard}
+              unit={t('health.stepsPerDayUnit')}
+            />
           </AppCard>
 
           {/* Monthly Total */}
@@ -166,9 +170,11 @@ export default function HealthScreen() {
             <AppText style={[styles.summaryLabel, { color: colors.textCardSecondary }]}>
               {t('health.monthlyTotal')}
             </AppText>
-            <AppText style={[styles.summaryValue, { color: colors.textOnCard }]}>
-              {summary?.monthlyTotal?.steps.toLocaleString() || '0'} {t('health.stepsUnit')}
-            </AppText>
+            <StepsValue
+              value={summary?.monthlyTotal?.steps ?? 0}
+              size={fontSize.sm}
+              color={colors.textOnCard}
+            />
           </AppCard>
 
           {/* Best Day */}
@@ -180,9 +186,11 @@ export default function HealthScreen() {
                   {t('health.bestDay')}
                 </AppText>
               </View>
-              <AppText style={[styles.summaryValue, { color: colors.textOnCard, fontSize: fontSize.lg }]}>
-                {summary.bestDay.steps.toLocaleString()} {t('health.stepsUnit')}
-              </AppText>
+              <StepsValue
+                value={summary.bestDay.steps}
+                size={fontSize.lg}
+                color={colors.textOnCard}
+              />
               <AppText style={[styles.bestDayDate, { color: colors.textCardSecondary }]}>
                 {t('health.onDate')} {formatDate(summary.bestDay.recordDate, i18n.language, 'long')}
               </AppText>
@@ -213,9 +221,12 @@ export default function HealthScreen() {
                   </AppText>
                 </View>
                 <View style={styles.historyRight}>
-                  <AppText style={[styles.historySteps, { color: colors.primary }]}>
-                    {record.steps.toLocaleString()} {t('health.stepsUnit')}
-                  </AppText>
+                  <StepsValue
+                    value={record.steps}
+                    size={fontSize.sm}
+                    color={colors.primary}
+                    unitColor={colors.primary}
+                  />
                   <AppText style={[styles.historyCalories, { color: colors.textCardSecondary }]}>
                     {record.calories.toFixed(0)} kcal | {record.distanceKm.toFixed(1)} {t('dashboard.km')}
                   </AppText>

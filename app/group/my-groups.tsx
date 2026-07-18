@@ -1,16 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
+import { useToast } from '../../src/contexts/ToastContext';
 import { useGroups } from '../../src/features/group/useGroups';
-import { AppText, ScreenHeader, EmptyState, Skeleton } from '../../src/components';
-import { spacing, fontSize, gradients } from '../../src/constants/theme';
+import { AppText, ScreenHeader, EmptyState, Skeleton, CustomModal, PrimaryButton } from '../../src/components';
+import { spacing, fontSize, borderRadius, gradients } from '../../src/constants/theme';
 import type { AppGroup } from '../../src/types';
 
 const GROUP_CAP = 3;
+
+/**
+ * Accept either a raw invite code or a pasted invite link and pull out the
+ * code. Supports `?inviteCode=` / `?code=` query params, or falls back to
+ * the last path segment for any other link shape — otherwise the whole
+ * input is treated as the code itself.
+ */
+function extractInviteCode(input: string): string {
+  const trimmed = input.trim();
+  if (/^https?:\/\//i.test(trimmed) || trimmed.includes('://')) {
+    try {
+      const url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
+      const fromQuery = url.searchParams.get('inviteCode') || url.searchParams.get('code');
+      if (fromQuery) return fromQuery.toUpperCase();
+      const segments = url.pathname.split('/').filter(Boolean);
+      if (segments.length) return segments[segments.length - 1].toUpperCase();
+    } catch {
+      // Not a parseable URL — fall through and treat as a plain code.
+    }
+  }
+  return trimmed.toUpperCase();
+}
 
 // Mockup frame 11 "My Groups" (`/(tabs)/groups`). That exact route is
 // occupied by the pre-existing Friends & Groups screen (closer to frame 10),
@@ -20,10 +44,31 @@ const GROUP_CAP = 3;
 export default function MyGroupsScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { groups, isLoading, isRefreshing, handleRefresh } = useGroups(true);
+  const { showToast } = useToast();
+  const { groups, isLoading, isRefreshing, handleRefresh, handleJoinGroup, isSubmitting } = useGroups(true);
+
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [inviteInput, setInviteInput] = useState('');
 
   const ownedCount = groups.filter((g) => g.myRole === 'OWNER').length;
   const atCap = ownedCount >= GROUP_CAP;
+
+  const closeJoinModal = () => {
+    setShowJoinModal(false);
+    setInviteInput('');
+  };
+
+  const submitJoin = async () => {
+    if (!inviteInput.trim()) return;
+    try {
+      await handleJoinGroup(extractInviteCode(inviteInput), () => {
+        showToast(t('groups.joinGroupSuccess'), 'success');
+        closeJoinModal();
+      });
+    } catch (error: any) {
+      showToast(error?.message || t('common.error'), 'error');
+    }
+  };
 
   const renderItem = ({ item }: { item: AppGroup }) => {
     const isCoordinator = item.myRole === 'OWNER';
@@ -79,6 +124,16 @@ export default function MyGroupsScreen() {
             </LinearGradient>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          style={[styles.joinCta, { backgroundColor: colors.inputBackground, borderColor: colors.cardBorder }]}
+          onPress={() => setShowJoinModal(true)}
+        >
+          <Ionicons name="key-outline" size={16} color={colors.textPrimary} />
+          <AppText style={{ fontSize: fontSize.sm, fontWeight: '700' as any, color: colors.textPrimary }}>
+            {t('groups.joinGroup')}
+          </AppText>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -102,15 +157,53 @@ export default function MyGroupsScreen() {
           }
         />
       )}
+
+      <CustomModal
+        visible={showJoinModal}
+        onClose={closeJoinModal}
+        title={t('groups.joinGroup')}
+        description={t('groups.joinGroupModalDesc')}
+      >
+        <TextInput
+          style={[styles.input, { color: colors.textPrimary, borderColor: colors.inputBorder }]}
+          placeholder={t('groups.inviteCodeOrLinkPlaceholder')}
+          placeholderTextColor={colors.textSecondary}
+          value={inviteInput}
+          onChangeText={setInviteInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <PrimaryButton
+          title={isSubmitting ? t('common.loading') : t('groups.joinGroup')}
+          onPress={submitJoin}
+          disabled={isSubmitting || !inviteInput.trim()}
+        />
+      </CustomModal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  ctaWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md },
+  ctaWrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.md, gap: spacing.sm },
   cta: { paddingVertical: 11, borderRadius: 14, alignItems: 'center' },
   ctaDisabled: { paddingVertical: 11, borderRadius: 14, alignItems: 'center' },
+  joinCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 11,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  input: {
+    fontSize: fontSize.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
   listContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.md },
   card: { borderRadius: 20, borderWidth: 1, padding: 16, gap: spacing.xs },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },

@@ -6,7 +6,7 @@ import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 're
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
-import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText } from '../../components';
+import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText, StepsValue } from '../../components';
 import { gradients, layout, dashboardAccents } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { addDays, startOfWeek } from './dateRangeCalculator';
@@ -347,7 +347,7 @@ export const DashboardLeaderboard = ({ leaderboard, selectedGroupId, setSelected
                     <AppText variant="body-bold" style={{ fontSize: 14, lineHeight: 18, color: u.isMe ? colors.primary : colors.textPrimary }} numberOfLines={1}>{u.name}{u.isMe ? ` · ${t('dashboard.you')}` : ''}</AppText>
                     <AppText style={{ fontSize: 11, lineHeight: 15, color: colors.textSecondary }}>{Number(u.distance || 0).toFixed(1)} {t('dashboard.km')}</AppText>
                   </View>
-                  <AppText variant="body-bold" style={{ fontSize: 15, lineHeight: 20, color: colors.textPrimary }}>{Number(u.steps || 0).toLocaleString()} {t('common.stepsUnit')}</AppText>
+                  <StepsValue value={Number(u.steps || 0)} size={15} color={colors.textPrimary} />
                 </>
               );
               return highlight ? (

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppText, Skeleton } from '../../components';
+import { AppText, Skeleton, StepsValue } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, gradients } from '../../constants/theme';
 
@@ -56,14 +55,12 @@ const fillSlots = (topThree: LeaderboardMember[]): LeaderboardMember[] =>
 
 const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
   const { colors } = useTheme();
-  const { t } = useTranslation();
   const height = RANK_HEIGHT[member.rank] ?? 42;
   const avatarSize = RANK_AVATAR[member.rank] ?? 44;
   const rankGradient = member.isEmpty ? null : RANK_GRADIENT[member.rank];
   const statLine = !member.isEmpty && member.distanceKm != null
     ? `${member.distanceKm.toFixed(1)} km`
     : null;
-  const stepsLabel = `${(member.steps ?? 0).toLocaleString()} ${t('common.stepsUnit')}`;
 
   return (
     <View style={[styles.podiumItemContainer, member.isMe && { transform: [{ translateY: -4 }] }]}>
@@ -110,12 +107,16 @@ const PodiumItem = ({ member }: { member: LeaderboardMember }) => {
           style={[styles.bar, { height }]}
         >
           <AppText variant="heading-bold" style={[styles.rankDigit, { color: colors.onPrimary }]}>{member.rank}</AppText>
-          <AppText style={[styles.pointsText, { color: colors.onPrimary }]}>{stepsLabel}</AppText>
+          <StepsValue value={member.steps ?? 0} size={10.5} color={colors.onPrimary} unitColor={colors.onPrimary} />
         </LinearGradient>
       ) : (
         <View style={[styles.bar, { height, backgroundColor: colors.inputBackground }]}>
           <AppText variant="heading-bold" style={[styles.rankDigit, { color: colors.textSecondary }]}>{member.rank}</AppText>
-          <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>{member.isEmpty ? '–' : stepsLabel}</AppText>
+          {member.isEmpty ? (
+            <AppText style={[styles.pointsText, { color: colors.textSecondary }]}>–</AppText>
+          ) : (
+            <StepsValue value={member.steps ?? 0} size={10.5} color={colors.textSecondary} unitColor={colors.textSecondary} />
+          )}
         </View>
       )}
     </View>

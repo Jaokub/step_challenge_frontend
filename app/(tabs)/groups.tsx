@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { EmptyState, AppText } from '../../src/components';
+import { EmptyState, AppText, TimeframeSelector } from '../../src/components';
 import { spacing, borderRadius } from '../../src/constants/theme';
 
 import { useFriends } from '../../src/features/friend/useFriends';
@@ -20,6 +20,8 @@ import { RankSummaryCard } from '../../src/features/friend/RankSummaryCard';
 import { GroupHeaderSection } from '../../src/features/group/GroupHeaderSection';
 import NotificationsPanel from '../../src/features/friend/NotificationsPanel';
 import AddFriendSheet from '../../src/features/friend/AddFriendSheet';
+import { useTimeframeNav } from '../../src/hooks/useTimeframeNav';
+import { calculateDateRange } from '../../src/features/dashboard/dateRangeCalculator';
 
 const getInitials = (name: string): string =>
   name.split(' ').map((p) => p.charAt(0)).join('').toUpperCase().slice(0, 2);
@@ -48,14 +50,20 @@ export default function GroupsScreen() {
 
   const { groups, isRefreshing: isRefreshingGroups, handleRefresh: handleRefreshGroups } = useGroups(true);
 
+  // Daily/Weekly/Monthly browsing, same unit as the home dashboard — drives
+  // both leaderboard queries below so switching tabs keeps the selected period.
+  const timeframeNav = useTimeframeNav('Daily');
+  const { timeframe, anchorDate } = timeframeNav;
+  const { startDate, endDate } = calculateDateRange(timeframe, anchorDate);
+
   const isGroupTab = activeTab !== 'friends';
-  const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '');
+  const { overview, isOverviewLoading } = useGroupOverview(isGroupTab ? activeTab : '', startDate, endDate);
 
   const { data: friendsLbData, isLoading: isLoadingFriendsLb } = useQuery({
-    queryKey: queryKeys.leaderboard.friends,
+    queryKey: queryKeys.leaderboard.scoped('friends', startDate, endDate),
     queryFn: async () => {
-      const res = await leaderboardService.getFriendsLeaderboard();
-      return (res?.data ?? []) as Array<{ id: string; fullName: string; steps?: number; rank: number }>;
+      const res = await leaderboardService.getFriendsLeaderboard({ startDate, endDate });
+      return (res?.data ?? []) as Array<{ id: string; fullName: string; steps?: number; distance?: number; rank: number }>;
     },
     enabled: activeTab === 'friends',
   });
@@ -68,6 +76,7 @@ export default function GroupsScreen() {
         name: u.fullName,
         avatar: getInitials(u.fullName),
         steps: u.steps ?? 0,
+        distanceKm: u.distance,
         isMe: u.id === user?.id,
       })),
     [friendsLbData, user]
@@ -104,6 +113,7 @@ export default function GroupsScreen() {
         onOpenRequests={() => setShowRequests(true)}
         onOpenAddFriend={() => setShowAddFriend(true)}
       />
+      <TimeframeSelector {...timeframeNav} />
       <RankSummaryCard
         rank={myEntry?.rank}
         steps={myEntry?.steps}

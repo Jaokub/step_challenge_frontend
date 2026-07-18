@@ -8,11 +8,11 @@ import { queryKeys } from '../../constants/queryKeys';
  * nothing. Sibling/parent/child relation-card data lives in
  * useHierarchyOverview — this hook only ever covers the group's own stats.
  */
-export function useGroupOverview(groupId: string) {
+export function useGroupOverview(groupId: string, startDate?: string, endDate?: string) {
   const overviewQuery = useQuery({
-    queryKey: queryKeys.groups.overview(groupId),
+    queryKey: queryKeys.groups.overview(groupId, startDate, endDate),
     queryFn: async () => {
-      const res = await groupService.getGroupOverview(groupId);
+      const res = await groupService.getGroupOverview(groupId, { startDate, endDate });
       if (!res.success) throw new Error('Failed to load group overview');
       return res.data;
     },

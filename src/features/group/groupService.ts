@@ -169,10 +169,14 @@ const groupService = {
    * Own overall stats + full ranking + top3/top5. Caller must be a member
    * of the group, or a member of its parent group.
    */
-  async getGroupOverview(id: string): Promise<ApiResponse<GroupOverview>> {
+  async getGroupOverview(
+    id: string,
+    params?: { startDate?: string; endDate?: string },
+  ): Promise<ApiResponse<GroupOverview>> {
     try {
       const { data } = await api.get<ApiResponse<GroupOverview>>(
         `/groups/${id}/overview`,
+        { params },
       );
       return data;
     } catch (error: any) {

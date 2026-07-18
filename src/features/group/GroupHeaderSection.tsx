@@ -115,14 +115,6 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
               </TouchableOpacity>
             );
           })}
-
-          <TouchableOpacity
-            style={[styles.addPill, { backgroundColor: colors.inputBackground }]}
-            onPress={() => router.push('/group/create')}
-            accessibilityLabel={t('groups.createGroupTitle')}
-          >
-            <Ionicons name="add" size={18} color={colors.textPrimary} />
-          </TouchableOpacity>
         </ScrollView>
       </View>
     </>
@@ -174,12 +166,5 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 12.5,
     fontWeight: '700',
-  },
-  addPill: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
