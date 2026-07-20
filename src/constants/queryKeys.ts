@@ -31,7 +31,7 @@ export const queryKeys = {
     weeklyChart: ['health', 'weeklyChart'] as const,
   },
   checkins: {
-    // BUILD_PLAN.md Phase 7 PR 2 — useActiveEventPolling's "do I have an
+    // BUILD_PLAN.md Phase 7 PR 2 — useStepGoalPolling's "do I have an
     // ONGOING, step-gated, not-yet-paid check-in" list. Distinct from
     // activities.checkinsFull (that's one activity's attendee roster; this
     // is the current user's own check-in history).
@@ -67,13 +67,9 @@ export const queryKeys = {
     sent: ['friends', 'sent'] as const,
     search: (q: string) => ['friends', 'search', q] as const,
   },
-  events: {
-    all: ['events'] as const,
-    list: ['events', 'list'] as const,
-    detail: (id: string) => ['events', 'detail', id] as const,
-    leaderboard: (id: string, scope: string) => ['events', 'leaderboard', id, scope] as const,
-    stats: (id: string) => ['events', 'stats', id] as const,
-  },
+  // `events: {...}` removed by ADR-002 (2026-07-19). The Event model's mobile
+  // surface was retired; the backend routes stay mounted but dormant, and no
+  // client code queries them any more.
   users: {
     all: ['users'] as const,
     list: ['users', 'list'] as const,

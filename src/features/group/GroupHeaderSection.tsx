@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../contexts/ThemeContext';
-import { AppText, ScreenHeader } from '../../components';
+import { AppText, ScreenHeader, Skeleton } from '../../components';
 import { spacing, gradients } from '../../constants/theme';
 import { AppGroup } from '../../types';
 
@@ -18,10 +18,18 @@ interface GroupHeaderSectionProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   groups: AppGroup[];
+  /** True while the group list is still loading — shows skeleton pills
+   * instead of popping the real ones in once the request resolves. */
+  isLoadingGroups?: boolean;
   requestsCount: number;
   onOpenRequests: () => void;
   onOpenAddFriend: () => void;
 }
+
+// Widths for the placeholder pills — varied so the skeleton doesn't look
+// like a single repeated block; roughly matches how real group-name pills
+// tend to size (the always-present "friends" pill is a bit narrower).
+const SKELETON_PILL_WIDTHS = [64, 92, 78];
 
 // Mockup frame 10 header: 3 icons only — my groups (new in v4, links to
 // frame 11), notifications, add-friend. The pre-existing "join by invite
@@ -39,6 +47,7 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
   activeTab,
   setActiveTab,
   groups,
+  isLoadingGroups = false,
   requestsCount,
   onOpenRequests,
   onOpenAddFriend,
@@ -91,30 +100,49 @@ export const GroupHeaderSection: React.FC<GroupHeaderSectionProps> = ({
 
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-          {pills.map((pill) => {
-            const active = activeTab === pill.key;
-            return active ? (
+          {isLoadingGroups ? (
+            // The "friends" pill is always real (never fetched), so only the
+            // group pills after it are skeletons — keeps the first pill
+            // stable instead of having the whole row flicker in at once.
+            <>
               <LinearGradient
-                key={pill.key}
                 colors={gradients.primary}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.tabPill}
               >
-                <TouchableOpacity onPress={() => setActiveTab(pill.key)}>
-                  <AppText style={[styles.tabText, { color: colors.onPrimary }]}>{pill.label}</AppText>
-                </TouchableOpacity>
+                <AppText style={[styles.tabText, { color: colors.onPrimary }]}>{t('groups.friends')}</AppText>
               </LinearGradient>
-            ) : (
-              <TouchableOpacity
-                key={pill.key}
-                style={[styles.tabPill, { backgroundColor: colors.inputBackground }]}
-                onPress={() => setActiveTab(pill.key)}
-              >
-                <AppText style={[styles.tabText, { color: colors.textSecondary }]}>{pill.label}</AppText>
-              </TouchableOpacity>
-            );
-          })}
+              {SKELETON_PILL_WIDTHS.map((w, i) => (
+                <Skeleton key={i} width={w} height={34} borderRadius={999} />
+              ))}
+            </>
+          ) : (
+            pills.map((pill) => {
+              const active = activeTab === pill.key;
+              return active ? (
+                <LinearGradient
+                  key={pill.key}
+                  colors={gradients.primary}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.tabPill}
+                >
+                  <TouchableOpacity onPress={() => setActiveTab(pill.key)}>
+                    <AppText style={[styles.tabText, { color: colors.onPrimary }]}>{pill.label}</AppText>
+                  </TouchableOpacity>
+                </LinearGradient>
+              ) : (
+                <TouchableOpacity
+                  key={pill.key}
+                  style={[styles.tabPill, { backgroundColor: colors.inputBackground }]}
+                  onPress={() => setActiveTab(pill.key)}
+                >
+                  <AppText style={[styles.tabText, { color: colors.textSecondary }]}>{pill.label}</AppText>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </ScrollView>
       </View>
     </>

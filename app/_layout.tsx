@@ -11,7 +11,7 @@ import { ThemeProvider, useTheme } from '../src/contexts/ThemeContext';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { ToastProvider } from '../src/contexts/ToastContext';
 import { registerForPushNotificationsAsync } from '../src/services/notificationService';
-import { useActiveEventPolling } from '../src/features/health/useActiveEventPolling';
+import { useStepGoalPolling } from '../src/features/health/useStepGoalPolling';
 import '../src/i18n/i18n';
 
 // Prevent splash screen from auto-hiding
@@ -22,7 +22,7 @@ function RootLayoutInner() {
   // ADR-001 / BUILD_PLAN.md Phase 7 PR 2 — foreground active-event polling.
   // Needs AuthProvider + ToastProvider, both already wrapping this
   // component; no-ops unless the user has an active step-gated goal.
-  useActiveEventPolling();
+  useStepGoalPolling();
 
   return (
     <>

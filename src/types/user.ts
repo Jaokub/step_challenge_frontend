@@ -38,9 +38,10 @@ export interface HealthRecord {
 /**
  * `POST /health/sync` response shape (BUILD_PLAN.md Phase 7 PR 2). Adds
  * `awardedActivityIds` — step-gated activities newly paid out by this sync
- * — on top of the plain HealthRecord, so the foreground poller
- * (useActiveEventPolling) can fire a celebration toast without a second
- * request.
+ * — on top of the plain HealthRecord. The foreground poller
+ * (useStepGoalPolling) reads this to know when to refresh steps-driven
+ * queries; per Phase 8 (2026-07-17) it no longer surfaces a celebration
+ * toast or any other points-related UI for it.
  */
 export interface HealthSyncResult extends HealthRecord {
   awardedActivityIds: string[];

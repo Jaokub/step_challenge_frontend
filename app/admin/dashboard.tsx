@@ -26,7 +26,7 @@ export default function AdminDashboardScreen() {
     { key: 'totalUsers', value: kpis.totalUsers, label: t('admin.kpiTotalUsers'), icon: 'account-group', color: colors.primary, round: true },
     { key: 'checkIns', value: kpis.checkInsThisMonth, label: t('admin.kpiActiveParticipants'), icon: 'walk', color: adminAccents.kpiBlue, round: true },
     { key: 'ongoing', value: kpis.ongoingActivities, label: t('admin.kpiOngoingActivities'), icon: 'calendar-clock', color: adminAccents.kpiLime, round: false },
-    { key: 'events', value: kpis.openEvents, label: t('admin.kpiOpenEvents'), icon: 'flag-checkered', color: colors.warning, round: false },
+    { key: 'upcoming', value: kpis.upcomingActivities, label: t('admin.kpiUpcomingActivities'), icon: 'flag-checkered', color: colors.warning, round: false },
   ];
 
   const navItems = [

@@ -262,37 +262,6 @@
     "childGroupRankingTitle": "อันดับกลุ่มย่อย",
     "childGroupRanking": "อันดับกลุ่มย่อยทั้งหมด"
   },
-  "events": {
-    "title": "อีเวนต์",
-    "entrySubtitle": "เข้าร่วมชาเลนจ์นับก้าว",
-    "emptyTitle": "ยังไม่มีอีเวนต์",
-    "emptyMessage": "การแข่งขันนับก้าวจะแสดงที่นี่",
-    "participants": "เข้าร่วม {{count}} คน",
-    "status": {
-      "UPCOMING": "กำลังจะเริ่ม",
-      "ONGOING": "กำลังดำเนินการ",
-      "COMPLETED": "สิ้นสุดแล้ว",
-      "CANCELLED": "ยกเลิก"
-    },
-    "totalSteps": "ก้าวรวมทั้งหมด",
-    "groups": "{{count}} กลุ่ม",
-    "join": "เข้าร่วมอีเวนต์",
-    "leave": "ออกจากอีเวนต์",
-    "joinTitle": "เข้าร่วมอีเวนต์นี้",
-    "joinAsIndividual": "เข้าร่วมแบบเดี่ยว",
-    "joinAsGroupHint": "หรือเข้าร่วมแบบกลุ่ม (เฉพาะแอดมิน):",
-    "joinedIndividual": "คุณเข้าร่วมอีเวนต์แล้ว",
-    "joinedGroup": "เพิ่มสมาชิกกลุ่มแล้ว {{count}} คน",
-    "left": "คุณออกจากอีเวนต์แล้ว",
-    "joinFailed": "เกิดข้อผิดพลาด กรุณาลองใหม่",
-    "scope": {
-      "individual": "รายบุคคล",
-      "group": "กลุ่ม"
-    },
-    "steps": "ก้าว",
-    "noParticipants": "ยังไม่มีผู้เข้าร่วม",
-    "memberCount": "{{count}} คน"
-  },
   "profile": {
     "title": "โปรไฟล์",
     "profile_setting": "การตั้งค่าโปรไฟล์",
@@ -504,7 +473,7 @@
     "kpiTotalUsers": "พนักงานทั้งหมด",
     "kpiActiveParticipants": "เช็คอินเดือนนี้",
     "kpiOngoingActivities": "กิจกรรมที่กำลังดำเนิน",
-    "kpiOpenEvents": "อีเวนต์ที่เปิดอยู่",
+    "kpiUpcomingActivities": "กิจกรรมที่กำลังจะมาถึง",
     "facultyStepsLabel": "ก้าวรวมทั้งคณะ (เดือนนี้)",
     "facultyStepsNeedsEndpoint": "ต้องรอ backend: ยังไม่มี endpoint รวมก้าวทั้งคณะ",
     "navGroupsTitle": "กลุ่มและโครงสร้าง",

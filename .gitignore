@@ -31,7 +31,11 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+# Broadened from `.env*.local` + a bare `.env` further down: neither covered
+# .env.production / .env.development, which is where EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+# and friends would end up. Keep .env.example tracked as the template.
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -40,8 +44,31 @@ yarn-error.*
 /ios
 /android
 
-# Environment variables
-.env
+# ── Google Sign-In config (BUILD_PLAN Phase 9, Task 5) ──────────────────
+# These are generated in the Google Cloud Console and carry the OAuth client
+# IDs for this app. They were NOT ignored before, so they'd have been picked
+# up by `git add .` the moment they landed in the project.
+google-services.json
+GoogleService-Info.plist
+
+# ── EAS / Android signing ───────────────────────────────────────────────
+# `credentials.json` holds the keystore path AND its password; a leaked
+# release keystore means someone else can sign builds as this app, and it
+# cannot be rotated for an already-published app. `*.jks` was already
+# covered above but `.keystore` — the more common extension — was not.
+credentials.json
+*.keystore
+# Note: eas.json is intentionally NOT ignored. It's build configuration and
+# belongs in the repo; secrets go in EAS environment variables instead.
+
+# Expo
+.expo-shared/
+
+# npm auth tokens
+.npmrc
+
+# Machine-local config overrides
+app.config.local.*
 
 # Editor directories and files
 .vscode/

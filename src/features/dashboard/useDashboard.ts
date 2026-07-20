@@ -11,6 +11,7 @@ import { aggregateStats } from './statsAggregator';
 import { queryKeys } from '../../constants/queryKeys';
 import type { PersonalDashboard, HealthSummary, HealthRecord, AppGroup } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToday } from '../../hooks/useToday';
 import { formatDate } from '../../utils/formatDate';
 
 export type Timeframe = 'Daily' | 'Weekly' | 'Monthly';
@@ -32,7 +33,10 @@ export function useDashboard(colors: any) {
   const { user } = useAuth();
   const { i18n } = useTranslation();
 
-  const today = new Date();
+  // Re-evaluates itself at local midnight and on app resume (Phase 9 Task 4).
+  // Previously `new Date()` inline, which left the day-strip's "today"
+  // highlight stuck on yesterday for any session that spanned midnight.
+  const today = useToday();
 
   // ─── Timeframe + reference-period state ───────────────────
   // A single anchorDate drives all three modes — switching modes keeps context
@@ -58,8 +62,9 @@ export function useDashboard(colors: any) {
           refYear === today.getFullYear(),
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refYear, refMonth, daysInRefMonth]);
+    // `today` is now safe to depend on: useToday memoises it per calendar day,
+    // so this recomputes when the date rolls over and not on every render.
+  }, [refYear, refMonth, daysInRefMonth, today]);
 
   const goToPrev = useCallback(() => {
     setAnchorDate((prev) => {

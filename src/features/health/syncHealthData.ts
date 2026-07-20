@@ -32,7 +32,7 @@ export interface SyncTodayResult {
  * Returns `awardedActivityIds` (BUILD_PLAN.md Phase 7 PR 2) — step-gated
  * activities newly paid out by this sync — or `undefined` if the sync was
  * skipped (no health permission) or its return value wasn't reached.
- * `useDashboard` ignores the return value; `useActiveEventPolling` uses it
+ * `useDashboard` ignores the return value; `useStepGoalPolling` uses it
  * to fire a celebration toast.
  */
 export async function syncTodayHealthData(): Promise<SyncTodayResult | undefined> {

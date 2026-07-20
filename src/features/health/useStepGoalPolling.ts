@@ -1,11 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import checkinService from '../activity/checkinService';
 import { syncTodayHealthData } from './syncHealthData';
 import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
 import { queryKeys } from '../../constants/queryKeys';
 
 // ADR-001 §"Real-time delivery" (BUILD_PLAN.md Phase 7 PR 2) — "real-time"
@@ -26,11 +24,15 @@ const HISTORY_LOOKBACK_LIMIT = 50;
  * entirely unless the signed-in user has at least one ONGOING, checked-in,
  * step-gated activity whose goal hasn't been reached yet — most users incur
  * no extra polling at all.
+ *
+ * Renamed from `useActiveEventPolling` by ADR-002 (2026-07-19). The old name
+ * was misleading in a way that mattered: this hook has never had anything to
+ * do with the `Event` model — it polls check-ins on step-gated **activities**.
+ * With the events surface retired, keeping "Event" in the name would have
+ * pointed future readers at code that no longer exists.
  */
-export function useActiveEventPolling() {
+export function useStepGoalPolling() {
   const { user } = useAuth();
-  const { showToast } = useToast();
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -61,20 +63,19 @@ export function useActiveEventPolling() {
         const awardedIds = result?.awardedActivityIds ?? [];
         if (awardedIds.length === 0) return;
 
-        const titleById = new Map((activeCheckIns ?? []).map((c) => [c.activityId, c.activity?.title ?? '']));
-        awardedIds.forEach((activityId) => {
-          showToast(t('scan.goalReached', { title: titleById.get(activityId) ?? '' }), 'success');
-        });
-
-        // A goal-reached award changes points, streak, and this activity's
-        // paid state — refresh everything that displays them (mirrors
-        // scan.tsx's checkinMutation invalidations).
+        // Phase 8 (2026-07-17): points/awards are never surfaced in the UI
+        // any more, including this celebration toast — the earn path still
+        // runs invisibly in the background, but nothing here should tell
+        // the user about it. Still refresh the queries that happen to also
+        // show steps (dashboard/profile/leaderboard), since a health sync
+        // just landed and those figures may have changed regardless of
+        // points.
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.personal });
         queryClient.invalidateQueries({ queryKey: queryKeys.users.profileScreen });
         queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
         queryClient.invalidateQueries({ queryKey: queryKeys.checkins.activeStepGated });
       } catch (e) {
-        console.warn('[useActiveEventPolling] sync failed', e);
+        console.warn('[useStepGoalPolling] sync failed', e);
       }
     };
 
@@ -110,4 +111,4 @@ export function useActiveEventPolling() {
   }, [user, hasActiveGoal]);
 }
 
-export default useActiveEventPolling;
+export default useStepGoalPolling;

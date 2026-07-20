@@ -262,37 +262,6 @@
     "childGroupRankingTitle": "Sub-group ranking",
     "childGroupRanking": "All child group rankings"
   },
-  "events": {
-    "title": "Events",
-    "entrySubtitle": "Join a step challenge",
-    "emptyTitle": "No events yet",
-    "emptyMessage": "Step-count competitions will appear here.",
-    "participants": "{{count}} joined",
-    "status": {
-      "UPCOMING": "Upcoming",
-      "ONGOING": "Ongoing",
-      "COMPLETED": "Ended",
-      "CANCELLED": "Cancelled"
-    },
-    "totalSteps": "Total steps",
-    "groups": "{{count}} groups",
-    "join": "Join event",
-    "leave": "Leave event",
-    "joinTitle": "Join this event",
-    "joinAsIndividual": "Join individually",
-    "joinAsGroupHint": "Or enter as a group (admins only):",
-    "joinedIndividual": "You joined the event",
-    "joinedGroup": "Group enrolled — {{count}} added",
-    "left": "You left the event",
-    "joinFailed": "Something went wrong. Please try again.",
-    "scope": {
-      "individual": "Individuals",
-      "group": "Groups"
-    },
-    "steps": "steps",
-    "noParticipants": "No participants yet",
-    "memberCount": "{{count}} members"
-  },
   "profile": {
     "title": "Profile",
     "profile_setting": "Profile Setting",
@@ -504,7 +473,7 @@
     "kpiTotalUsers": "Total staff",
     "kpiActiveParticipants": "Check-ins this month",
     "kpiOngoingActivities": "Ongoing activities",
-    "kpiOpenEvents": "Open events",
+    "kpiUpcomingActivities": "Upcoming activities",
     "facultyStepsLabel": "Faculty total steps (this month)",
     "facultyStepsNeedsEndpoint": "Needs backend: no faculty-wide steps endpoint yet",
     "navGroupsTitle": "Groups & structure",

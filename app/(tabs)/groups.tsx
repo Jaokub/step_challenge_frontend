@@ -48,7 +48,7 @@ export default function GroupsScreen() {
     handleRejectRequest,
   } = useFriends(true);
 
-  const { groups, isRefreshing: isRefreshingGroups, handleRefresh: handleRefreshGroups } = useGroups(true);
+  const { groups, isLoading: isLoadingGroups, isRefreshing: isRefreshingGroups, handleRefresh: handleRefreshGroups } = useGroups(true);
 
   // Daily/Weekly/Monthly browsing, same unit as the home dashboard — drives
   // both leaderboard queries below so switching tabs keeps the selected period.
@@ -111,6 +111,7 @@ export default function GroupsScreen() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         groups={groups}
+        isLoadingGroups={isLoadingGroups}
         requestsCount={requests.length}
         onOpenRequests={() => setShowRequests(true)}
         onOpenAddFriend={() => setShowAddFriend(true)}
