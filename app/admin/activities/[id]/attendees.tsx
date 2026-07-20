@@ -23,24 +23,15 @@ import {
 import { spacing, fontSize, borderRadius, gradients, shadows } from '../../../../src/constants/theme';
 import activityService from '../../../../src/features/activity/activityService';
 import checkinService from '../../../../src/features/activity/checkinService';
-import userService from '../../../../src/features/auth/userService';
+import {
+  buildAttendeeRows,
+  filterAttendeeRows,
+  summariseAttendance,
+  recentManualCheckIns,
+  type AttendeeRow,
+  type AttendeeFilterKey as FilterKey,
+} from '../../../../src/features/activity/attendeeRoster';
 import { queryKeys } from '../../../../src/constants/queryKeys';
-import type { CheckIn } from '../../../../src/types';
-
-type FilterKey = 'all' | 'checkedIn' | 'notCheckedIn';
-
-interface AttendeeRow {
-  key: string;
-  userId: string;
-  name?: string;
-  dept?: string | null;
-  checkedInAt: string | null;
-  checkInId: string | null;
-  // ADR-001 / BUILD_PLAN.md Phase 7 — null while checked-in-but-goal-not-met
-  // on a step-gated activity; set (attendance-only or goal cleared) once
-  // paid. Only meaningful when the activity is step-gated (see badge below).
-  pointsAwardedAt: string | null;
-}
 
 export default function AdminAttendeesScreen() {
   const { t } = useTranslation();
@@ -92,82 +83,51 @@ export default function AdminAttendeesScreen() {
     enabled: !!id,
   });
 
-  // Full roster — needed for the "ทั้งหมด" (all) tab, which mixes checked-in
-  // and not-checked-in people in one list, and for "ยังไม่เช็คอิน" (the
-  // check-ins endpoint only returns who HAS checked in).
+  // The activity's OWN participants — people enrolled via a coordinator's
+  // group cascade or an individual join. This screen used to fetch every user
+  // in the faculty here, which listed the entire staff directory (each with a
+  // check-in action) on an activity nobody had joined, and made the "X / Y"
+  // denominator the faculty headcount. See `attendeeRoster.ts`.
   const {
-    data: allUsers,
-    isPending: isLoadingUsers,
+    data: participants,
+    isPending: isLoadingParticipants,
   } = useQuery({
-    queryKey: queryKeys.users.fullList,
+    queryKey: queryKeys.activities.participants(id),
     queryFn: async () => {
-      // Paginate-until-exhausted — a single page (backend default limit=20)
-      // would silently truncate the roster for basically any real faculty
-      // (BUILD_PLAN.md Phase 3.1).
-      const res = await userService.getAllUsersFull();
+      const res = await activityService.getActivityParticipants(id);
       if (!res.success) throw new Error(res.message);
-      return res.data.users ?? [];
+      return res.data ?? [];
     },
     enabled: !!id,
   });
 
   const checkedIn = checkinsResult?.checkIns ?? [];
-  const totalCheckedIn = checkinsResult?.totalCheckIns ?? checkedIn.length;
-  // Denominator for the "X / Y checked in" summary — the activity's own cap
-  // if it has one, otherwise the full roster size (real data, not a guess).
-  const totalPossible = activity?.maxParticipants ?? allUsers?.length ?? 0;
-  const checkedInByUserId = useMemo(
-    () => new Map<string, CheckIn>(checkedIn.map((c) => [c.userId, c])),
-    [checkedIn],
+
+  // Roster = participants ∪ anyone who checked in. Check-in doesn't require a
+  // participant row, so QR walk-ins have no enrolment and would otherwise
+  // disappear from the admin's list entirely.
+  const allRows: AttendeeRow[] = useMemo(
+    () => buildAttendeeRows(participants ?? [], checkedIn),
+    [participants, checkedIn],
   );
 
-  const allRows: AttendeeRow[] = useMemo(
-    () =>
-      (allUsers ?? []).map((u) => {
-        const c = checkedInByUserId.get(u.id);
-        return {
-          key: u.id,
-          userId: u.id,
-          name: u.fullName,
-          dept: u.department,
-          checkedInAt: c?.checkedInAt ?? null,
-          checkInId: c?.id ?? null,
-          pointsAwardedAt: c?.pointsAwardedAt ?? null,
-        };
-      }),
-    [allUsers, checkedInByUserId],
+  const { checkedIn: totalCheckedIn, total: totalPossible, progress } = useMemo(
+    () => summariseAttendance(allRows),
+    [allRows],
   );
 
   // Badge only makes sense for a step-gated activity — attendance-only pays
   // out at check-in, so every checked-in row is already "paid" by definition.
   const isStepGatedActivity = activity?.expectedSteps != null;
 
-  const q = search.trim().toLowerCase();
-  const rows = useMemo(() => {
-    const base =
-      filter === 'checkedIn'
-        ? allRows.filter((r) => r.checkedInAt)
-        : filter === 'notCheckedIn'
-        ? allRows.filter((r) => !r.checkedInAt)
-        : allRows;
-    if (!q) return base;
-    return base.filter((r) => r.name?.toLowerCase().includes(q) || r.dept?.toLowerCase().includes(q));
-  }, [allRows, filter, q]);
+  const rows = useMemo(() => filterAttendeeRows(allRows, filter, search), [allRows, filter, search]);
 
   // "เช็คอินหน้างานล่าสุด" — recent walk-in (manually-recorded) check-ins,
   // most recent first. Real data only: derived from the same check-ins the
   // list above already has (method === 'MANUAL'), not a separate fake feed.
-  const recentManualCheckins = useMemo(
-    () =>
-      checkedIn
-        .filter((c) => c.method === 'MANUAL')
-        .slice()
-        .sort((a, b) => new Date(b.checkedInAt).getTime() - new Date(a.checkedInAt).getTime())
-        .slice(0, 5),
-    [checkedIn],
-  );
+  const recentManualCheckins = useMemo(() => recentManualCheckIns(checkedIn), [checkedIn]);
 
-  const isLoading = isLoadingCheckins || isLoadingUsers;
+  const isLoading = isLoadingCheckins || isLoadingParticipants;
 
   // Activity picker — lists other activities so the admin can jump straight
   // to another one's attendee list without going back to /admin/activities.
@@ -328,18 +288,17 @@ export default function AdminAttendeesScreen() {
                 : t('admin.checkedInCount', { count: totalCheckedIn })}
             </AppText>
           </View>
-          {/* Mockup frame 7: the progress track is always shown, not just
-              when the activity has a hard cap — the denominator is the
-              full roster whenever there's no `maxParticipants`. */}
+          {/* Mockup frame 7: the progress track is always shown. The
+              denominator is the roster (participants + walk-ins), not
+              `maxParticipants` — a cap is what the activity could hold, not
+              who is actually expected, so using it would read "1 / 50" for a
+              50-capacity activity with 3 people enrolled. */}
           <View style={[styles.gradientBarTrack, { backgroundColor: colors.primary + '26' }]}>
             <LinearGradient
               colors={gradients.primary}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={[
-                styles.gradientBarFill,
-                { width: `${totalPossible ? Math.min(1, totalCheckedIn / totalPossible) * 100 : 0}%` },
-              ]}
+              style={[styles.gradientBarFill, { width: `${progress * 100}%` }]}
             />
           </View>
         </LinearGradient>

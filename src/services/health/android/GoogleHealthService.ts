@@ -5,6 +5,35 @@ import {
 } from 'react-native-health-connect';
 import { TimeRangeFilter } from 'react-native-health-connect/lib/typescript/types/base.types';
 
+/**
+ * Permissions this app asks Health Connect for.
+ *
+ * `Steps` is REQUIRED — `HealthRecord.steps` is the ranking source of truth
+ * for every leaderboard in the product. `Distance` and `TotalCaloriesBurned`
+ * are display-only extras.
+ *
+ * Declared as one list so the grant check below can be derived from it.
+ * The previous code hard-coded `granted.length == 4` while requesting only
+ * three permissions — see initHealthConnect.
+ */
+const REQUIRED_PERMISSIONS = [
+  { accessType: 'read', recordType: 'Steps' },
+] as const;
+
+const OPTIONAL_PERMISSIONS = [
+  { accessType: 'read', recordType: 'Distance' },
+  { accessType: 'read', recordType: 'TotalCaloriesBurned' },
+] as const;
+
+const ALL_PERMISSIONS = [...REQUIRED_PERMISSIONS, ...OPTIONAL_PERMISSIONS];
+
+type PermissionLike = { accessType?: string; recordType?: string };
+
+const isGranted = (
+  granted: PermissionLike[],
+  want: { accessType: string; recordType: string }
+) => granted.some((g) => g.recordType === want.recordType && g.accessType === want.accessType);
+
 export class GoogleHealthService {
   private permissionGranted = false;
 
@@ -18,23 +47,41 @@ export class GoogleHealthService {
         console.error('Failed to initialize Health Connect');
         return false;
       }
-      console.log('done init');
 
-      const granted = await requestPermission([
-        { accessType: "read", recordType: "Steps" },
-        { accessType: "read", recordType: "Distance" },
-        { accessType: "read", recordType: "TotalCaloriesBurned" },
-      ]);
-      console.log('created granted object');
+      const granted = (await requestPermission([...ALL_PERMISSIONS])) as PermissionLike[];
 
-      console.log("Permissions status updated:", granted);
-      if(granted.length == 4) {
-        console.log("Permissions granted");
-        this.permissionGranted = true;
-        return true;
+      // ⚠️ This check used to read `if (granted.length == 4)` while only
+      // THREE permissions were requested — so it could never be true.
+      // `requestPermission` resolves with the subset of the requested
+      // permissions the user actually granted, so its length is capped at 3.
+      // The result: initHealthConnect always returned false, syncTodayHealthData
+      // bailed at its first step every single time, and NOTHING was ever
+      // uploaded on Android. Fixed 2026-07-19.
+      //
+      // The check is now derived from the permission lists themselves, so
+      // adding or removing a permission can't desync it again.
+      const missingRequired = REQUIRED_PERMISSIONS.filter((p) => !isGranted(granted, p));
+      if (missingRequired.length > 0) {
+        console.warn(
+          '[HealthConnect] Missing required permission(s):',
+          missingRequired.map((p) => p.recordType).join(', ')
+        );
+        return false;
       }
-      console.log("Permissions not granted");
-      return false;
+
+      // Distance/calories are cosmetic. Failing the whole sync because the
+      // user declined one of them would take the step leaderboard down with
+      // it, so degrade instead: the getters already resolve to 0 on error.
+      const missingOptional = OPTIONAL_PERMISSIONS.filter((p) => !isGranted(granted, p));
+      if (missingOptional.length > 0) {
+        console.warn(
+          '[HealthConnect] Optional permission(s) not granted, those metrics will read 0:',
+          missingOptional.map((p) => p.recordType).join(', ')
+        );
+      }
+
+      this.permissionGranted = true;
+      return true;
     } catch (error) {
       console.error('Error initializing Health Connect:', error);
     }
