@@ -25,6 +25,7 @@ export { default as AnimatedTabIcon } from './AnimatedTabIcon';
 export { default as AnimatedCounter } from './AnimatedCounter';
 export { default as CircularProgress } from './CircularProgress';
 export { default as ProgressBar } from './ProgressBar';
+export { default as InlineSpinner } from './InlineSpinner';
 
 // Values
 export { default as StepsValue } from './StepsValue';

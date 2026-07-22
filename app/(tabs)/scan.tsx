@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Share, Animated } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Share, Animated, AppState, AppStateStatus, Linking } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import QRCode from 'react-native-qrcode-svg';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../src/constants/queryKeys';
-import { AppText, ScreenHeader } from '../../src/components';
+import { AppText, ScreenHeader, CustomModal, PrimaryButton, OutlineButton } from '../../src/components';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useToast } from '../../src/contexts/ToastContext';
@@ -34,6 +34,11 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  // Shown instead of re-calling requestPermission() once the OS has refused
+  // to re-prompt (canAskAgain === false) — tapping "grant permission" at
+  // that point silently no-ops otherwise, since only Settings can flip it
+  // back on.
+  const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
 
   const [mode, setMode] = useState<Mode>("scan");
 
@@ -85,6 +90,22 @@ export default function ScanScreen() {
       scanLineAnim.setValue(0);
     }
   }, [mode]);
+
+  // Re-check camera permission whenever the app comes back to the
+  // foreground while sitting on the permission-denied screen. Once
+  // canAskAgain is false, requestPermission() never shows an OS dialog — it
+  // just silently re-fetches the current status — so it's safe to call
+  // here without risking an unexpected native prompt. This is what lets the
+  // screen notice "the user just enabled it from Settings" without them
+  // having to leave and re-enter the scan tab.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'active' && mode === 'scan' && permission && !permission.granted && !permission.canAskAgain) {
+        requestPermission();
+      }
+    });
+    return () => subscription.remove();
+  }, [mode, permission, requestPermission]);
 
   // Canonical friend-QR format: "sc:friend:<userId>".
   // The scanner below also accepts the legacy JSON/link formats for QR codes
@@ -229,7 +250,21 @@ export default function ScanScreen() {
           </View>
 
           <View style={styles.permissionActions}>
-            <TouchableOpacity onPress={requestPermission} activeOpacity={0.85}>
+            <TouchableOpacity
+              onPress={() => {
+                // canAskAgain === false means the OS has already permanently
+                // refused this app another native dialog — calling
+                // requestPermission() here would just silently return
+                // "denied" with no visible feedback (the bug being fixed).
+                // Explain that first, then route to Settings instead.
+                if (permission.canAskAgain) {
+                  requestPermission();
+                } else {
+                  setShowPermissionExplainer(true);
+                }
+              }}
+              activeOpacity={0.85}
+            >
               <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={styles.permissionPrimaryButton}>
                 <AppText variant="body-bold" style={[styles.buttonText, { color: colors.onPrimary }]}>
                   {t('scan.grantPermission')}
@@ -243,6 +278,29 @@ export default function ScanScreen() {
             </TouchableOpacity>
           </View>
         </SafeAreaView>
+
+        <CustomModal
+          visible={showPermissionExplainer}
+          onClose={() => setShowPermissionExplainer(false)}
+          title={t('scan.permissionDeniedTitle')}
+          description={t('scan.permissionDeniedBody')}
+        >
+          <View style={styles.permissionExplainerActions}>
+            <OutlineButton
+              title={t('common.cancel')}
+              onPress={() => setShowPermissionExplainer(false)}
+              style={{ flex: 1 }}
+            />
+            <PrimaryButton
+              title={t('scan.openSettingsAction')}
+              onPress={() => {
+                setShowPermissionExplainer(false);
+                Linking.openSettings();
+              }}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </CustomModal>
       </View>
     );
   }
@@ -497,6 +555,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  permissionExplainerActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
   primaryButton: {
     paddingVertical: 14,

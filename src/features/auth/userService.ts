@@ -17,6 +17,10 @@ interface UpdateProfileInput {
   avatarUrl?: string;
 }
 
+// Mirrors the backend's Friendship.status plus the two "no row yet" /
+// "they invited me" cases it collapses into one enum for the client.
+export type FriendshipStatus = 'NONE' | 'PENDING_SENT' | 'PENDING_RECEIVED' | 'FRIENDS';
+
 // Thinner than `User` — matches the backend's search select() (no
 // totalPoints/role/syncToken/etc.), used by the add-friend search tab.
 export interface UserSearchResult {
@@ -25,6 +29,15 @@ export interface UserSearchResult {
   email: string;
   department?: string | null;
   avatarUrl?: string;
+  /** This user's relationship to the caller — drives the row's button state. */
+  friendshipStatus: FriendshipStatus;
+}
+
+interface SearchUsersParams {
+  /** Omit or pass '' to browse all colleagues instead of filtering. */
+  q?: string;
+  page?: number;
+  limit?: number;
 }
 
 const userService = {
@@ -110,14 +123,19 @@ const userService = {
   },
 
   /**
-   * Search users by name/email (excludes self) — powers the add-friend
-   * sheet's "ค้นหา" tab. Backend requires a non-empty `q` (400s otherwise),
-   * so callers must not fire this while the search box is empty.
+   * Search users by name/email/id (excludes self) — powers the add-friend
+   * sheet's "ค้นหา" tab. `q` is optional: an empty/omitted query browses
+   * every colleague (paginated) instead of erroring, so the tab has
+   * something to show before the user types anything.
    */
-  async searchUsers(q: string): Promise<ApiResponse<UserSearchResult[]>> {
+  async searchUsers(
+    params: SearchUsersParams = {},
+  ): Promise<ApiResponse<{ users: UserSearchResult[]; pagination: PaginationInfo }>> {
     try {
-      const { data } = await api.get<ApiResponse<UserSearchResult[]>>('/users/search', {
-        params: { q },
+      const { data } = await api.get<
+        ApiResponse<{ users: UserSearchResult[]; pagination: PaginationInfo }>
+      >('/users/search', {
+        params: { q: params.q || undefined, page: params.page, limit: params.limit },
       });
       return data;
     } catch (error: any) {
