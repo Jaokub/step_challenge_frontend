@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import activityService from './activityService';
-import { getMockActivities } from './mockActivities';
 import { queryKeys } from '../../constants/queryKeys';
 import type { Activity, ActivityStatus } from '../../types';
 
@@ -29,20 +28,7 @@ export function useActivities(filter: string) {
         status: filter !== 'all' ? statusMap[filter] : undefined,
       });
       if (!response.success) throw new Error('Failed to load activities');
-      const page = response.data;
-
-      // No real activities seeded yet — show sample data on the first page
-      // so the screen isn't empty. Disappears automatically once the API
-      // starts returning real activities.
-      if (pageParam === 1 && (!page.activities || page.activities.length === 0)) {
-        const mockActivities = getMockActivities(statusMap[filter] ?? 'UPCOMING');
-        return {
-          activities: mockActivities,
-          pagination: { page: 1, limit: mockActivities.length, total: mockActivities.length, totalPages: 1 },
-        };
-      }
-
-      return page;
+      return response.data;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

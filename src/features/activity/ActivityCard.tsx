@@ -6,10 +6,8 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { AppText, StepsValue } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useToast } from '../../contexts/ToastContext';
 import { gradients, activityAccents, spacing } from '../../constants/theme';
 import type { Activity } from '../../types';
-import { isMockActivity } from './mockActivities';
 
 const GRAD_START = { x: 0, y: 0 };
 const GRAD_END = { x: 1, y: 1 };
@@ -45,11 +43,9 @@ function useActivityMeta(activity: Activity) {
 export function ActivityCard({ activity }: ActivityCardProps) {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
-  const { showToast } = useToast();
   const { day, month, timeStr, daysLabel } = useActivityMeta(activity);
   const [expanded, setExpanded] = useState(false);
 
-  const isMock = isMockActivity(activity.id);
   // Registered count (ActivityParticipant — joined/enrolled), not check-ins.
   // `activity.participantCount` is check-ins and is a different concept;
   // this card's "People" grid/footer is about who joined the activity.
@@ -65,10 +61,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const statChipBg = isDark ? colors.background : colors.inputBackground;
 
   const handleJoinPress = () => {
-    if (isMock) {
-      showToast(t('activities.mockNotice'), 'info');
-      return;
-    }
     router.push(`/activity/${activity.id}`);
   };
 

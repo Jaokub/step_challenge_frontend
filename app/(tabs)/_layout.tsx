@@ -77,19 +77,19 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="scan"
+        name="friends"
         options={{
-          title: t('scan.title'),
-          tabBarLabel: t('tabs.scan'),
-          tabBarIcon: tabIcon('qr-code'),
+          title: t('groups.friends'),
+          tabBarLabel: t('tabs.friends'),
+          tabBarIcon: tabIcon('people'),
         }}
       />
       <Tabs.Screen
         name="groups"
         options={{
-          title: t('tabs.friendsAndGroups'),
-          tabBarLabel: t('tabs.friends'),
-          tabBarIcon: tabIcon('people'),
+          title: t('groups.myGroups'),
+          tabBarLabel: t('tabs.groups'),
+          tabBarIcon: tabIcon('grid'),
         }}
       />
       <Tabs.Screen

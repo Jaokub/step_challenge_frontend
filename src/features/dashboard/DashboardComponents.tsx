@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, View, TouchableOpacity, ScrollView } from 'react-native';
+import { Dimensions, View, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
-import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText, StepsValue } from '../../components';
-import { gradients, layout, dashboardAccents } from '../../constants/theme';
+import { AppText, EmptyState, Skeleton, MonthYearPicker, GradientText, StepsValue, CustomModal, PrimaryButton, OutlineButton } from '../../components';
+import { gradients, layout, dashboardAccents, spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 import { addDays, startOfWeek } from './dateRangeCalculator';
+import { useScanAccess } from '../scan/useScanAccess';
 
 const { width } = Dimensions.get('window');
 const GRAD_START = { x: 0, y: 0 };
@@ -63,6 +64,7 @@ export const DashboardHeader = ({
   const weekdayFull = t('weekdays.full', { returnObjects: true }) as string[];
   const toDisplayYear = (y: number) => (i18n.language === 'th' ? y + 543 : y);
   const initials = (username || 'U').substring(0, 2).toUpperCase();
+  const { requestScanAccess, showExplainer, closeExplainer } = useScanAccess();
 
   let topLabel: string;
   if (timeframe === 'Weekly') {
@@ -123,10 +125,36 @@ export const DashboardHeader = ({
           <AppText style={{ color: colors.textSecondary, fontSize: 13 }}>{t(greetingKey())} 👋</AppText>
           <AppText variant="heading-bold" style={{ color: colors.textPrimary, fontSize: 25, lineHeight: 32, marginTop: 2 }} numberOfLines={1}>{username}</AppText>
         </View>
-        <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
-          <AppText variant="body-bold" style={{ color: colors.onPrimary, fontSize: 15 }}>{initials}</AppText>
-        </LinearGradient>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity
+            onPress={() => { Haptics.selectionAsync(); requestScanAccess(); }}
+            activeOpacity={0.8}
+            style={{ width: 44, height: 44, borderRadius: 15, borderWidth: 1, borderColor: colors.cardBorder, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' }}
+            accessibilityLabel={t('scan.title')}
+          >
+            <Ionicons name="qr-code-outline" size={20} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <LinearGradient colors={gradients.primary as any} start={GRAD_START} end={GRAD_END} style={{ width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}>
+            <AppText variant="body-bold" style={{ color: colors.onPrimary, fontSize: 15 }}>{initials}</AppText>
+          </LinearGradient>
+        </View>
       </View>
+
+      <CustomModal
+        visible={showExplainer}
+        onClose={closeExplainer}
+        title={t('scan.permissionDeniedTitle')}
+        description={t('scan.permissionDeniedBody')}
+      >
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <OutlineButton title={t('common.cancel')} onPress={closeExplainer} style={{ flex: 1 }} />
+          <PrimaryButton
+            title={t('scan.openSettingsAction')}
+            onPress={() => { closeExplainer(); Linking.openSettings(); }}
+            style={{ flex: 1 }}
+          />
+        </View>
+      </CustomModal>
 
       {/* Unit-aware nav — label + step size follow the active timeframe */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: layout.headerGap }}>

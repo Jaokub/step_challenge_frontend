@@ -22,5 +22,6 @@ export function useGroupOverview(groupId: string, startDate?: string, endDate?: 
   return {
     overview: overviewQuery.data ?? null,
     isOverviewLoading: overviewQuery.isPending,
+    refetchOverview: overviewQuery.refetch,
   };
 }
