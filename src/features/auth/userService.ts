@@ -2,12 +2,7 @@
 // Step Challenge Mobile App — User Service
 // ============================================================
 import api from '../../services/api';
-import type { ApiResponse, LeaderboardUser, PaginationInfo, User } from '../../types';
-
-interface LeaderboardParams {
-  limit?: number;
-  offset?: number;
-}
+import type { ApiResponse, PaginationInfo, User } from '../../types';
 
 interface GetAllUsersParams {
   limit?: number;
@@ -33,20 +28,6 @@ export interface UserSearchResult {
 }
 
 const userService = {
-  async getLeaderboard(
-    params?: LeaderboardParams,
-  ): Promise<ApiResponse<LeaderboardUser[]>> {
-    try {
-      const { data } = await api.get<ApiResponse<LeaderboardUser[]>>(
-        '/leaderboard/global',
-        { params },
-      );
-      return data;
-    } catch (error: any) {
-      throw error.response?.data ?? error;
-    }
-  },
-
   async getProfile(id: string): Promise<
     ApiResponse<{
       user: User;

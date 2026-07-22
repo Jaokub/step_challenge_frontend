@@ -40,7 +40,9 @@ export const GroupOverviewSection: React.FC<GroupOverviewSectionProps> = ({
         {t('groups.overallStats')}
       </AppText>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statsRow}>
-        <HealthStatCard icon="star-outline" label={t('common.points')} value={overallStats?.totalPoints ?? 0} />
+        {/* The points stat card was removed: ranking is by step count and no
+            points figure belongs in the UI. This card was displaying a real
+            `totalPoints` value on a reachable screen. */}
         <HealthStatCard icon="footsteps-outline" label={t('health.steps')} value={overallStats?.totalSteps ?? 0} />
         <HealthStatCard icon="people-outline" label={t('common.members')} value={overallStats?.memberCount ?? 0} />
       </ScrollView>

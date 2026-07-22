@@ -181,7 +181,7 @@ export default function ScanScreen() {
             style={styles.permissionBackBtn}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="chevron-back" size={23} color={colors.textPrimary} />
+            <Ionicons name="chevron-back" size={23} color={colors.textPrimary} style={{ paddingTop: 8 }} />
           </TouchableOpacity>
 
           <View style={styles.permissionCenter}>

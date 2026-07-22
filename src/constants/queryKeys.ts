@@ -38,8 +38,9 @@ export const queryKeys = {
     activeStepGated: ['checkins', 'activeStepGated'] as const,
   },
   leaderboard: {
-    global: (limit: number) => ['leaderboard', 'global', limit] as const,
-    friends: ['leaderboard', 'friends'] as const,
+    // `global` and `friends` keys removed 2026-07-20 along with the orphan
+    // /leaderboard screen. Only the scoped (friends/group, date-windowed) key
+    // remains — used by the groups tab and the dashboard.
     scoped: (groupId: string, startDate?: string, endDate?: string) =>
       ['leaderboard', 'scoped', groupId, startDate ?? 'none', endDate ?? 'none'] as const,
   },

@@ -166,7 +166,9 @@ export default function ActivityDetailScreen() {
   ];
   if (activity.expectedSteps) metaParts.push(t('activity.metaSteps', { count: activity.expectedSteps.toLocaleString() }));
   if (activity.totalDistance) metaParts.push(t('activity.metaDistanceKm', { km: activity.totalDistance }));
-  metaParts.push(t('activity.metaPoints', { points: activity.points }));
+  // No points chip here — ranking is by step count and no points figure
+  // belongs in the UI. This line used to render the activity's stored points
+  // value straight into the meta row.
 
   const isOpenForRegistration = activity.status === 'UPCOMING' || activity.status === 'ONGOING';
   const canRegister = isOpenForRegistration && !activity.myParticipation;

@@ -77,6 +77,10 @@ app.config.local.*
 
 # Testing
 coverage/
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
 
 # Logs
 *.log

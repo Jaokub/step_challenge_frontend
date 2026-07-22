@@ -32,11 +32,7 @@ function RootLayoutInner() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="activity/[id]" />
         <Stack.Screen name="group/[id]" />
-        <Stack.Screen name="events/index" />
-        <Stack.Screen name="events/[id]" />
         <Stack.Screen name="admin" />
-        <Stack.Screen name="leaderboard" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="health" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
       </Stack>
     </>

@@ -26,7 +26,13 @@ interface ActivityInput {
   endDate: string;
   maxParticipants?: number;
   imageUrl?: string;
-  points: number;
+  /**
+   * Optional: the admin forms no longer collect a points value (ranking is by
+   * step count and no points figure appears in the UI), so callers omit it and
+   * the server applies its own default. The field stays in the type because
+   * the column still exists and the dormant ledger reads it.
+   */
+  points?: number;
   expectedSteps?: number | null;
   totalDistance?: number | null;
 }

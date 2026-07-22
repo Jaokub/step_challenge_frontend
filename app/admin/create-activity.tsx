@@ -25,7 +25,6 @@ interface CreateActivityForm {
   title: string;
   description: string;
   location: string;
-  points: string;
   activityType: ActivityType;
   expectedSteps: string;
   totalDistance: string;
@@ -52,7 +51,6 @@ export default function CreateActivityScreen() {
       title: '',
       description: '',
       location: '',
-      points: '',
       activityType: 'STEP_GATED',
       expectedSteps: '',
       totalDistance: '',
@@ -102,7 +100,9 @@ export default function CreateActivityScreen() {
         location: values.location,
         startDate: new Date(values.startDate).toISOString(),
         endDate: new Date(values.endDate).toISOString(),
-        points: values.points ? parseInt(values.points, 10) : 0,
+        // `points` deliberately not sent — the field was removed from this
+        // form (ranking is by steps, no points appear in the UI). The server
+        // applies its own default.
         expectedSteps: isStepGated && values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
         totalDistance: isStepGated && values.totalDistance ? parseFloat(values.totalDistance) : null,
       });
@@ -246,20 +246,11 @@ export default function CreateActivityScreen() {
           </View>
         )}
 
-        <Controller
-          control={control}
-          name="points"
-          render={({ field: { value, onChange } }) => (
-            <FormInput
-              label={t('admin.activityPoints')}
-              value={value}
-              onChangeText={onChange}
-              placeholder={t('admin.egPoints')}
-              keyboardType="numeric"
-              colors={colors}
-            />
-          )}
-        />
+        {/* The "points awarded" field was removed: the product ranks by step
+            count only and no points figure appears anywhere in the UI, so
+            asking an admin to configure one was misleading. `Activity.points`
+            still exists server-side (the dormant ledger reads it) and simply
+            takes its default. */}
 
         <Controller
           control={control}

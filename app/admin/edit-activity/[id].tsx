@@ -28,7 +28,6 @@ interface EditActivityForm {
   title: string;
   description: string;
   location: string;
-  points: string;
   activityType: ActivityType;
   expectedSteps: string;
   totalDistance: string;
@@ -68,7 +67,6 @@ export default function EditActivityScreen() {
       title: '',
       description: '',
       location: '',
-      points: '',
       activityType: 'STEP_GATED',
       expectedSteps: '',
       totalDistance: '',
@@ -90,7 +88,6 @@ export default function EditActivityScreen() {
       title: activity.title ?? '',
       description: activity.description ?? '',
       location: activity.location ?? '',
-      points: activity.points ? String(activity.points) : '',
       // Type is derived, not stored (ADR-001): expectedSteps set = step-gated.
       activityType: activity.expectedSteps != null ? 'STEP_GATED' : 'ATTENDANCE',
       expectedSteps: activity.expectedSteps ? String(activity.expectedSteps) : '',
@@ -142,7 +139,10 @@ export default function EditActivityScreen() {
         location: values.location,
         startDate: new Date(values.startDate).toISOString(),
         endDate: new Date(values.endDate).toISOString(),
-        points: values.points ? parseInt(values.points, 10) : 0,
+        // `points` deliberately omitted from the payload — the field was
+        // removed from this form, and updateActivity only writes keys that
+        // are present, so an edit leaves the stored value alone rather than
+        // silently resetting it to 0.
         expectedSteps: isStepGated && values.expectedSteps ? parseInt(values.expectedSteps, 10) : null,
         totalDistance: isStepGated && values.totalDistance ? parseFloat(values.totalDistance) : null,
         status: values.status, // accepted by the backend (see updateActivity controller), not in ActivityInput's TS shape
@@ -314,20 +314,9 @@ export default function EditActivityScreen() {
           </View>
         )}
 
-        <Controller
-          control={control}
-          name="points"
-          render={({ field: { value, onChange } }) => (
-            <FormInput
-              label={t('admin.activityPoints')}
-              value={value}
-              onChangeText={onChange}
-              placeholder={t('admin.egPoints')}
-              keyboardType="numeric"
-              colors={colors}
-            />
-          )}
-        />
+        {/* The "points awarded" field was removed — see create-activity.tsx.
+            An activity's stored `points` value is left untouched by an edit
+            rather than being reset, so existing rows keep whatever they had. */}
 
         <Controller
           control={control}
