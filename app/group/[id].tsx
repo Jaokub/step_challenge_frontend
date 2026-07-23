@@ -89,7 +89,7 @@ export default function GroupDetailScreen() {
   } = useGroupDetail(id);
 
   const memberRankRange = calculateDateRange(PERIOD_TO_TIMEFRAME[memberRankPeriod], new Date());
-  const { overview, isOverviewLoading } = useGroupOverview(id, memberRankRange.startDate, memberRankRange.endDate);
+  const { overview, isOverviewLoading, isOverviewFetching } = useGroupOverview(id, memberRankRange.startDate, memberRankRange.endDate);
   const { hierarchy, isHierarchyFetching } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
 
   // Shares its cache key with ParentGroupPickerSheet's own query (same id,
@@ -438,8 +438,10 @@ export default function GroupDetailScreen() {
               </AppText>
               <PeriodPillSelector value={memberRankPeriod} onChange={setMemberRankPeriod} />
             </View>
-            {isOverviewLoading ? (
-              [1, 2, 3].map((i) => <Skeleton key={i} width="100%" height={45} borderRadius={18} />)
+            {isOverviewFetching ? (
+              Array.from({ length: ranking.length || 3 }).map((_, i) => (
+                <Skeleton key={i} width="100%" height={45} borderRadius={18} />
+              ))
             ) : (
               ranking.map((row) => (
                 <View key={row.id} style={[styles.rankRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>

@@ -25,9 +25,12 @@ interface RelationGroupCardProps {
   onViewAll?: () => void;
   /**
    * True while this section's period pill is refetching (see
-   * useHierarchyOverview's `isHierarchyFetching`). Renders skeleton bars in
-   * the exact box of the resolved card instead of the real title/stats/top3
-   * — `top3.length` (kept from the previous period via keepPreviousData)
+   * useHierarchyOverview's `isHierarchyFetching`). Only the Top-3 rows
+   * become skeleton bars — `stats` (today/week/month) don't depend on which
+   * pill is selected (that row always shows all three windows regardless),
+   * so title/stats stay live the whole time; skeletoning them would just be
+   * pointless flicker over numbers that were never going to change.
+   * `top3.length` (kept from the previous period via keepPreviousData)
    * decides how many skeleton rows to draw, so the card doesn't resize when
    * real data lands.
    */
@@ -54,20 +57,6 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
   const statGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
   const statLabelColor = dashboardAccents.goalLabel[tone];
   const statDivider = colors.primary + '33';
-
-  if (isLoading) {
-    const rowCount = top3.length || 3;
-    return (
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Skeleton width="55%" height={14} borderRadius={4} />
-        <Skeleton width="100%" height={60} borderRadius={14} />
-        <Skeleton width="35%" height={11} borderRadius={4} />
-        {Array.from({ length: rowCount }).map((_, i) => (
-          <Skeleton key={i} width="100%" height={35} borderRadius={14} />
-        ))}
-      </View>
-    );
-  }
 
   const Wrapper = onPress ? TouchableOpacity : View;
 
@@ -105,26 +94,30 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
         )}
       </View>
 
-      {top3.map((row) => {
-        const RowWrapper = row.onPress ? TouchableOpacity : View;
-        return (
-          <RowWrapper
-            key={row.rank}
-            {...(row.onPress ? { onPress: row.onPress, activeOpacity: 0.7 } : {})}
-            style={[styles.top3Row, { backgroundColor: insetBg }]}
-          >
-            <AppText variant="body-bold" style={[styles.top3Rank, { color: colors.textSecondary }]}>
-              {row.rank}
-            </AppText>
-            <AppText variant="body-medium" style={[styles.top3Name, { color: colors.textPrimary }]} numberOfLines={1}>
-              {row.name}
-            </AppText>
-            <AppText variant="body-bold" style={[styles.top3Steps, { color: colors.textPrimary }]}>
-              {row.steps.toLocaleString()}
-            </AppText>
-          </RowWrapper>
-        );
-      })}
+      {isLoading
+        ? Array.from({ length: top3.length || 3 }).map((_, i) => (
+            <Skeleton key={i} width="100%" height={35} borderRadius={14} />
+          ))
+        : top3.map((row) => {
+            const RowWrapper = row.onPress ? TouchableOpacity : View;
+            return (
+              <RowWrapper
+                key={row.rank}
+                {...(row.onPress ? { onPress: row.onPress, activeOpacity: 0.7 } : {})}
+                style={[styles.top3Row, { backgroundColor: insetBg }]}
+              >
+                <AppText variant="body-bold" style={[styles.top3Rank, { color: colors.textSecondary }]}>
+                  {row.rank}
+                </AppText>
+                <AppText variant="body-medium" style={[styles.top3Name, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {row.name}
+                </AppText>
+                <AppText variant="body-bold" style={[styles.top3Steps, { color: colors.textPrimary }]}>
+                  {row.steps.toLocaleString()}
+                </AppText>
+              </RowWrapper>
+            );
+          })}
     </Wrapper>
   );
 }

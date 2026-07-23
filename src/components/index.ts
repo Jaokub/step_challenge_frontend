@@ -38,7 +38,6 @@ export { default as PointsBadge } from './PointsBadge';
 // Cards
 export { default as ActivityCard } from './ActivityCard';
 export { default as GroupCard } from './GroupCard';
-export { default as LeaderboardItem } from './LeaderboardItem';
 export { default as HealthStatCard } from './HealthStatCard';
 
 // Feedback & States

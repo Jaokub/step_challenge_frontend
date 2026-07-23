@@ -5,64 +5,82 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { useAuth } from '../../../src/contexts/AuthContext';
-import { AppText, LoadingScreen, EmptyState, LeaderboardItem } from '../../../src/components';
-import { spacing, fontSize } from '../../../src/constants/theme';
+import { AppText, EmptyState, Skeleton } from '../../../src/components';
+import { spacing } from '../../../src/constants/theme';
 import { useGroupOverview } from '../../../src/features/group/useGroupOverview';
-import { GroupOverviewSection } from '../../../src/features/group/GroupOverviewSection';
+import { GroupOverallStatCard } from '../../../src/features/group/GroupOverallStatCard';
 import type { GroupRankingRow } from '../../../src/types';
 
 /**
- * Read-only "everything a parent group can see" view of a descendant group:
- * its overall stats, top3, and full ranking. Reachable only from
- * GroupDescendantsSection (Faculty -> Dept). No member-management actions —
- * the viewer isn't a member of this group, they're an ancestor.
+ * Read-only "everything a parent group can see" view of a descendant
+ * group: its today/week/month stat card + full member ranking. Reachable
+ * from each relation card's "ดูทั้งหมด" (children) or whole-card tap
+ * (parent/siblings) on /group/[id] — the viewer isn't a member of this
+ * group, they're an ancestor (same self/ancestor visibility as the group's
+ * own /group/[id] member list, via useGroupOverview's backend endpoint).
+ *
+ * Pixel-matches the mockup's "อันดับกลุ่มย่อยทั้งหมด" full-list layout
+ * (chip back button, title+subtitle header, mint today/week/month stat
+ * card, plain rank/name/steps rows) — but ranks this group's own MEMBERS,
+ * not sibling/child groups against each other.
  */
 export default function GroupDescendantOverviewScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { user } = useAuth();
 
   const { overview, isOverviewLoading } = useGroupOverview(id);
+  const ranking = overview?.ranking ?? [];
 
-  const renderRow = ({ item }: { item: GroupRankingRow }) => (
-    <LeaderboardItem
-      rank={item.rank}
-      user={{ fullName: item.fullName, department: item.department, avatarUrl: item.avatarUrl ?? undefined, steps: item.steps ?? 0 }}
-      isCurrentUser={item.id === user?.id}
-    />
+  const renderRow = (item: GroupRankingRow) => (
+    <View key={item.id} style={[styles.rankRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      <AppText variant="body-bold" style={[styles.rankNum, { color: colors.textSecondary }]}>
+        {item.rank}
+      </AppText>
+      <AppText variant="body-medium" style={[styles.rankName, { color: colors.textPrimary }]} numberOfLines={1}>
+        {item.fullName}
+      </AppText>
+      <AppText variant="heading-bold" style={[styles.rankSteps, { color: colors.textPrimary }]}>
+        {(item.steps ?? 0).toLocaleString()}
+      </AppText>
+    </View>
   );
-
-  if (isOverviewLoading) return <LoadingScreen message={t('common.loading')} />;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <AppText variant="heading-bold" style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
-          {name || t('groups.departmentGroups')}
-        </AppText>
-        <View style={{ width: 24 }} />
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => (router.canGoBack() ? router.back() : router.push('/(tabs)/groups'))}
+            style={[styles.chip, { backgroundColor: colors.inputBackground }]}
+          >
+            <Ionicons name="chevron-back" size={14} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <View style={styles.headerTitleWrap}>
+            <AppText variant="heading-bold" style={[styles.headerTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+              {name || t('groups.departmentGroups')}
+            </AppText>
+            <AppText style={[styles.headerSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
+              {t('groups.memberRanking')}
+            </AppText>
+          </View>
+        </View>
       </SafeAreaView>
 
       <FlatList
-        data={overview?.ranking ?? []}
-        keyExtractor={(item) => item.id}
-        renderItem={renderRow}
+        data={isOverviewLoading ? ([1, 2, 3] as any) : ranking}
+        keyExtractor={(item, index) => (isOverviewLoading ? index.toString() : item.id)}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <GroupOverviewSection
-            overallStats={overview?.overallStats ?? null}
-            top3={overview?.top3 ?? []}
-            isLoading={isOverviewLoading}
-            currentUserId={user?.id}
-          />
+          <GroupOverallStatCard stats={overview?.periodStats ?? null} isLoading={isOverviewLoading} />
         }
-        ListEmptyComponent={<EmptyState icon="people-outline" title={t('common.noData')} subtitle="" />}
+        ListEmptyComponent={
+          !isOverviewLoading ? <EmptyState icon="people-outline" title={t('common.noData')} subtitle="" /> : null
+        }
+        renderItem={({ item }) =>
+          isOverviewLoading ? <Skeleton width="100%" height={45} borderRadius={18} /> : renderRow(item)
+        }
       />
     </View>
   );
@@ -70,14 +88,21 @@ export default function GroupDescendantOverviewScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.md,
+    paddingTop: 10,
+    paddingBottom: 6,
   },
-  backButton: { padding: spacing.xs },
-  headerTitle: { fontSize: 18, flex: 1, textAlign: 'center' },
-  listContent: { padding: spacing.xl, paddingBottom: spacing['4xl'] },
+  chip: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  headerTitleWrap: { flex: 1, minWidth: 0 },
+  headerTitle: { fontSize: 16, lineHeight: 19 },
+  headerSubtitle: { fontSize: 11, lineHeight: 13, marginTop: 1 },
+  listContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.sm },
+  rankRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: 18, borderWidth: 1, padding: 11 },
+  rankNum: { width: 14, textAlign: 'center', fontSize: 13, lineHeight: 15 },
+  rankName: { flex: 1, fontSize: 13, lineHeight: 15 },
+  rankSteps: { fontSize: 13, lineHeight: 15 },
 });
