@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { AppText } from '../../components';
+import { AppText, Skeleton } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { gradients, dashboardAccents } from '../../constants/theme';
 import type { PeriodBucket } from '../../types';
@@ -23,13 +23,22 @@ interface RelationGroupCardProps {
   onPress?: () => void;
   /** Child card's "ดูทั้งหมด ›" — opens frame 20's full list. */
   onViewAll?: () => void;
+  /**
+   * True while this section's period pill is refetching (see
+   * useHierarchyOverview's `isHierarchyFetching`). Renders skeleton bars in
+   * the exact box of the resolved card instead of the real title/stats/top3
+   * — `top3.length` (kept from the previous period via keepPreviousData)
+   * decides how many skeleton rows to draw, so the card doesn't resize when
+   * real data lands.
+   */
+  isLoading?: boolean;
 }
 
 // Shared shell for the frame-13/15 relation cards (BUILD_PLAN.md Phase
 // 5.2, mockup v6): กลุ่มแม่ (parent) / กลุ่มพี่น้อง (sibling) — one real
 // group, Top-3 MEMBERS — and กลุ่มลูก (children) — an aggregate across all
 // child groups, Top-3 SUB-GROUPS + "ดูทั้งหมด". Same card template either way.
-export default function RelationGroupCard({ title, stats, top3Label, top3, onPress, onViewAll }: RelationGroupCardProps) {
+export default function RelationGroupCard({ title, stats, top3Label, top3, onPress, onViewAll, isLoading = false }: RelationGroupCardProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const tone = isDark ? 'dark' : 'light';
@@ -45,6 +54,20 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
   const statGradient = isDark ? gradients.goalCard : gradients.goalCardLight;
   const statLabelColor = dashboardAccents.goalLabel[tone];
   const statDivider = colors.primary + '33';
+
+  if (isLoading) {
+    const rowCount = top3.length || 3;
+    return (
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <Skeleton width="55%" height={14} borderRadius={4} />
+        <Skeleton width="100%" height={60} borderRadius={14} />
+        <Skeleton width="35%" height={11} borderRadius={4} />
+        {Array.from({ length: rowCount }).map((_, i) => (
+          <Skeleton key={i} width="100%" height={35} borderRadius={14} />
+        ))}
+      </View>
+    );
+  }
 
   const Wrapper = onPress ? TouchableOpacity : View;
 

@@ -90,7 +90,7 @@ export default function GroupDetailScreen() {
 
   const memberRankRange = calculateDateRange(PERIOD_TO_TIMEFRAME[memberRankPeriod], new Date());
   const { overview, isOverviewLoading } = useGroupOverview(id, memberRankRange.startDate, memberRankRange.endDate);
-  const { hierarchy } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
+  const { hierarchy, isHierarchyFetching } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
 
   // Shares its cache key with ParentGroupPickerSheet's own query (same id,
   // search='') so opening the sheet doesn't re-fetch — just to know whether
@@ -476,6 +476,7 @@ export default function GroupDetailScreen() {
                 stats={hierarchy.parent.overallStats}
                 top3Label={t('groups.top3Members')}
                 top3={hierarchy.parent.top3}
+                isLoading={isHierarchyFetching}
                 onPress={() =>
                   router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
                 }
@@ -498,6 +499,7 @@ export default function GroupDetailScreen() {
                   stats={sibling.overallStats}
                   top3Label={t('groups.top3Members')}
                   top3={sibling.top3}
+                  isLoading={isHierarchyFetching}
                   onPress={() =>
                     router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
                   }
@@ -528,6 +530,7 @@ export default function GroupDetailScreen() {
                   stats={child.overallStats}
                   top3Label={t('groups.top3Members')}
                   top3={child.top3}
+                  isLoading={isHierarchyFetching}
                   onViewAll={() =>
                     router.push(`/group/overview/${child.groupId}?name=${encodeURIComponent(child.groupName)}`)
                   }
