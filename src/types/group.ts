@@ -120,16 +120,19 @@ export interface ChildRanking {
   ranking: ChildRankingRow[];
 }
 
+/** One of the three windows a relation card's Top-3 can be ranked by. */
+export type RelationPeriod = 'today' | 'week' | 'month';
+
 // GET /groups/:id/hierarchy-overview — bundled relation-card data for
-// frames 13/15. `children.top3` are individual CHILD GROUPS (ranked by
-// their own steps), not members — unlike `parent`/`siblings[].top3`.
+// frames 13/15. `children` is now one preview PER child group (same shape
+// as `siblings`, each with member-level top3) rather than a single
+// aggregate card ranking the child groups against each other — that read
+// as "wrong" in the UI (rank list showed group names, capped at 3, no way
+// to see a child group's own members).
 export interface GroupHierarchyOverview {
   parent: SiblingGroupOverview | null;
   siblings: SiblingGroupOverview[];
-  children: {
-    stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
-    top3: ChildRankingRow[];
-  };
+  children: SiblingGroupOverview[];
 }
 
 // ─── Hierarchy request/approve + admin god-mode (BUILD_PLAN.md Phase 5) ───

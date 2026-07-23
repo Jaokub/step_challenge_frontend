@@ -59,7 +59,8 @@ export const queryKeys = {
     adminTree: ['groups', 'adminTree'] as const,
     // Phase 5.2 — relation cards + child ranking.
     children: (id: string) => ['groups', 'children', id] as const,
-    hierarchyOverview: (id: string) => ['groups', 'hierarchyOverview', id] as const,
+    hierarchyOverview: (id: string, parentPeriod?: string, siblingsPeriod?: string, childrenPeriod?: string) =>
+      ['groups', 'hierarchyOverview', id, parentPeriod, siblingsPeriod, childrenPeriod] as const,
   },
   friends: {
     all: ['friends'] as const,

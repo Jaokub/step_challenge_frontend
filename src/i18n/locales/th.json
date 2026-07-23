@@ -227,14 +227,16 @@
       "week": "อาทิตย์นี้",
       "month": "เดือนนี้"
     },
+    "periodShort": {
+      "today": "วัน",
+      "week": "สัปดาห์",
+      "month": "เดือน"
+    },
     "viewAll": "ดูทั้งหมด ›",
-    "parentCardTitle": "กลุ่มแม่ · {{name}}",
-    "siblingCardTitle": "กลุ่มพี่น้อง · {{name}}",
+    "parentSectionTitle": "กลุ่มแม่",
+    "siblingsSectionTitle": "กลุ่มพี่น้อง",
     "childGroupsSectionTitle": "กลุ่มลูก",
-    "top3Members": "Top 3 สมาชิก",
-    "top3SubGroups": "Top 3 กลุ่มย่อย",
-    "childGroupRankingTitle": "อันดับกลุ่มย่อย",
-    "childGroupRanking": "อันดับกลุ่มย่อยทั้งหมด"
+    "top3Members": "Top 3 สมาชิก"
   },
   "profile": {
     "title": "โปรไฟล์",

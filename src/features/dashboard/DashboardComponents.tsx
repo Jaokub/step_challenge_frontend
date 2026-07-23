@@ -157,11 +157,11 @@ export const DashboardHeader = ({
       </CustomModal>
 
       {/* Unit-aware nav — label + step size follow the active timeframe */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: layout.headerGap }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: layout.screenPaddingX, marginBottom: layout.headerGap }}>
         <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToPrev(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>
           <Ionicons name="chevron-back" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setPickerOpen(true)} activeOpacity={0.7} style={{ minWidth: 150, paddingHorizontal: 4, alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => setPickerOpen(true)} activeOpacity={0.7} style={{ flex: 1, paddingHorizontal: 4, alignItems: 'center' }}>
           <AppText variant="heading-bold" style={{ fontSize: 18, lineHeight: 24, color: colors.textPrimary, textAlign: 'center' }} numberOfLines={1}>{topLabel}</AppText>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => { Haptics.selectionAsync(); goToNext(); }} style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.inputBackground, alignItems: 'center', justifyContent: 'center' }}>

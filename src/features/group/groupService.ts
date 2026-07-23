@@ -13,6 +13,7 @@ import type {
   AdminGroupTreeNode,
   ChildRanking,
   GroupHierarchyOverview,
+  RelationPeriod,
 } from '../../types';
 
 // ─── Service ────────────────────────────────────────────────
@@ -302,10 +303,19 @@ const groupService = {
     }
   },
 
-  /** Bundled { parent, siblings, children } relation-card data for frames 13/15. */
-  async getHierarchyOverview(id: string): Promise<ApiResponse<GroupHierarchyOverview>> {
+  /**
+   * Bundled { parent, siblings, children } relation-card data for frames
+   * 13/15. Each section ranks its own Top-3 independently, so all three
+   * periods are optional/independent query params.
+   */
+  async getHierarchyOverview(
+    id: string,
+    periods?: { parentPeriod?: RelationPeriod; siblingsPeriod?: RelationPeriod; childrenPeriod?: RelationPeriod },
+  ): Promise<ApiResponse<GroupHierarchyOverview>> {
     try {
-      const { data } = await api.get<ApiResponse<GroupHierarchyOverview>>(`/groups/${id}/hierarchy-overview`);
+      const { data } = await api.get<ApiResponse<GroupHierarchyOverview>>(`/groups/${id}/hierarchy-overview`, {
+        params: periods,
+      });
       return data;
     } catch (error: any) {
       throw error.response?.data ?? error;

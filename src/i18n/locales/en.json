@@ -227,14 +227,16 @@
       "week": "This week",
       "month": "This month"
     },
+    "periodShort": {
+      "today": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
     "viewAll": "View all ›",
-    "parentCardTitle": "Parent · {{name}}",
-    "siblingCardTitle": "Sibling · {{name}}",
+    "parentSectionTitle": "Parent group",
+    "siblingsSectionTitle": "Sibling groups",
     "childGroupsSectionTitle": "Child groups",
-    "top3Members": "Top 3 members",
-    "top3SubGroups": "Top 3 sub-groups",
-    "childGroupRankingTitle": "Sub-group ranking",
-    "childGroupRanking": "All child group rankings"
+    "top3Members": "Top 3 members"
   },
   "profile": {
     "title": "Profile",

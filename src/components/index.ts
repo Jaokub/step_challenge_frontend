@@ -57,6 +57,7 @@ export { default as AdminGuard } from './AdminGuard';
 export { default as SearchBar } from './SearchBar';
 export { default as MonthYearPicker } from './MonthYearPicker';
 export { default as TimeframeSelector } from './TimeframeSelector';
+export { default as PeriodPillSelector } from './PeriodPillSelector';
 
 // Settings & Preferences
 export { default as SettingsRow } from './SettingsRow';

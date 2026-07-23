@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useToast } from '../../src/contexts/ToastContext';
-import { AppText, LoadingScreen, ErrorState, CustomModal, PrimaryButton, OutlineButton } from '../../src/components';
+import { AppText, LoadingScreen, ErrorState, CustomModal, PrimaryButton, OutlineButton, Skeleton, PeriodPillSelector } from '../../src/components';
 import { spacing, gradients, dashboardAccents } from '../../src/constants/theme';
 import { queryKeys } from '../../src/constants/queryKeys';
 import { useGroupDetail } from '../../src/features/group/useGroupDetail';
@@ -22,7 +22,18 @@ import ParentGroupPickerSheet from '../../src/features/group/ParentGroupPickerSh
 import TransferCoordinatorSheet from '../../src/features/group/TransferCoordinatorSheet';
 import IncomingParentRequestsSheet from '../../src/features/group/IncomingParentRequestsSheet';
 import groupService from '../../src/features/group/groupService';
-import type { GroupRankingRow } from '../../src/types';
+import { calculateDateRange } from '../../src/features/dashboard/dateRangeCalculator';
+import type { Timeframe } from '../../src/hooks/useTimeframeNav';
+import type { RelationPeriod } from '../../src/types';
+
+// Each day/week/month pill reuses the dashboard's date-range math instead of
+// a bespoke today/week/month calculator — the "current period, no browsing"
+// case is just calculateDateRange(timeframe, now).
+const PERIOD_TO_TIMEFRAME: Record<RelationPeriod, Timeframe> = {
+  today: 'Daily',
+  week: 'Weekly',
+  month: 'Monthly',
+};
 
 const initials = (name?: string): string =>
   (name || '?').trim().split(/\s+/).slice(0, 2).map((p) => p.charAt(0)).join('').toUpperCase();
@@ -50,6 +61,14 @@ export default function GroupDetailScreen() {
   const [transferSheetOpen, setTransferSheetOpen] = useState(false);
   const [incomingRequestsOpen, setIncomingRequestsOpen] = useState(false);
 
+  // One day/week/month pill per ranking section — each re-ranks
+  // independently (member ranking, and each of the three relation-card
+  // sections below), rather than one control governing everything.
+  const [memberRankPeriod, setMemberRankPeriod] = useState<RelationPeriod>('month');
+  const [parentPeriod, setParentPeriod] = useState<RelationPeriod>('month');
+  const [siblingsPeriod, setSiblingsPeriod] = useState<RelationPeriod>('month');
+  const [childrenPeriod, setChildrenPeriod] = useState<RelationPeriod>('month');
+
   const {
     group,
     isLoading,
@@ -69,8 +88,9 @@ export default function GroupDetailScreen() {
     handleDeleteGroup,
   } = useGroupDetail(id);
 
-  const { overview, isOverviewLoading } = useGroupOverview(id);
-  const { hierarchy } = useHierarchyOverview(id);
+  const memberRankRange = calculateDateRange(PERIOD_TO_TIMEFRAME[memberRankPeriod], new Date());
+  const { overview, isOverviewLoading } = useGroupOverview(id, memberRankRange.startDate, memberRankRange.endDate);
+  const { hierarchy } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
 
   // Shares its cache key with ParentGroupPickerSheet's own query (same id,
   // search='') so opening the sheet doesn't re-fetch — just to know whether
@@ -102,19 +122,11 @@ export default function GroupDetailScreen() {
   });
   const incomingRequestsCount = incomingRequestsQuery.data?.length ?? 0;
 
-  const fallbackRanking: GroupRankingRow[] = (group?.members ?? [])
-    .slice()
-    .sort((a, b) => (b.user?.totalPoints ?? 0) - (a.user?.totalPoints ?? 0))
-    .map((m, idx) => ({
-      id: m.user?.id ?? m.id,
-      fullName: m.user?.fullName ?? 'User',
-      department: m.user?.department ?? '-',
-      avatarUrl: m.user?.avatarUrl,
-      totalPoints: m.user?.totalPoints ?? 0,
-      points: m.user?.totalPoints ?? 0,
-      rank: idx + 1,
-    }));
-  const ranking = overview?.ranking ?? fallbackRanking;
+  // No points-based fallback while `overview` is still loading — this
+  // screen must never show dormant PointsLedger figures (CLAUDE.md: no
+  // points anywhere in the UI). The section below renders skeleton rows
+  // instead for that brief window.
+  const ranking = overview?.ranking ?? [];
 
   if (isLoading) return <LoadingScreen message={t('common.loading')} />;
 
@@ -420,60 +432,108 @@ export default function GroupDetailScreen() {
           <GroupOverallStatCard stats={overview?.periodStats ?? null} isLoading={isOverviewLoading} />
 
           <View style={styles.section}>
-            <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-              {t('groups.memberRanking')}
-            </AppText>
-            {ranking.map((row) => (
-              <View key={row.id} style={[styles.rankRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-                <AppText variant="body-bold" style={[styles.rankNum, { color: colors.textSecondary }]}>
-                  {row.rank}
-                </AppText>
-                <AppText variant="body-medium" style={[styles.rankName, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {row.fullName}
-                </AppText>
-                <AppText variant="heading-bold" style={[styles.rankSteps, { color: colors.textPrimary }]}>
-                  {(row.steps ?? row.points ?? 0).toLocaleString()}
-                </AppText>
-              </View>
-            ))}
+            <View style={styles.sectionHeaderRow}>
+              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                {t('groups.memberRanking')}
+              </AppText>
+              <PeriodPillSelector value={memberRankPeriod} onChange={setMemberRankPeriod} />
+            </View>
+            {isOverviewLoading ? (
+              [1, 2, 3].map((i) => <Skeleton key={i} width="100%" height={45} borderRadius={18} />)
+            ) : (
+              ranking.map((row) => (
+                <View key={row.id} style={[styles.rankRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                  <AppText variant="body-bold" style={[styles.rankNum, { color: colors.textSecondary }]}>
+                    {row.rank}
+                  </AppText>
+                  <AppText variant="body-medium" style={[styles.rankName, { color: colors.textPrimary }]} numberOfLines={1}>
+                    {row.fullName}
+                  </AppText>
+                  <AppText variant="heading-bold" style={[styles.rankSteps, { color: colors.textPrimary }]}>
+                    {(row.steps ?? 0).toLocaleString()}
+                  </AppText>
+                </View>
+              ))
+            )}
           </View>
 
           {/* Mockup v6 frames 13/15: relation cards below the own-group
-              ranking — each card is self-titled ("กลุ่มแม่ · ชื่อ" etc), no
-              separate section header, cards flow directly one after another. */}
+              ranking. Each of the three relation categories (parent,
+              siblings, children) is its own section with a shared title +
+              day/week/month pill; individual cards are titled with just the
+              group's own name — the category no longer needs repeating on
+              every card since the section header already says it. */}
           {!!hierarchy?.parent && (
-            <RelationGroupCard
-              title={t('groups.parentCardTitle', { name: hierarchy.parent.groupName })}
-              stats={hierarchy.parent.overallStats}
-              top3Label={t('groups.top3Members')}
-              top3={hierarchy.parent.top3}
-              onPress={() =>
-                router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
-              }
-            />
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                  {t('groups.parentSectionTitle')}
+                </AppText>
+                <PeriodPillSelector value={parentPeriod} onChange={setParentPeriod} />
+              </View>
+              <RelationGroupCard
+                title={hierarchy.parent.groupName}
+                stats={hierarchy.parent.overallStats}
+                top3Label={t('groups.top3Members')}
+                top3={hierarchy.parent.top3}
+                onPress={() =>
+                  router.push(`/group/overview/${hierarchy.parent!.groupId}?name=${encodeURIComponent(hierarchy.parent!.groupName)}`)
+                }
+              />
+            </View>
           )}
 
-          {hierarchy?.siblings.map((sibling) => (
-            <RelationGroupCard
-              key={sibling.groupId}
-              title={t('groups.siblingCardTitle', { name: sibling.groupName })}
-              stats={sibling.overallStats}
-              top3Label={t('groups.top3Members')}
-              top3={sibling.top3}
-              onPress={() =>
-                router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
-              }
-            />
-          ))}
+          {!!hierarchy?.siblings?.length && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                  {t('groups.siblingsSectionTitle')}
+                </AppText>
+                <PeriodPillSelector value={siblingsPeriod} onChange={setSiblingsPeriod} />
+              </View>
+              {hierarchy.siblings.map((sibling) => (
+                <RelationGroupCard
+                  key={sibling.groupId}
+                  title={sibling.groupName}
+                  stats={sibling.overallStats}
+                  top3Label={t('groups.top3Members')}
+                  top3={sibling.top3}
+                  onPress={() =>
+                    router.push(`/group/overview/${sibling.groupId}?name=${encodeURIComponent(sibling.groupName)}`)
+                  }
+                />
+              ))}
+            </View>
+          )}
 
-          {!!hierarchy?.children?.top3?.length && (
-            <RelationGroupCard
-              title={t('groups.childGroupsSectionTitle')}
-              stats={hierarchy.children.stats}
-              top3Label={t('groups.top3SubGroups')}
-              top3={hierarchy.children.top3.map((row) => ({ rank: row.rank, name: row.groupName, steps: row.steps }))}
-              onViewAll={() => router.push(`/group/${id}/children?name=${encodeURIComponent(group.name)}`)}
-            />
+          {/* Children used to be one aggregate card ranking child GROUPS
+              against each other, capped at 3 — that's what read as "wrong":
+              a group name showing up where a member ranking was expected,
+              with no way to see a child group's own members, and legitimate
+              child groups silently cut off past #3. Now: one card per child
+              group (uncapped), each with its own Top-3 MEMBERS + a "view
+              all" through to that child's full ranking. */}
+          {!!hierarchy?.children?.length && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                  {t('groups.childGroupsSectionTitle')}
+                </AppText>
+                <PeriodPillSelector value={childrenPeriod} onChange={setChildrenPeriod} />
+              </View>
+              {hierarchy.children.map((child) => (
+                <RelationGroupCard
+                  key={child.groupId}
+                  title={child.groupName}
+                  stats={child.overallStats}
+                  top3Label={t('groups.top3Members')}
+                  top3={child.top3}
+                  onViewAll={() =>
+                    router.push(`/group/overview/${child.groupId}?name=${encodeURIComponent(child.groupName)}`)
+                  }
+                />
+              ))}
+            </View>
           )}
 
           {/* Mockup: frame 13 (coordinator) has no leave button — owners use
@@ -597,6 +657,7 @@ const styles = StyleSheet.create({
   coordBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   content: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.md },
   section: { gap: spacing.sm },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 14, lineHeight: 17 },
 
   // Settings panel

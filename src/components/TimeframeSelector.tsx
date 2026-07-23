@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
   navRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: layout.screenPaddingX,
     marginBottom: layout.headerGap,
   },
   navBtn: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navLabelWrap: {
-    minWidth: 150,
+    flex: 1,
     paddingHorizontal: 4,
     alignItems: 'center',
   },

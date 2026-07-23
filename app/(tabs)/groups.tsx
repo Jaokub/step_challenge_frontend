@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
-  listContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.md },
+  listContent: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   card: { borderRadius: 20, borderWidth: 1, padding: 16, gap: spacing.xs },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   coordBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
