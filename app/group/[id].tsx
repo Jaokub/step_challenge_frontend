@@ -90,7 +90,7 @@ export default function GroupDetailScreen() {
 
   const memberRankRange = calculateDateRange(PERIOD_TO_TIMEFRAME[memberRankPeriod], new Date());
   const { overview, isOverviewLoading, isOverviewFetching } = useGroupOverview(id, memberRankRange.startDate, memberRankRange.endDate);
-  const { hierarchy, isHierarchyFetching } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
+  const { hierarchy, isHierarchyLoading, isHierarchyFetching } = useHierarchyOverview(id, { parentPeriod, siblingsPeriod, childrenPeriod });
 
   // Shares its cache key with ParentGroupPickerSheet's own query (same id,
   // search='') so opening the sheet doesn't re-fetch — just to know whether
@@ -465,6 +465,50 @@ export default function GroupDetailScreen() {
               day/week/month pill; individual cards are titled with just the
               group's own name — the category no longer needs repeating on
               every card since the section header already says it. */}
+          {/* Initial hierarchy fetch (isHierarchyLoading, no cached data yet)
+              — we don't know until it resolves whether this group even has
+              a parent/siblings/children, so all three sections render as
+              skeleton rather than just being absent until data lands. Once
+              loaded, these give way to the real `!!hierarchy?.x` blocks
+              below (or nothing, if that relation is genuinely empty). */}
+          {isHierarchyLoading && (
+            <>
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                    {t('groups.parentSectionTitle')}
+                  </AppText>
+                  <PeriodPillSelector value={parentPeriod} onChange={setParentPeriod} />
+                </View>
+                <RelationGroupCard fullSkeleton />
+              </View>
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                    {t('groups.siblingsSectionTitle')}
+                  </AppText>
+                  <PeriodPillSelector value={siblingsPeriod} onChange={setSiblingsPeriod} />
+                </View>
+                {[0, 1].map((i) => (
+                  <RelationGroupCard key={i} fullSkeleton />
+                ))}
+              </View>
+
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                    {t('groups.childGroupsSectionTitle')}
+                  </AppText>
+                  <PeriodPillSelector value={childrenPeriod} onChange={setChildrenPeriod} />
+                </View>
+                {[0, 1].map((i) => (
+                  <RelationGroupCard key={i} fullSkeleton />
+                ))}
+              </View>
+            </>
+          )}
+
           {!!hierarchy?.parent && (
             <View style={styles.section}>
               <View style={styles.sectionHeaderRow}>

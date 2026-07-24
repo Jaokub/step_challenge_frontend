@@ -78,7 +78,7 @@ export const ProfileStatsGrid: React.FC<ProfileStatsGridProps> = ({
       <View style={styles.row}>
         <StatCell
           label={t('profile.calories')}
-          value={calories.toLocaleString()}
+          value={Math.round(calories).toLocaleString()}
           unit={t('dashboard.kcal')}
           color={dashboardAccents.kcalIcon[tone]}
         />

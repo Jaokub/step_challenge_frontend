@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { AppText, EmptyState, Skeleton } from '../../../src/components';
+import { AppText, EmptyState, Skeleton, PeriodPillSelector } from '../../../src/components';
 import { spacing } from '../../../src/constants/theme';
 import { useGroupOverview } from '../../../src/features/group/useGroupOverview';
 import { GroupOverallStatCard } from '../../../src/features/group/GroupOverallStatCard';
-import type { GroupRankingRow } from '../../../src/types';
+import { calculateDateRange } from '../../../src/features/dashboard/dateRangeCalculator';
+import type { Timeframe } from '../../../src/hooks/useTimeframeNav';
+import type { GroupRankingRow, RelationPeriod } from '../../../src/types';
+
+// Same day/week/month pill + date-range mapping as /group/[id]'s own
+// member-ranking section (BUILD_PLAN.md Phase 5.2) — this screen's ranking
+// list should be re-orderable by the same three windows, not locked to
+// all-time like it originally was.
+const PERIOD_TO_TIMEFRAME: Record<RelationPeriod, Timeframe> = {
+  today: 'Daily',
+  week: 'Weekly',
+  month: 'Monthly',
+};
 
 /**
  * Read-only "everything a parent group can see" view of a descendant
@@ -30,7 +42,9 @@ export default function GroupDescendantOverviewScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
 
-  const { overview, isOverviewLoading } = useGroupOverview(id);
+  const [period, setPeriod] = useState<RelationPeriod>('month');
+  const { startDate, endDate } = calculateDateRange(PERIOD_TO_TIMEFRAME[period], new Date());
+  const { overview, isOverviewLoading, isOverviewFetching } = useGroupOverview(id, startDate, endDate);
   const ranking = overview?.ranking ?? [];
 
   const renderRow = (item: GroupRankingRow) => (
@@ -69,17 +83,25 @@ export default function GroupDescendantOverviewScreen() {
       </SafeAreaView>
 
       <FlatList
-        data={isOverviewLoading ? ([1, 2, 3] as any) : ranking}
-        keyExtractor={(item, index) => (isOverviewLoading ? index.toString() : item.id)}
+        data={isOverviewFetching ? ([1, 2, 3] as any) : ranking}
+        keyExtractor={(item, index) => (isOverviewFetching ? index.toString() : item.id)}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <GroupOverallStatCard stats={overview?.periodStats ?? null} isLoading={isOverviewLoading} />
+          <>
+            <GroupOverallStatCard stats={overview?.periodStats ?? null} isLoading={isOverviewLoading} />
+            <View style={styles.sectionHeaderRow}>
+              <AppText variant="body-bold" style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                {t('groups.memberRanking')}
+              </AppText>
+              <PeriodPillSelector value={period} onChange={setPeriod} />
+            </View>
+          </>
         }
         ListEmptyComponent={
-          !isOverviewLoading ? <EmptyState icon="people-outline" title={t('common.noData')} subtitle="" /> : null
+          !isOverviewFetching ? <EmptyState icon="people-outline" title={t('common.noData')} subtitle="" /> : null
         }
         renderItem={({ item }) =>
-          isOverviewLoading ? <Skeleton width="100%" height={45} borderRadius={18} /> : renderRow(item)
+          isOverviewFetching ? <Skeleton width="100%" height={45} borderRadius={18} /> : renderRow(item)
         }
       />
     </View>
@@ -98,6 +120,13 @@ const styles = StyleSheet.create({
   },
   chip: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   headerTitleWrap: { flex: 1, minWidth: 0 },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: { fontSize: 14, lineHeight: 17 },
   headerTitle: { fontSize: 16, lineHeight: 19 },
   headerSubtitle: { fontSize: 11, lineHeight: 13, marginTop: 1 },
   listContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.sm },

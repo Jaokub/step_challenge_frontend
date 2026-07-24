@@ -75,9 +75,14 @@ export default function GroupsScreen() {
     return (
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.cardTop}>
-          <AppText variant="body-bold" style={{ flex: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={1}>
-            {item.name}
-          </AppText>
+          <View style={styles.cardTitleRow}>
+            <AppText variant="body-bold" style={{ flexShrink: 1, fontSize: fontSize.md, color: colors.textPrimary }} numberOfLines={1}>
+              {item.name}
+            </AppText>
+            <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary }} numberOfLines={1}>
+              {t('groups.memberCountLabel', { count: item.memberCount ?? 0 })}
+            </AppText>
+          </View>
           {isCoordinator && (
             <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.coordBadge}>
               <AppText style={{ fontSize: 10, fontWeight: '700' as any, color: colors.onPrimary }}>
@@ -86,9 +91,6 @@ export default function GroupsScreen() {
             </LinearGradient>
           )}
         </View>
-        <AppText style={{ fontSize: fontSize.sm, color: colors.textSecondary, marginBottom: spacing.sm }}>
-          {t('groups.memberCountLabel', { count: item.memberCount ?? 0 })}
-        </AppText>
 
         <View style={styles.cardActions}>
           <TouchableOpacity
@@ -220,6 +222,7 @@ const styles = StyleSheet.create({
   listContent: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   card: { borderRadius: 20, borderWidth: 1, padding: 16, gap: spacing.xs },
   cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  cardTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
   coordBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 },
   cardActions: { flexDirection: 'row', gap: spacing.sm },
   rankingBtn: {
@@ -228,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderRadius: borderRadius.md,
     borderWidth: 1,
   },
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderRadius: borderRadius.md,
   },
 });

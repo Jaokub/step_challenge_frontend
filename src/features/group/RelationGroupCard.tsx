@@ -15,10 +15,10 @@ export interface RelationTop3Item {
 }
 
 interface RelationGroupCardProps {
-  title: string;
-  stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
-  top3Label: string;
-  top3: RelationTop3Item[];
+  title?: string;
+  stats?: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
+  top3Label?: string;
+  top3?: RelationTop3Item[];
   /** Tapping the card header navigates to that group's own overview (parent/sibling only). */
   onPress?: () => void;
   /** Child card's "ดูทั้งหมด ›" — opens frame 20's full list. */
@@ -35,13 +35,22 @@ interface RelationGroupCardProps {
    * real data lands.
    */
   isLoading?: boolean;
+  /**
+   * True for the very first hierarchy fetch (`isHierarchyLoading`), before
+   * we know whether this group even *has* a parent/siblings/children —
+   * there's no title/stats/top3 to keep live yet, unlike `isLoading` above.
+   * Renders the whole card (title, stat row, top3 rows) as skeleton blocks
+   * in the exact box the resolved card will occupy, instead of the section
+   * just being absent while its data loads.
+   */
+  fullSkeleton?: boolean;
 }
 
 // Shared shell for the frame-13/15 relation cards (BUILD_PLAN.md Phase
 // 5.2, mockup v6): กลุ่มแม่ (parent) / กลุ่มพี่น้อง (sibling) — one real
 // group, Top-3 MEMBERS — and กลุ่มลูก (children) — an aggregate across all
 // child groups, Top-3 SUB-GROUPS + "ดูทั้งหมด". Same card template either way.
-export default function RelationGroupCard({ title, stats, top3Label, top3, onPress, onViewAll, isLoading = false }: RelationGroupCardProps) {
+export default function RelationGroupCard({ title, stats, top3Label, top3 = [], onPress, onViewAll, isLoading = false, fullSkeleton = false }: RelationGroupCardProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const tone = isDark ? 'dark' : 'light';
@@ -60,6 +69,33 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
 
   const Wrapper = onPress ? TouchableOpacity : View;
 
+  if (fullSkeleton) {
+    return (
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <Skeleton width={110} height={16} borderRadius={4} />
+
+        <View style={[styles.statRow, { backgroundColor: insetBg }]}>
+          {[0, 1, 2].map((i) => (
+            <React.Fragment key={i}>
+              <View style={styles.statCol}>
+                <Skeleton width={28} height={11} borderRadius={4} style={{ marginBottom: 4 }} />
+                <Skeleton width={44} height={17} borderRadius={4} />
+              </View>
+              {i < 2 && <View style={[styles.statDivider, { backgroundColor: statDivider }]} />}
+            </React.Fragment>
+          ))}
+        </View>
+
+        <View style={styles.top3Header}>
+          <Skeleton width={60} height={11} borderRadius={4} />
+        </View>
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} width="100%" height={35} borderRadius={14} />
+        ))}
+      </View>
+    );
+  }
+
   return (
     <Wrapper
       {...(onPress ? { onPress, activeOpacity: 0.8 } : {})}
@@ -77,7 +113,7 @@ export default function RelationGroupCard({ title, stats, top3Label, top3, onPre
                 {t(`groups.period.${period}`)}
               </AppText>
               <AppText variant="heading-extraBold" style={[styles.statValue, { color: colors.primary }]}>
-                {stats[period].steps.toLocaleString()}
+                {stats![period].steps.toLocaleString()}
               </AppText>
             </View>
             {i < 2 && <View style={[styles.statDivider, { backgroundColor: statDivider }]} />}
