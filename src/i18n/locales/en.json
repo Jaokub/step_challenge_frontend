@@ -140,7 +140,8 @@
     "addFriendDesc": "Scan QR to add a new friend",
     "registerEventTitle": "Register Event",
     "registerEventDesc": "Scan to join an activity",
-    "friendRequestSent": "Friend request sent!"
+    "friendRequestSent": "Friend request sent!",
+    "groupJoined": "Joined group!"
   },
   "groups": {
     "yesterday": "Yesterday",
@@ -236,7 +237,10 @@
     "parentSectionTitle": "Parent group",
     "siblingsSectionTitle": "Sibling groups",
     "childGroupsSectionTitle": "Child groups",
-    "top3Members": "Top 3 members"
+    "top3Members": "Top 3 members",
+    "badgeOverflow": "+{{count}}",
+    "noSubgroup": "No sub-group",
+    "childGroupRanking": "Sub-group ranking"
   },
   "profile": {
     "title": "Profile",

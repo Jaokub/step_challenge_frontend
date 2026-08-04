@@ -21,6 +21,9 @@ export { default as HeaderIconButton } from './HeaderIconButton';
 // Left in place rather than deleted; AnimatedTabIcon is the one actually used.
 export { default as AnimatedTabIcon } from './AnimatedTabIcon';
 
+// Ranking
+export { default as MemberRankRow } from './MemberRankRow';
+
 // Progress & Animation
 export { default as AnimatedCounter } from './AnimatedCounter';
 export { default as CircularProgress } from './CircularProgress';

@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 7,
+    paddingVertical: 4,
     borderRadius: borderRadius.md,
     borderWidth: 1,
   },
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 7,
+    paddingVertical: 4,
     borderRadius: borderRadius.md,
   },
 });

@@ -569,6 +569,19 @@ export default function GroupDetailScreen() {
                 </AppText>
                 <PeriodPillSelector value={childrenPeriod} onChange={setChildrenPeriod} />
               </View>
+              {/* Opens the child groups ranked against EACH OTHER, plus the
+                  members who joined none of them. The cards below instead rank
+                  members within each child, so both views are needed. */}
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(`/group/children/${id}?name=${encodeURIComponent(group?.name ?? '')}`)
+                }
+                style={styles.childrenViewAllRow}
+              >
+                <AppText variant="body-semiBold" style={{ fontSize: 12, color: colors.primary }}>
+                  {t('groups.viewAll')}
+                </AppText>
+              </TouchableOpacity>
               {hierarchy.children.map((child) => (
                 <RelationGroupCard
                   key={child.groupId}
@@ -707,6 +720,9 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.md },
   section: { gap: spacing.sm },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  // Right-aligned under the section header, matching each card's own
+  // "ดูทั้งหมด" affordance rather than introducing a new one.
+  childrenViewAllRow: { alignSelf: 'flex-end', marginTop: -4 },
   sectionTitle: { fontSize: 14, lineHeight: 17 },
 
   // Settings panel

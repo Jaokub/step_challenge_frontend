@@ -13,6 +13,8 @@ import { AppText, ScreenHeader, PrimaryButton } from '../src/components';
 import { useTheme } from '../src/contexts/ThemeContext';
 import checkinService from '../src/features/activity/checkinService';
 import friendService from '../src/features/friend/friendService';
+import groupService from '../src/features/group/groupService';
+import { classifyScannedQR } from '../src/features/scan/parseScannedQR';
 import { spacing, borderRadius } from '../src/constants/theme';
 
 const SCANLINE_GRAD_START = { x: 0, y: 0 };
@@ -53,7 +55,15 @@ export default function ScanScreen() {
     },
   });
 
-  const processing = sendFriendRequestMutation.isPending || checkinMutation.isPending;
+  const joinGroupMutation = useMutation({
+    mutationFn: (inviteCode: string) => groupService.joinGroup(inviteCode),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
+    },
+  });
+
+  const processing =
+    sendFriendRequestMutation.isPending || checkinMutation.isPending || joinGroupMutation.isPending;
 
   // useRef so the animated value survives re-renders (a plain `new Animated.Value`
   // here would be recreated every render and the scan line would stutter/reset).
@@ -68,25 +78,14 @@ export default function ScanScreen() {
     ).start();
   }, []);
 
-  // Canonical friend-QR format: "sc:friend:<userId>".
-  // Also accepts the legacy JSON/link formats for QR codes that are already
-  // printed or screenshotted.
-  const parseFriendQR = (data: string): string | null => {
-    const canonical = data.match(/^sc:friend:([\w-]+)$/);
-    if (canonical) return canonical[1];
-
+  // Payload classification lives in src/features/scan/parseScannedQR.ts so it
+  // can be unit-tested — this screen imports expo-camera, which the pure-logic
+  // mobile test setup cannot load. Same split as attendeeRoster.ts.
+  const showFailure = async (message: string) => {
+    setResult({ success: false, message });
     try {
-      const parsed = JSON.parse(data);
-      if (parsed.type === 'friend' || parsed.userId) {
-        return parsed.userId || parsed.id || null;
-      }
-    } catch {
-      if (data.includes('add-friend') || data.includes('userId')) {
-        const match = data.match(/userId[=:'"\s]+([^&"'\s}]+)/i);
-        if (match && match[1]) return match[1];
-      }
-    }
-    return null;
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } catch {}
   };
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
@@ -97,25 +96,38 @@ export default function ScanScreen() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {}
 
-    try {
-      const scannedUserId = parseFriendQR(data);
+    const scan = classifyScannedQR(data);
 
-      if (scannedUserId) {
-        await sendFriendRequestMutation.mutateAsync(scannedUserId);
-        setResult({ success: true, message: t('scan.friendRequestSent') });
-      } else {
-        // Check-in is an attendance record only — the points economy is
-        // dormant and never surfaced in the UI, so the toast just confirms
-        // the check-in.
-        await checkinMutation.mutateAsync(data);
-        setResult({ success: true, message: t('scan.success') });
+    try {
+      switch (scan.kind) {
+        case 'friend':
+          await sendFriendRequestMutation.mutateAsync(scan.userId);
+          setResult({ success: true, message: t('scan.friendRequestSent') });
+          break;
+
+        case 'group':
+          await joinGroupMutation.mutateAsync(scan.inviteCode);
+          setResult({ success: true, message: t('scan.groupJoined') });
+          break;
+
+        case 'checkin':
+          // Check-in is an attendance record only — the points economy is
+          // dormant and never surfaced in the UI, so the toast just confirms
+          // the check-in.
+          await checkinMutation.mutateAsync(scan.qrCode);
+          setResult({ success: true, message: t('scan.success') });
+          break;
+
+        case 'invalid':
+          // A structured payload we recognise but can't act on (a GROUP_INVITE
+          // with no code) or don't recognise at all. Previously these fell
+          // through to check-in and came back as "Activity not found" — an
+          // activity error for something that was never an activity.
+          await showFailure(t('scan.invalidQR'));
+          break;
       }
     } catch (err: any) {
-      const msg = err?.message || err?.data?.message || t('scan.failed');
-      setResult({ success: false, message: msg });
-      try {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      } catch {}
+      await showFailure(err?.message || err?.data?.message || t('scan.failed'));
     }
   };
 

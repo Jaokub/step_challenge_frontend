@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../../src/contexts/ThemeContext';
-import { AppText, EmptyState, Skeleton, PeriodPillSelector } from '../../../src/components';
+import { AppText, EmptyState, Skeleton, PeriodPillSelector, MemberRankRow } from '../../../src/components';
 import { spacing } from '../../../src/constants/theme';
 import { useGroupOverview } from '../../../src/features/group/useGroupOverview';
 import { GroupOverallStatCard } from '../../../src/features/group/GroupOverallStatCard';
@@ -49,15 +49,12 @@ export default function GroupDescendantOverviewScreen() {
 
   const renderRow = (item: GroupRankingRow) => (
     <View key={item.id} style={[styles.rankRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-      <AppText variant="body-bold" style={[styles.rankNum, { color: colors.textSecondary }]}>
-        {item.rank}
-      </AppText>
-      <AppText variant="body-medium" style={[styles.rankName, { color: colors.textPrimary }]} numberOfLines={1}>
-        {item.fullName}
-      </AppText>
-      <AppText variant="heading-bold" style={[styles.rankSteps, { color: colors.textPrimary }]}>
-        {(item.steps ?? 0).toLocaleString()}
-      </AppText>
+      <MemberRankRow
+        rank={item.rank}
+        name={item.fullName}
+        steps={item.steps ?? 0}
+        groups={item.groups}
+      />
     </View>
   );
 
@@ -131,7 +128,5 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 11, lineHeight: 13, marginTop: 1 },
   listContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing['4xl'], gap: spacing.sm },
   rankRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: 18, borderWidth: 1, padding: 11 },
-  rankNum: { width: 14, textAlign: 'center', fontSize: 13, lineHeight: 15 },
-  rankName: { flex: 1, fontSize: 13, lineHeight: 15 },
-  rankSteps: { fontSize: 13, lineHeight: 15 },
+  // rank/name/steps styling now lives in MemberRankRow.
 });

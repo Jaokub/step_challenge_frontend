@@ -10,17 +10,13 @@ export interface LeaderboardUser {
   rank: number;
 }
 
+/**
+ * ⛔ No `getGlobalLeaderboard` here — the endpoint was deleted on 2026-08-03
+ * (TEST_FINDINGS F2), two weeks after `app/leaderboard.tsx`, the only screen
+ * that ever called it, was removed on privacy grounds. Every leaderboard is
+ * scoped: to your friends, or to a group you can see.
+ */
 const leaderboardService = {
-  getGlobalLeaderboard: async (limit = 10) => {
-    try {
-      const response = await api.get(`/leaderboard/global?limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      console.error('getGlobalLeaderboard error', error);
-      throw error;
-    }
-  },
-
   getFriendsLeaderboard: async (params?: { startDate?: string, endDate?: string }) => {
     try {
       const activeParams = Object.fromEntries(Object.entries(params || {}).filter(([_, v]) => v !== undefined));

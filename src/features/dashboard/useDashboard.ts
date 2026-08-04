@@ -179,13 +179,22 @@ export function useDashboard(colors: any) {
     date: formatDate(act.startDate, i18n.language, 'weekday'),
   }));
 
+  // Ranked by STEPS, matching the figure each row renders (StepsValue) and
+  // the order the backend already returned.
+  //
+  // This used to sort by `points ?? totalPoints`, which silently re-ordered
+  // the backend's step ranking by the dormant points ledger and then renumbered
+  // ranks 1..N from that. Because the rows display steps, the result read as
+  // plainly broken — rank 1 with 8,000 steps above rank 2 with 12,000 — while
+  // being a sort-key bug, not a data bug. Fixed 2026-08-03; see
+  // TEST_FINDINGS F15. The `points` field is gone from the row shape entirely
+  // so there is nothing left to accidentally sort by.
   const currentLeaderboard = [...leaderboardData]
-    .sort((a: any, b: any) => (b.points ?? b.totalPoints ?? 0) - (a.points ?? a.totalPoints ?? 0))
+    .sort((a: any, b: any) => (b.steps ?? 0) - (a.steps ?? 0))
     .map((u: any, idx: number) => ({
       id: u.id,
       rank: idx + 1,
       name: u.fullName || u.name,
-      points: u.points ?? u.totalPoints ?? 0,
       isMe: user?.id === u.id,
       steps: u.steps || 0,
       distance: u.distance || 0,

@@ -140,7 +140,8 @@
     "addFriendDesc": "แสกน QR เพื่อเพิ่มเพื่อนใหม่",
     "registerEventTitle": "ลงทะเบียน Event",
     "registerEventDesc": "แสกนเพื่อเข้าร่วมกิจกรรม",
-    "friendRequestSent": "ส่งคำขอเป็นเพื่อนแล้ว!"
+    "friendRequestSent": "ส่งคำขอเป็นเพื่อนแล้ว!",
+    "groupJoined": "เข้าร่วมกลุ่มแล้ว!"
   },
   "groups": {
     "yesterday": "เมื่อวาน",
@@ -236,7 +237,10 @@
     "parentSectionTitle": "กลุ่มแม่",
     "siblingsSectionTitle": "กลุ่มพี่น้อง",
     "childGroupsSectionTitle": "กลุ่มลูก",
-    "top3Members": "Top 3 สมาชิก"
+    "top3Members": "Top 3 สมาชิก",
+    "badgeOverflow": "+{{count}}",
+    "noSubgroup": "ไม่ได้อยู่กลุ่มย่อย",
+    "childGroupRanking": "อันดับกลุ่มย่อย"
   },
   "profile": {
     "title": "โปรไฟล์",

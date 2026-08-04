@@ -44,6 +44,12 @@ export interface GroupMember {
 
 // ─── Hierarchy overview ────────────────────────────────────────────────────
 
+/** A sub-group badge on a ranking row (ADR-003). */
+export interface RankingRowGroup {
+  id: string;
+  name: string;
+}
+
 export interface GroupRankingRow {
   id: string;
   fullName: string;
@@ -55,6 +61,14 @@ export interface GroupRankingRow {
   calories?: number;
   distance?: number;
   rank: number;
+  /**
+   * Sub-groups of the group being viewed that this person belongs to.
+   * Empty on a leaf group, so the UI can hide the column without knowing the
+   * tree shape. Optional because a cached response from before ADR-003 will
+   * not have it. NOT the same as `department`, which is free text the user
+   * typed at sign-up and may contradict their actual memberships.
+   */
+  groups?: RankingRowGroup[];
 }
 
 export interface GroupOverallStats {
@@ -89,13 +103,21 @@ export interface PeriodStats {
   today: PeriodBucket;
   week: PeriodBucket;
   month: PeriodBucket;
-  memberCount: number;
+  /**
+   * Deduplicated members across the group's whole SUBTREE (ADR-003) — not the
+   * same figure as `AppGroup._count.members`, which counts direct members and
+   * is what `groups.memberCountLabel` renders elsewhere. Rendering this one
+   * through that label would show the same group as both "500" and "3".
+   */
+  subtreeMemberCount: number;
 }
 
 export interface RelationTop3Row {
   rank: number;
   name: string;
   steps: number;
+  /** Sub-groups of the previewed group this member belongs to (ADR-003). */
+  groups?: RankingRowGroup[];
 }
 
 // Sibling/parent relation-card data: a group's 3-window stats + a bounded
@@ -116,8 +138,26 @@ export interface ChildRankingRow {
 
 // GET /groups/:id/children — frame 20's full list.
 export interface ChildRanking {
+  /**
+   * Plain sum ACROSS the child groups, used to scale the rows against each
+   * other. NOT the group's own total — that is `periodStats` from
+   * `getGroupOwnOverview`, which deduplicates across the subtree and is
+   * therefore smaller. Never present this as the group's headline figure
+   * (ADR-003).
+   */
   stats: { today: PeriodBucket; week: PeriodBucket; month: PeriodBucket };
   ranking: ChildRankingRow[];
+  /**
+   * Members of the group who are in NONE of its child groups — the "left
+   * over" row under the ranked list. Not a group, so it carries no rank and
+   * no id. Absent on responses from before ADR-003.
+   */
+  directOnlyMembers?: {
+    today: PeriodBucket;
+    week: PeriodBucket;
+    month: PeriodBucket;
+    count: number;
+  };
 }
 
 /** One of the three windows a relation card's Top-3 can be ranked by. */

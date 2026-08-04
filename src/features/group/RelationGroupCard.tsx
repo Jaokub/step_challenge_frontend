@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { AppText, Skeleton } from '../../components';
+import { AppText, Skeleton, MemberRankRow } from '../../components';
 import { useTheme } from '../../contexts/ThemeContext';
 import { gradients, dashboardAccents } from '../../constants/theme';
 import type { PeriodBucket } from '../../types';
@@ -11,6 +11,8 @@ export interface RelationTop3Item {
   rank: number;
   name: string;
   steps: number;
+  /** Sub-groups of the card's group that this member belongs to (ADR-003). */
+  groups?: { id: string; name: string }[];
   onPress?: () => void;
 }
 
@@ -142,15 +144,13 @@ export default function RelationGroupCard({ title, stats, top3Label, top3 = [], 
                 {...(row.onPress ? { onPress: row.onPress, activeOpacity: 0.7 } : {})}
                 style={[styles.top3Row, { backgroundColor: insetBg }]}
               >
-                <AppText variant="body-bold" style={[styles.top3Rank, { color: colors.textSecondary }]}>
-                  {row.rank}
-                </AppText>
-                <AppText variant="body-medium" style={[styles.top3Name, { color: colors.textPrimary }]} numberOfLines={1}>
-                  {row.name}
-                </AppText>
-                <AppText variant="body-bold" style={[styles.top3Steps, { color: colors.textPrimary }]}>
-                  {row.steps.toLocaleString()}
-                </AppText>
+                <MemberRankRow
+                  rank={row.rank}
+                  name={row.name}
+                  steps={row.steps}
+                  groups={row.groups}
+                  compact
+                />
               </RowWrapper>
             );
           })}
@@ -173,7 +173,5 @@ const styles = StyleSheet.create({
   viewAll: { fontSize: 11, fontWeight: '700' as any },
   // Mockup: border-radius:14px;padding:9px 11px
   top3Row: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, paddingVertical: 9, paddingHorizontal: 11 },
-  top3Rank: { width: 12, fontSize: 12.5, lineHeight: 15 },
-  top3Name: { flex: 1, fontSize: 12.5, lineHeight: 15 },
-  top3Steps: { fontSize: 12.5, lineHeight: 15 },
+  // rank/name/steps styling now lives in MemberRankRow (`compact`).
 });
